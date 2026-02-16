@@ -121,24 +121,24 @@ export default function DesignStudioPage() {
       <div className="flex-1 overflow-hidden relative flex flex-col">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col flex-1">
           <div className="backdrop-blur-xl bg-card/50 border-b border-white/20 px-4 sm:px-6 lg:px-8">
-            <TabsList className="w-full justify-start border-b-0 bg-transparent p-0 h-12">
+            <TabsList className="w-full justify-start md:justify-center border-b-0 bg-transparent p-0 h-12 gap-2">
               <TabsTrigger 
                 value="setup" 
-                className="gap-2 h-full rounded-none border-b-2 border-transparent data-[state=active]:bg-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-muted-foreground px-6"
+                className="gap-2 h-10 rounded-full data-[state=active]:bg-primary/20 data-[state=active]:text-primary-foreground text-muted-foreground px-8 min-w-[160px] transition-all"
               >
                 <Settings className="w-4 h-4" />
                 Room Setup
               </TabsTrigger>
               <TabsTrigger 
                 value="2d" 
-                className="gap-2 h-full rounded-none border-b-2 border-transparent data-[state=active]:bg-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-muted-foreground px-6"
+                className="gap-2 h-10 rounded-full data-[state=active]:bg-primary/20 data-[state=active]:text-primary-foreground text-muted-foreground px-8 min-w-[160px] transition-all"
               >
                 <Layout className="w-4 h-4" />
                 2D Layout
               </TabsTrigger>
               <TabsTrigger 
                 value="3d" 
-                className="gap-2 h-full rounded-none border-b-2 border-transparent data-[state=active]:bg-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-muted-foreground px-6"
+                className="gap-2 h-10 rounded-full data-[state=active]:bg-primary/20 data-[state=active]:text-primary-foreground text-muted-foreground px-8 min-w-[160px] transition-all"
               >
                 <Box className="w-4 h-4" />
                 3D Visualization
