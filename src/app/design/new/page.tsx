@@ -1,41 +1,163 @@
 "use client";
 
-import { useEffect } from 'react';
-import { RoomSetup } from '@/components/design/RoomSetup';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from "next/link";
 import { useDesign, Design } from '@/lib/design-context';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RoomSetup } from '@/components/design/RoomSetup';
+import { Layout2D } from '@/components/design/Layout2D';
+import { Visualization3D } from '@/components/design/Visualization3D';
+import { ArrowLeft, Save, Settings, Layout, Box } from 'lucide-react';
+import { toast } from 'sonner';
 
-export default function NewDesignPage() {
-  const { setCurrentDesign } = useDesign();
+export default function DesignStudioPage() {
+  // Always work with 'new' for now, or existing context
+  const router = useRouter();
+  const { currentDesign, setCurrentDesign, saveDesign } = useDesign();
+  const [activeTab, setActiveTab] = useState('setup');
 
   useEffect(() => {
-    // Initialize a new design
-    const newDesign: Design = {
-      id: Date.now().toString(),
-      name: 'Untitled Design',
-      customerName: '',
-      room: {
-        width: 5,
-        length: 4,
-        height: 2.7,
-        wallColor: '#354840',
-        floorColor: '#D4A574',
-      },
-      furniture: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    setCurrentDesign(newDesign);
-  }, [setCurrentDesign]);
+    // If no design exists, initialize a new one
+    if (!currentDesign) {
+      const newDesign: Design = {
+        id: Date.now().toString(),
+        name: 'Untitled Design',
+        customerName: '',
+        room: {
+          width: 5,
+          length: 4,
+          height: 2.7,
+          wallColor: '#354840',
+          floorColor: '#D4A574',
+        },
+        furniture: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      setCurrentDesign(newDesign);
+    }
+  }, [currentDesign, setCurrentDesign]);
+
+  const handleSave = () => {
+    if (!currentDesign) return;
+
+    if (!currentDesign.name || currentDesign.name === 'Untitled Design') {
+      toast.error('Please enter a design name');
+      setActiveTab('setup');
+      return;
+    }
+
+    if (!currentDesign.customerName) {
+      toast.error('Please enter a customer name');
+      setActiveTab('setup');
+      return;
+    }
+
+    saveDesign(currentDesign);
+    toast.success('Design saved successfully!');
+  };
+
+  if (!currentDesign) {
+    return null;
+  }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto py-8">
-        <h1 className="text-3xl font-bold mb-6 text-center">Create New Design</h1>
-        <div className="h-[800px] border rounded-lg overflow-hidden relative">
-           <div className="absolute inset-0">
-             <RoomSetup />
-           </div>
+    <div className="min-h-screen flex flex-col relative bg-background text-foreground">
+      {/* Background grid pattern */}
+      <div className="fixed inset-0 opacity-5 pointer-events-none">
+        {Array.from({ length: 10 }).map((_, i) => (
+          <div
+            key={i}
+            className="absolute top-0 bottom-0 w-px bg-white"
+            style={{ left: `${(i + 1) * 10}%` }}
+          />
+        ))}
+      </div>
+
+      {/* Decorative gradient orbs */}
+      <div className="fixed top-0 left-0 w-[600px] h-[600px] bg-primary/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-accent/10 rounded-full blur-3xl pointer-events-none" />
+
+      {/* Header */}
+      <header className="backdrop-blur-xl bg-card/70 border-b border-white/20 sticky top-0 z-20 shadow-lg shadow-black/10">
+        <div className="px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Link href="/">
+                <Button 
+                  variant="ghost" 
+                  className="text-white hover:bg-white/10"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Dashboard
+                </Button>
+              </Link>
+              <div className="h-6 w-px bg-white/20" />
+              <div>
+                <h1 className="text-lg font-semibold text-white">
+                  {currentDesign.name}
+                </h1>
+                {currentDesign.customerName && (
+                  <p className="text-sm text-muted-foreground">
+                    For: {currentDesign.customerName}
+                  </p>
+                )}
+              </div>
+            </div>
+            <Button 
+              onClick={handleSave} 
+              className="bg-primary hover:bg-primary/90 text-white"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              Save Design
+            </Button>
+          </div>
         </div>
+      </header>
+
+      {/* Main Content */}
+      <div className="flex-1 overflow-hidden relative flex flex-col">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col flex-1">
+          <div className="backdrop-blur-xl bg-card/50 border-b border-white/20 px-4 sm:px-6 lg:px-8">
+            <TabsList className="w-full justify-start border-b-0 bg-transparent p-0 h-12">
+              <TabsTrigger 
+                value="setup" 
+                className="gap-2 h-full rounded-none border-b-2 border-transparent data-[state=active]:bg-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-muted-foreground px-6"
+              >
+                <Settings className="w-4 h-4" />
+                Room Setup
+              </TabsTrigger>
+              <TabsTrigger 
+                value="2d" 
+                className="gap-2 h-full rounded-none border-b-2 border-transparent data-[state=active]:bg-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-muted-foreground px-6"
+              >
+                <Layout className="w-4 h-4" />
+                2D Layout
+              </TabsTrigger>
+              <TabsTrigger 
+                value="3d" 
+                className="gap-2 h-full rounded-none border-b-2 border-transparent data-[state=active]:bg-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-muted-foreground px-6"
+              >
+                <Box className="w-4 h-4" />
+                3D Visualization
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <div className="flex-1 overflow-auto bg-transparent">
+            <TabsContent value="setup" className="h-full m-0 p-0">
+              <RoomSetup />
+            </TabsContent>
+            <TabsContent value="2d" className="h-full m-0 p-0">
+              <Layout2D />
+            </TabsContent>
+            <TabsContent value="3d" className="h-full m-0 p-0">
+              <Visualization3D />
+            </TabsContent>
+          </div>
+        </Tabs>
       </div>
     </div>
   );
