@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from "next/link";
 import { useDesign, Design } from '@/lib/design-context';
 import { Button } from '@/components/ui/button';
@@ -14,7 +13,6 @@ import { toast } from 'sonner';
 
 export default function DesignStudioPage() {
   // Always work with 'new' for now, or existing context
-  const router = useRouter();
   const { currentDesign, setCurrentDesign, saveDesign } = useDesign();
   const [activeTab, setActiveTab] = useState('setup');
 

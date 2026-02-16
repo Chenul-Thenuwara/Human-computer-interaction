@@ -24,7 +24,6 @@ export function RoomSetup() {
   // Update local state when currentDesign changes (e.g. initial load)
   useEffect(() => {
     if (currentDesign) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDesignName(currentDesign.name || '');
       setCustomerName(currentDesign.customerName || '');
       setWidth(currentDesign.room.width);
@@ -33,6 +32,7 @@ export function RoomSetup() {
       setWallColor(currentDesign.room.wallColor);
       setFloorColor(currentDesign.room.floorColor);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentDesign?.id]);
 
   // Sync room changes to context
