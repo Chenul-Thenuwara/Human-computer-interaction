@@ -2,25 +2,37 @@
 
 import Image from "next/image";
 import { useState, FormEvent } from "react";
-import { signIn } from "../lib/firebase";
+import { signUp } from "../../lib/firebase";
 import Link from "next/link";
 
-export default function Home() {
+export default function SignUp() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+
     setLoading(true);
     try {
-      const resp = await signIn(email, password);
-      // simple success feedback — you can redirect here
-      alert("Signed in: " + (resp.user?.email ?? "(no-email)"));
+      const resp = await signUp(email, password);
+      alert("Account created: " + (resp.user?.email ?? "(no-email)"));
+      // You can redirect to login or dashboard here
     } catch (err: any) {
-      setError(err?.message ?? "Sign in failed");
+      setError(err?.message ?? "Sign up failed");
     } finally {
       setLoading(false);
     }
@@ -34,10 +46,8 @@ export default function Home() {
             <div className="rounded-full bg-white/6 p-4">
               <Image src="/sofa-icon.svg" alt="logo" width={48} height={48} />
             </div>
-            <h1 className="text-3xl font-semibold">Prism Designer</h1>
-            <p className="text-sm small-muted">
-              Access your furniture design portfolio
-            </p>
+            <h1 className="text-3xl font-semibold">Create Account</h1>
+            <p className="text-sm small-muted">Join Prism Designer today</p>
           </div>
 
           <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-4">
@@ -51,15 +61,7 @@ export default function Home() {
               required
             />
 
-            <div className="flex items-center justify-between">
-              <label className="text-sm">Password</label>
-              <Link
-                href="/forgot-password"
-                className="text-xs text-white/60 hover:text-white/80"
-              >
-                Forgot Password?
-              </Link>
-            </div>
+            <label className="text-sm">Password</label>
             <input
               className="input-ghost rounded-md px-4 py-3 text-sm placeholder:text-white/40"
               placeholder="Enter your password"
@@ -67,6 +69,18 @@ export default function Home() {
               onChange={(e) => setPassword(e.target.value)}
               type="password"
               required
+              minLength={6}
+            />
+
+            <label className="text-sm">Confirm Password</label>
+            <input
+              className="input-ghost rounded-md px-4 py-3 text-sm placeholder:text-white/40"
+              placeholder="Re-enter your password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              type="password"
+              required
+              minLength={6}
             />
 
             <button
@@ -74,18 +88,18 @@ export default function Home() {
               className="btn-accent rounded-md py-3 text-sm font-medium mt-2"
               disabled={loading}
             >
-              {loading ? "Signing in..." : "Sign In"}
+              {loading ? "Creating Account..." : "Sign Up"}
             </button>
 
             {error && <p className="text-xs text-red-300">{error}</p>}
 
             <p className="mt-3 text-center text-xs small-muted">
-              Don't have an account?{" "}
+              Already have an account?{" "}
               <Link
-                href="/signup"
+                href="/"
                 className="text-white/80 hover:text-white underline"
               >
-                Sign Up
+                Sign In
               </Link>
             </p>
           </form>

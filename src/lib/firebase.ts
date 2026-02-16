@@ -1,6 +1,14 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAnalytics, isSupported } from "firebase/analytics";
+import { getAnalytics, isSupported, type Analytics } from "firebase/analytics";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  onAuthStateChanged,
+  signOut as firebaseSignOut,
+} from "firebase/auth";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -16,8 +24,8 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-let analytics;
-
+// Analytics (optional)
+let analytics: Analytics | undefined;
 if (typeof window !== "undefined") {
   isSupported().then((supported) => {
     if (supported) {
@@ -26,4 +34,27 @@ if (typeof window !== "undefined") {
   });
 }
 
-export { app, analytics };
+// Auth
+const auth = getAuth(app);
+
+async function signIn(email: string, password: string) {
+  return signInWithEmailAndPassword(auth, email, password);
+}
+
+async function signUp(email: string, password: string) {
+  return createUserWithEmailAndPassword(auth, email, password);
+}
+
+async function resetPassword(email: string) {
+  return sendPasswordResetEmail(auth, email);
+}
+
+function signOut() {
+  return firebaseSignOut(auth);
+}
+
+function onAuthChange(cb: (user: any) => void) {
+  return onAuthStateChanged(auth, cb);
+}
+
+export { app, analytics, auth, signIn, signUp, resetPassword, signOut, onAuthChange };
