@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Abhaya_Libre, Italiana, Jacques_Francois } from "next/font/google"; // Import specific fonts
+import { Abhaya_Libre, Italiana, Jacques_Francois, Italianno } from "next/font/google"; // Import specific fonts
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { DesignProvider } from "@/lib/design-context";
@@ -23,6 +23,12 @@ const jacquesFrancois = Jacques_Francois({
   variable: "--font-jacques-francois",
 });
 
+const italianno = Italianno({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-italianno",
+});
+
 export const metadata: Metadata = {
   title: "Furniture Visualization App",
   description: "Design your dream room",
@@ -40,7 +46,9 @@ export default function RootLayout({
           "antialiased min-h-screen",
           abhayaLibre.variable,
           italiana.variable,
-          jacquesFrancois.variable
+          jacquesFrancois.variable,
+          italianno.variable,
+          "font-sans"
         )}
       >
         <DesignProvider>

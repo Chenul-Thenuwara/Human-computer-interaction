@@ -2,7 +2,7 @@
 
 :root {
   --font-size: 16px;
-  
+
   /* Prism Furniture Theme Colors */
   --background: #26312D;
   --foreground: #ffffff;
@@ -41,7 +41,7 @@
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: rgba(255, 255, 255, 0.15);
   --sidebar-ring: #758C7B;
-  
+
   /* Gradient colors */
   --gradient-from: #354840;
   --gradient-to: #26312D;
@@ -123,10 +123,15 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  
+
   --font-sans: var(--font-abhaya-libre);
   --font-display: var(--font-italiana);
   --font-heading: var(--font-jacques-francois);
+  --font-script: var(--font-italianno);
+}
+
+.font-script {
+  font-family: var(--font-script);
 }
 
 @layer base {
@@ -135,7 +140,7 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
     background: linear-gradient(120deg, #354840 0%, #26312D 100%);
     min-height: 100vh;
   }
@@ -148,21 +153,21 @@
     font-size: var(--text-2xl);
     font-weight: var(--font-weight-medium);
     line-height: 1.5;
-    font-family: var(--font-display);
+    @apply font-display;
   }
 
   h2 {
     font-size: var(--text-xl);
     font-weight: var(--font-weight-medium);
     line-height: 1.5;
-    font-family: var(--font-heading);
+    @apply font-heading;
   }
 
   h3 {
     font-size: var(--text-lg);
     font-weight: var(--font-weight-medium);
     line-height: 1.5;
-    font-family: var(--font-heading);
+    @apply font-heading;
   }
 
   h4 {
