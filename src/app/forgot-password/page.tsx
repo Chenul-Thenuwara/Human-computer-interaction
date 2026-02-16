@@ -21,8 +21,9 @@ export default function ForgotPassword() {
       await resetPassword(email);
       setSuccess(true);
       setEmail("");
-    } catch (err: any) {
-      setError(err?.message ?? "Failed to send reset email");
+    } catch (err: unknown) {
+      const error = err as { message?: string };
+      setError(error?.message ?? "Failed to send reset email");
     } finally {
       setLoading(false);
     }
@@ -38,7 +39,8 @@ export default function ForgotPassword() {
             </div>
             <h1 className="text-3xl font-semibold">Reset Password</h1>
             <p className="text-sm small-muted text-center">
-              Enter your email and we'll send you a link to reset your password
+              Enter your email and we&apos;ll send you a link to reset your
+              password
             </p>
           </div>
 

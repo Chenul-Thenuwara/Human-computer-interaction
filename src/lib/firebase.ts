@@ -8,6 +8,7 @@ import {
   sendPasswordResetEmail,
   onAuthStateChanged,
   signOut as firebaseSignOut,
+  type User,
 } from "firebase/auth";
 
 // Your web app's Firebase configuration
@@ -53,7 +54,7 @@ function signOut() {
   return firebaseSignOut(auth);
 }
 
-function onAuthChange(cb: (user: any) => void) {
+function onAuthChange(cb: (user: User | null) => void) {
   return onAuthStateChanged(auth, cb);
 }
 

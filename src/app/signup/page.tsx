@@ -31,8 +31,9 @@ export default function SignUp() {
       const resp = await signUp(email, password);
       alert("Account created: " + (resp.user?.email ?? "(no-email)"));
       // You can redirect to login or dashboard here
-    } catch (err: any) {
-      setError(err?.message ?? "Sign up failed");
+    } catch (err: unknown) {
+      const error = err as { message?: string };
+      setError(error?.message ?? "Sign up failed");
     } finally {
       setLoading(false);
     }

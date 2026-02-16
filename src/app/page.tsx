@@ -19,8 +19,9 @@ export default function Home() {
       const resp = await signIn(email, password);
       // simple success feedback — you can redirect here
       alert("Signed in: " + (resp.user?.email ?? "(no-email)"));
-    } catch (err: any) {
-      setError(err?.message ?? "Sign in failed");
+    } catch (err: unknown) {
+      const error = err as { message?: string };
+      setError(error?.message ?? "Sign in failed");
     } finally {
       setLoading(false);
     }
@@ -80,7 +81,7 @@ export default function Home() {
             {error && <p className="text-xs text-red-300">{error}</p>}
 
             <p className="mt-3 text-center text-xs small-muted">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <Link
                 href="/signup"
                 className="text-white/80 hover:text-white underline"
