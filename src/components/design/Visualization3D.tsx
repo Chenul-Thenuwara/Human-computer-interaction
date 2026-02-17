@@ -1,11 +1,9 @@
 "use client";
 
-import { useRef, useEffect } from "react";
-import { Canvas, useThree } from "@react-three/fiber";
-import { OrbitControls, PerspectiveCamera, Environment, ContactShadows } from "@react-three/drei";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls, PerspectiveCamera, Environment } from "@react-three/drei";
 import { useDesign } from "@/lib/design-context";
 import * as THREE from "three";
-import { Card } from "@/components/ui/card";
 
 import { Furniture3D } from "./Furniture3D";
 
