@@ -2,6 +2,7 @@ import { FurnitureItem } from './design-context';
 
 export const furnitureLibrary: Omit<FurnitureItem, 'id' | 'position' | 'rotation'>[] = [
     // Chairs
+    /*
     {
         type: 'chair',
         name: 'Modern Dining Chair',
@@ -29,8 +30,60 @@ export const furnitureLibrary: Omit<FurnitureItem, 'id' | 'position' | 'rotation
         color: '#2D3748',
         imageUrl: 'https://images.unsplash.com/photo-1688578735122-f37256f1b8b0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxvZmZpY2UlMjBjaGFpciUyMGVyZ29ub21pY3xlbnwxfHx8fDE3NzEwODk5NTh8MA&ixlib=rb-4.1.0&q=80&w=1080',
     },
+    */
+    {
+        type: 'chair',
+        name: 'Leather Armchair (3D)',
+        width: 0.9,
+        depth: 0.9,
+        height: 0.9,
+        color: '#8B4513',
+        modelUrl: '/models/leather-chair.glb',
+        imageUrl: 'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsZWF0aGVyJTIwYXJtY2hhaXJ8ZW58MXx8fHwxNzcxMTcxMDUyfDA&ixlib=rb-4.1.0&q=80&w=1080',
+    },
+    {
+        type: 'chair',
+        name: 'Stool (3D)',
+        width: 0.4,
+        depth: 0.4,
+        height: 0.45,
+        color: '#A0826D',
+        modelUrl: '/models/stool.glb',
+        imageUrl: 'https://images.unsplash.com/photo-1503602642458-232111445657?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdG9vbCUyMHdvb2RlbnxlbnwxfHx8fDE3NzExNzEwNTJ8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    },
+    {
+        type: 'chair',
+        name: 'Concept Armchair (3D)',
+        width: 0.9,
+        depth: 0.9,
+        height: 1.0,
+        color: '#607D8B',
+        modelUrl: '/models/arm-chair.glb',
+        imageUrl: 'https://images.unsplash.com/photo-1580480055273-228ff5388ef8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhcm1jaGFpciUyMG1vZGVybnxlbnwxfHx8fDE3NzExNzEwNTN8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    },
+    {
+        type: 'chair',
+        name: 'Green Armchair (3D)',
+        width: 0.85,
+        depth: 0.85,
+        height: 0.95,
+        color: '#2E7D32',
+        modelUrl: '/models/green-arm-chai.glb',
+        imageUrl: 'https://images.unsplash.com/photo-1596162955779-9c8f7b43f0a0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxncmVlbiUyMGFybWNoYWlyfGVufDF8fHx8MTc3MTE3MTA1M3ww&ixlib=rb-4.1.0&q=80&w=1080',
+    },
+    {
+        type: 'chair',
+        name: 'Modern Armchair (3D)',
+        width: 0.8,
+        depth: 0.8,
+        height: 0.9,
+        color: '#37474F',
+        modelUrl: '/models/modern-arm-chair.glb',
+        imageUrl: 'https://images.unsplash.com/photo-1519947486511-46130994dd1c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBhcm1jaGFpciUyMGRhcml8ZW58MXx8fHwxNzcxMTcxMDUzfDA&ixlib=rb-4.1.0&q=80&w=1080',
+    },
 
     // Dining Tables
+    /*
     {
         type: 'dining-table',
         name: 'Rectangular Dining Table',
@@ -40,6 +93,28 @@ export const furnitureLibrary: Omit<FurnitureItem, 'id' | 'position' | 'rotation
         color: '#654321',
         imageUrl: 'https://images.unsplash.com/photo-1652305459885-b7ae40f0d776?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZWN0YW5ndWxhciUyMGRpbmluZyUyMHRhYmxlJTIwd29vZGVufGVufDF8fHx8MTc3MTE3MTA0N3ww&ixlib=rb-4.1.0&q=80&w=1080',
     },
+    */
+    {
+        type: 'dining-table',
+        name: 'Modern Table (3D)',
+        width: 1.6,
+        depth: 0.9,
+        height: 0.75,
+        color: '#fddddd',
+        modelUrl: '/models/table2.glb',
+        imageUrl: 'https://images.unsplash.com/photo-1652305459885-b7ae40f0d776?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZWN0YW5ndWxhciUyMGRpbmluZyUyMHRhYmxlJTIwd29vZGVufGVufDF8fHx8MTc3MTE3MTA0N3ww&ixlib=rb-4.1.0&q=80&w=1080',
+    },
+    {
+        type: 'dining-table',
+        name: 'Study Desk (3D)',
+        width: 1.2,
+        depth: 0.6,
+        height: 0.75,
+        color: '#2D3748',
+        modelUrl: '/models/study-desk.glb',
+        imageUrl: 'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdHVkeSUyMGRlc2t8ZW58MXx8fHwxNzcxMTcxMDUzfDA&ixlib=rb-4.1.0&q=80&w=1080',
+    },
+    /*
     {
         type: 'dining-table',
         name: 'Round Dining Table',
@@ -58,8 +133,10 @@ export const furnitureLibrary: Omit<FurnitureItem, 'id' | 'position' | 'rotation
         color: '#6B4423',
         imageUrl: 'https://images.unsplash.com/photo-1762765685348-4bced247d12c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxleHRlbmRlZCUyMGRpbmluZyUyMHRhYmxlfGVufDF8fHx8MTc3MTE3MTA0OHww&ixlib=rb-4.1.0&q=80&w=1080',
     },
+    */
 
     // Side Tables
+    /*
     {
         type: 'side-table',
         name: 'Nightstand',
@@ -87,8 +164,30 @@ export const furnitureLibrary: Omit<FurnitureItem, 'id' | 'position' | 'rotation
         color: '#704214',
         imageUrl: 'https://images.unsplash.com/photo-1752061289543-de2e7720b029?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb25zb2xlJTIwdGFibGUlMjBlbnRyeXdheXxlbnwxfHx8fDE3NzExNzEwNDh8MA&ixlib=rb-4.1.0&q=80&w=1080',
     },
+    */
+    {
+        type: 'side-table',
+        name: 'Nightstand (3D)',
+        width: 0.5,
+        depth: 0.45,
+        height: 0.6,
+        color: '#8D6E63',
+        modelUrl: '/models/nightstand.glb',
+        imageUrl: 'https://images.unsplash.com/photo-1637947148874-5549202425f3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxuaWdodHN0YW5kJTIwM2R8ZW58MXx8fHwxNzcxMTcxMDU0fDA&ixlib=rb-4.1.0&q=80&w=1080',
+    },
+    {
+        type: 'side-table',
+        name: 'Dressing Table (3D)',
+        width: 1.2,
+        depth: 0.5,
+        height: 1.4, // Including mirror height roughly
+        color: '#F5F5F5',
+        modelUrl: '/models/dressing-table.glb',
+        imageUrl: 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkcmVzc2luZyUyMHRhYmxlfGVufDF8fHx8MTc3MTE3MTA1NHww&ixlib=rb-4.1.0&q=80&w=1080',
+    },
 
     // Sofas
+    /*
     {
         type: 'sofa',
         name: '2-Seater Sofa',
@@ -116,8 +215,40 @@ export const furnitureLibrary: Omit<FurnitureItem, 'id' | 'position' | 'rotation
         color: '#2D3748',
         imageUrl: 'https://images.unsplash.com/photo-1698936061086-2bf99c7b9fc5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxMJTIwc2hhcGVkJTIwc2VjdGlvbmFsJTIwc29mYXxlbnwxfHx8fDE3NzExNzEwNDl8MA&ixlib=rb-4.1.0&q=80&w=1080',
     },
+    */
+    {
+        type: 'sofa',
+        name: 'Classic Sofa (3D)',
+        width: 2.0,
+        depth: 0.9,
+        height: 0.9,
+        color: '#5D4037',
+        modelUrl: '/models/sofa.glb',
+        imageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjbGFzc2ljJTIwbGVhdGhlciUyHNvZmF8ZW58MXx8fHwxNzcxMTcxMDU1fDA&ixlib=rb-4.1.0&q=80&w=1080',
+    },
+    {
+        type: 'sofa',
+        name: 'White Sofa (3D)',
+        width: 2.2,
+        depth: 0.9,
+        height: 0.85,
+        color: '#F5F5F5',
+        modelUrl: '/models/white-sofa.glb',
+        imageUrl: 'https://images.unsplash.com/photo-1695213605556-91e089209587?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3aGl0ZSUyMHNvZmElMjBtb2Rlcm58ZW58MXx8fHwxNzcxMTcxMDU1fDA&ixlib=rb-4.1.0&q=80&w=1080',
+    },
+    {
+        type: 'sofa', // Using Sofa type for Bedroom Set as it's a large set
+        name: 'Bedroom Set (3D)',
+        width: 2.2,
+        depth: 2.4,
+        height: 1.1,
+        color: '#795548',
+        modelUrl: '/models/bedroom set.glb',
+        imageUrl: 'https://images.unsplash.com/photo-1617325247661-675ab4b64ae8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiZWRyb29tJTIwc2V0fGVufDF8fHx8MTc3MTE3MTA1NXww&ixlib=rb-4.1.0&q=80&w=1080',
+    },
 
     // Cabinets
+    /*
     {
         type: 'cabinet',
         name: 'TV Cabinet',
@@ -127,6 +258,18 @@ export const furnitureLibrary: Omit<FurnitureItem, 'id' | 'position' | 'rotation
         color: '#4A4A4A',
         imageUrl: 'https://images.unsplash.com/photo-1565058650109-849d383455ef?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxUViUyMGNhYmluZXQlMjBtZWRpYSUyMGNvbnNvbGV8ZW58MXx8fHwxNzcxMTcxMDUwfDA&ixlib=rb-4.1.0&q=80&w=1080',
     },
+    */
+    {
+        type: 'cabinet',
+        name: 'Closet (3D)',
+        width: 1.0,
+        depth: 0.6,
+        height: 2.0,
+        color: '#8B4513',
+        modelUrl: '/models/closet.glb',
+        imageUrl: 'https://images.unsplash.com/photo-1595515106967-1b0714777a83?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjbG9zZXQlMjB3YXJkcm9iZXxlbnwxfHx8fDE3NzExNzEwNTJ8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    },
+    /*
     {
         type: 'cabinet',
         name: 'Bookshelf',
@@ -145,4 +288,5 @@ export const furnitureLibrary: Omit<FurnitureItem, 'id' | 'position' | 'rotation
         color: '#8B7355',
         imageUrl: 'https://images.unsplash.com/photo-1603308171650-d29647fef828?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdG9yYWdlJTIwY2FiaW5ldCUyMHRhbGx8ZW58MXx8fHwxNzcxMTcxMDUwfDA&ixlib=rb-4.1.0&q=80&w=1080',
     },
+    */
 ];

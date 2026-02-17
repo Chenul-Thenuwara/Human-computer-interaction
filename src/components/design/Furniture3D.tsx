@@ -72,7 +72,20 @@ function ModelLoader({ url, width, height, depth }: { url: string, width: number
   // But usually we just want to match the largest dimension or plausible scale.
   // Let's compute the bounding box of the model.
   const { scale, centerOffset } = useMemo(() => {
-    const box = new THREE.Box3().setFromObject(clonedScene);
+    const box = new THREE.Box3();
+    
+    // Traverse and expand box only for meshes to avoid including lights/cameras
+    clonedScene.traverse((obj) => {
+      if ((obj as THREE.Mesh).isMesh) {
+        box.expandByObject(obj);
+      }
+    });
+
+    // Fallback if no meshes found
+    if (box.isEmpty()) {
+      box.setFromObject(clonedScene);
+    }
+
     const size = new THREE.Vector3();
     box.getSize(size);
     const center = new THREE.Vector3();
