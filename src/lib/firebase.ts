@@ -59,3 +59,4 @@ function onAuthChange(cb: (user: User | null) => void) {
 }
 
 export { app, analytics, auth, signIn, signUp, resetPassword, signOut, onAuthChange };
+export type { User };
