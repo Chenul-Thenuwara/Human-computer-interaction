@@ -22,6 +22,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      localStorage.removeItem("loginTime");
+      setUser(null);
+      router.push("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
   useEffect(() => {
     // Subscribe to auth state changes
     const unsubscribe = onAuthChange((user) => {
@@ -54,18 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => unsubscribe();
-  }, []);
-
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      localStorage.removeItem("loginTime");
-      setUser(null);
-      router.push("/login");
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-  };
+  }, [handleLogout]);
 
   return (
     <AuthContext.Provider value={{ user, loading, logout: handleLogout }}>

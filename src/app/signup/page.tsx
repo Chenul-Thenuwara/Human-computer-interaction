@@ -39,7 +39,7 @@ export default function SignUp() {
 
     setLoading(true);
     try {
-      const resp = await signUp(email, password);
+      await signUp(email, password);
       // Set login timestamp in localStorage
       localStorage.setItem("loginTime", Date.now().toString());
       // Redirect to design page after successful signup

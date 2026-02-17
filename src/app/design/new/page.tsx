@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useDesign, Design } from "@/lib/design-context";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
@@ -19,7 +18,6 @@ export default function DesignStudioPage() {
   const { currentDesign, setCurrentDesign, saveDesign } = useDesign();
   const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState("setup");
-  const router = useRouter();
 
   useEffect(() => {
     // If no design exists, initialize a new one
