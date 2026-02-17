@@ -1,52 +1,126 @@
 @import "tailwindcss";
 
-:root {
-  --bg-dark-1: #10251f; /* deep green */
-  --bg-dark-2: #0b211b; /* darker */
-  --card-bg: rgba(18, 39, 34, 0.6);
-  --card-border: rgba(255,255,255,0.08);
-  --accent: #9fbda9; /* soft sage */
-  --muted: rgba(255,255,255,0.55);
+@theme {
+  --font-sans: var(--font-abhaya-libre), serif;
+  --font-serif: var(--font-italiana), serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-display: var(--font-italiana), serif;
+  --font-body: var(--font-abhaya-libre), serif;
+  --font-heading: var(--font-jacques-francois), serif;
+  --font-hand: var(--font-italianno), cursive;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-dark-1: #0c1f19;
-    --bg-dark-2: #071611;
-  }
+:root {
+  /* Base colors - Dark Mode Default */
+  --background: #10251f;
+  /* deep green */
+  --foreground: #e6efe8;
+
+  --card: rgba(18, 39, 34, 0.6);
+  --card-foreground: #e6efe8;
+
+  --popover: #0b211b;
+  --popover-foreground: #e6efe8;
+
+  --primary: #9fbda9;
+  /* soft sage */
+  --primary-foreground: #071611;
+
+  --secondary: rgba(255, 255, 255, 0.1);
+  --secondary-foreground: #e6efe8;
+
+  --muted: rgba(255, 255, 255, 0.1);
+  --muted-foreground: rgba(255, 255, 255, 0.55);
+
+  --accent: #9fbda9;
+  --accent-foreground: #071611;
+
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+
+  --border: rgba(255, 255, 255, 0.15);
+  --input: rgba(255, 255, 255, 0.15);
+  /* fixed input border visibility */
+  --ring: #9fbda9;
+
+  --radius: 0.5rem;
+
+  /* Legacy custom vars mapping */
+  --bg-dark-1: #10251f;
+  --bg-dark-2: #0b211b;
+  --card-bg: var(--card);
+  --card-border: var(--border);
 }
 
 body {
-  font-family: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI",
-    Roboto, "Helvetica Neue", Arial;
-  background-color: var(--bg-dark-1);
-  color: #e6efe8;
+  font-family: var(--font-abhaya-libre), system-ui, sans-serif;
+  background-color: var(--background);
+  color: var(--foreground);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-image: radial-gradient(ellipse at 30% 10%, rgba(159,189,169,0.05), transparent 20%),
-    linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-image: radial-gradient(ellipse at 30% 10%, rgba(159, 189, 169, 0.05), transparent 20%),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
   background-size: 100% 100%, 80px 100%, 100% 80px;
 }
 
-/* Login card local styles to complement Tailwind */
+/* Typography Hierarchy */
+h1 {
+  font-family: var(--font-italiana), serif;
+}
+
+h2,
+h3 {
+  font-family: var(--font-jacques-francois), serif;
+}
+
+/* Custom Utilities */
 .login-card {
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.18));
-  background-color: var(--card-bg);
-  border: 1px solid rgba(255,255,255,0.06);
-  box-shadow: 0 8px 30px rgba(2,6,2,0.6);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.18));
+  background-color: var(--card);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 8px 30px rgba(2, 6, 2, 0.6);
+}
+
+/* Ensure inputs have background */
+.bg-input-background {
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .input-ghost {
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .btn-accent {
-  background: var(--accent);
-  color: rgba(7,11,7,0.95);
+  background: var(--primary);
+  color: var(--primary-foreground);
 }
 
-.small-muted { color: var(--muted); }
-
+.small-muted {
+  color: var(--muted-foreground);
+}
