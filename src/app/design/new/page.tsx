@@ -88,9 +88,9 @@ export default function DesignStudioPage() {
           ))}
         </div>
 
-        {/* Decorative gradient orbs */}
-        <div className="fixed top-0 left-0 w-150 h-150 bg-primary/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="fixed bottom-0 right-0 w-125 h-125 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
+      {/* Decorative gradient orbs */}
+      <div className="fixed top-0 left-0 w-[600px] h-[600px] bg-primary/15 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-accent/10 rounded-full blur-3xl pointer-events-none"></div>
 
         {/* Header */}
         <header className="backdrop-blur-xl bg-card/70 border-b border-white/20 sticky top-0 z-20 shadow-lg shadow-black/10">
@@ -172,18 +172,18 @@ export default function DesignStudioPage() {
               </TabsList>
             </div>
 
-            <div className="flex-1 overflow-auto bg-transparent">
-              <TabsContent value="setup" className="h-full m-0 p-0">
-                <RoomSetup />
-              </TabsContent>
-              <TabsContent value="2d" className="h-full m-0 p-0">
-                <Layout2D />
-              </TabsContent>
-              <TabsContent value="3d" className="h-full m-0 p-0">
-                <Visualization3D />
-              </TabsContent>
-            </div>
-          </Tabs>
+          <div className="flex-1 min-h-0 bg-transparent flex flex-col relative">
+            <TabsContent value="setup" className="h-full m-0 p-0 mt-0 overflow-auto">
+              <RoomSetup />
+            </TabsContent>
+            <TabsContent value="2d" className="h-full m-0 p-0 mt-0 overflow-hidden">
+              <Layout2D />
+            </TabsContent>
+            <TabsContent value="3d" className="h-full m-0 p-0 mt-0">
+              <Visualization3D />
+            </TabsContent>
+          </div>
+        </Tabs>
         </div>
       </div>
     </ProtectedRoute>
