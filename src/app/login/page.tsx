@@ -2,15 +2,14 @@
 
 import Image from "next/image";
 import { useState, FormEvent, useEffect } from "react";
-import { signUp } from "../../lib/firebase";
+import { signIn } from "../../lib/firebase";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 
-export default function SignUp() {
+export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -26,27 +25,17 @@ export default function SignUp() {
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return;
-    }
-
     setLoading(true);
+
     try {
-      const resp = await signUp(email, password);
+      await signIn(email, password);
       // Set login timestamp in localStorage
       localStorage.setItem("loginTime", Date.now().toString());
-      // Redirect to design page after successful signup
+      // Redirect to design page after successful login
       router.push("/design/new");
     } catch (err: unknown) {
       const error = err as { message?: string };
-      setError(error?.message ?? "Sign up failed");
+      setError(error?.message ?? "Login failed");
     } finally {
       setLoading(false);
     }
@@ -60,8 +49,8 @@ export default function SignUp() {
             <div className="rounded-full bg-white/6 p-4">
               <Image src="/sofa-icon.svg" alt="logo" width={48} height={48} />
             </div>
-            <h1 className="text-3xl font-semibold">Create Account</h1>
-            <p className="text-sm small-muted">Join Prism Designer today</p>
+            <h1 className="text-3xl font-semibold">Welcome Back</h1>
+            <p className="text-sm small-muted">Sign in to Prism Designer</p>
           </div>
 
           <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-4">
@@ -83,37 +72,31 @@ export default function SignUp() {
               onChange={(e) => setPassword(e.target.value)}
               type="password"
               required
-              minLength={6}
             />
 
-            <label className="text-sm">Confirm Password</label>
-            <input
-              className="input-ghost rounded-md px-4 py-3 text-sm placeholder:text-white/40"
-              placeholder="Re-enter your password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              type="password"
-              required
-              minLength={6}
-            />
+            <div className="flex justify-end">
+              <Link
+                href="/forgot-password"
+                className="text-xs text-blue-400 hover:underline"
+              >
+                Forgot Password?
+              </Link>
+            </div>
 
             <button
               type="submit"
               className="btn-accent rounded-md py-3 text-sm font-medium mt-2"
               disabled={loading}
             >
-              {loading ? "Creating Account..." : "Sign Up"}
+              {loading ? "Signing In..." : "Sign In"}
             </button>
 
             {error && <p className="text-xs text-red-300">{error}</p>}
 
             <p className="mt-3 text-center text-xs small-muted">
-              Already have an account?{" "}
-              <Link
-                href="/"
-                className="text-white/80 hover:text-white underline"
-              >
-                Sign In
+              Don&apos;t have an account?{" "}
+              <Link href="/signup" className="text-blue-400 hover:underline">
+                Sign up
               </Link>
             </p>
           </form>
