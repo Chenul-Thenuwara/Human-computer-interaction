@@ -13,6 +13,7 @@ export interface FurnitureItem {
   imageUrl?: string;
   position?: { x: number; y: number };
   rotation?: number;
+  modelUrl?: string;
 }
 
 export interface Room {

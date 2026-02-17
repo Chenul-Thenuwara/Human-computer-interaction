@@ -144,14 +144,14 @@ export default function DesignStudioPage() {
             </TabsList>
           </div>
 
-          <div className="flex-1 overflow-auto bg-transparent">
-            <TabsContent value="setup" className="h-full m-0 p-0">
+          <div className="flex-1 min-h-0 bg-transparent flex flex-col relative">
+            <TabsContent value="setup" className="h-full m-0 p-0 mt-0 overflow-auto">
               <RoomSetup />
             </TabsContent>
-            <TabsContent value="2d" className="h-full m-0 p-0">
+            <TabsContent value="2d" className="h-full m-0 p-0 mt-0 overflow-hidden">
               <Layout2D />
             </TabsContent>
-            <TabsContent value="3d" className="h-full m-0 p-0">
+            <TabsContent value="3d" className="h-full m-0 p-0 mt-0">
               <Visualization3D />
             </TabsContent>
           </div>
