@@ -10,7 +10,7 @@ interface Furniture3DProps {
 }
 
 export function Furniture3D({ item }: Furniture3DProps) {
-  const { type, width, depth, height, color, modelUrl, rotation = 0 } = item;
+  const { type, width, depth, height, color, modelUrl, rotation = 0, elevation = 0, modelRotationOffset = [0, 0, 0] } = item;
 
   // Convert material (for procedural fallback)
   const material = useMemo(() => {
@@ -28,7 +28,8 @@ export function Furniture3D({ item }: Furniture3DProps) {
           url={modelUrl} 
           width={width} 
           height={height} 
-          depth={depth} 
+          depth={depth}
+          rotationOffset={modelRotationOffset} 
         />
       );
     }
@@ -44,6 +45,12 @@ export function Furniture3D({ item }: Furniture3DProps) {
         return <SofaGeometry width={width} depth={depth} height={height} material={material} />;
       case 'cabinet':
         return <CabinetGeometry width={width} depth={depth} height={height} material={material} />;
+      case 'clock':
+        return <ClockGeometry radius={width / 2} depth={depth} material={material} />;
+      case 'picture-frame':
+        return <PictureFrameGeometry width={width} height={height} depth={depth} material={material} />;
+      case 'fireplace':
+        return <CabinetGeometry width={width} depth={depth} height={height} material={material} />;
       default:
         return (
           <mesh castShadow receiveShadow position={[0, height / 2, 0]}>
@@ -57,13 +64,14 @@ export function Furniture3D({ item }: Furniture3DProps) {
   return (
     <group 
       rotation={[0, -(rotation * Math.PI) / 180, 0]} 
+      position={[0, elevation, 0]}
     >
       {renderContent()}
     </group>
   );
 }
 
-function ModelLoader({ url, width, height, depth }: { url: string, width: number, height: number, depth: number }) {
+function ModelLoader({ url, width, height, depth, rotationOffset = [0, 0, 0] }: { url: string, width: number, height: number, depth: number, rotationOffset?: [number, number, number] }) {
   const { scene } = useGLTF(url);
   const clonedScene = useMemo(() => scene.clone(), [scene]);
 
@@ -98,22 +106,27 @@ function ModelLoader({ url, width, height, depth }: { url: string, width: number
     // We want the model's dimensions to roughly match the target furniture dimensions.
     // However, stretching it non-uniformly might look bad.
     // Let's scale uniformly to fit the target bounding box as best as possible without exceeding it.
+    
+    // Check if rotated 90 degrees around X-axis (approx)
+    const isRotatedX = Math.abs(rotationOffset[0] - Math.PI / 2) < 0.1;
+
     const scaleX = width / size.x;
-    const scaleY = height / size.y;
-    const scaleZ = depth / size.z;
+    const scaleY = (isRotatedX ? depth : height) / size.y;
+    const scaleZ = (isRotatedX ? height : depth) / size.z;
     const scaleFactor = Math.min(scaleX, scaleY, scaleZ);
 
     return {
       scale: scaleFactor,
       centerOffset: [-center.x * scaleFactor, -box.min.y * scaleFactor, -center.z * scaleFactor] as [number, number, number]
     };
-  }, [clonedScene, width, height, depth]);
+  }, [clonedScene, width, height, depth, rotationOffset]);
 
   return (
     <primitive 
       object={clonedScene} 
       scale={[scale, scale, scale]} 
       position={centerOffset}
+      rotation={rotationOffset}
       castShadow
       receiveShadow
     />
@@ -238,6 +251,54 @@ function CabinetGeometry({ width, depth, height, material }: { width: number, de
         <boxGeometry args={[width, height, depth]} />
         <primitive object={material} attach="material" />
       </mesh>
+    </group>
+  );
+}
+
+function ClockGeometry({ radius, depth, material }: { radius: number, depth: number, material: THREE.Material }) {
+  return (
+    <group rotation={[Math.PI / 2, 0, 0]}>
+      <mesh castShadow receiveShadow>
+        <cylinderGeometry args={[radius, radius, depth, 32]} />
+        <primitive object={material} attach="material" />
+      </mesh>
+      {/* Clock Face Details (simplified) */}
+      <mesh position={[0, depth / 2 + 0.001, 0]} rotation={[0, 0, 0]}>
+        <cylinderGeometry args={[radius * 0.9, radius * 0.9, 0.001, 32]} />
+        <meshStandardMaterial color="#ffffff" />
+      </mesh>
+      {/* Hands */}
+      <mesh position={[0, depth / 2 + 0.002, 0]} rotation={[0, 0, 0]}>
+        <boxGeometry args={[radius * 0.05, 0.001, radius * 0.8]} />
+        <meshStandardMaterial color="#000000" />
+      </mesh>
+      <mesh position={[0, depth / 2 + 0.002, 0]} rotation={[0, Math.PI / 2, 0]}>
+        <boxGeometry args={[radius * 0.05, 0.001, radius * 0.5]} />
+        <meshStandardMaterial color="#000000" />
+      </mesh>
+    </group>
+  );
+}
+
+function PictureFrameGeometry({ width, height, depth, material }: { width: number, height: number, depth: number, material: THREE.Material }) {
+  const frameThickness = Math.min(width, height) * 0.1;
+  
+  return (
+    <group>
+      {/* Frame Background/Backing */}
+      <mesh castShadow receiveShadow>
+        <boxGeometry args={[width, height, depth]} />
+        <primitive object={material} attach="material" />
+      </mesh>
+      
+      {/* Picture Area (White Canvas) */}
+      <mesh position={[0, 0, depth / 2 + 0.001]}>
+        <planeGeometry args={[width - frameThickness * 2, height - frameThickness * 2]} />
+        <meshStandardMaterial color="#f0f0f0" />
+      </mesh>
+
+      {/* Frame Borders (Visual only, handled by backing mesh texture/color mainly but let's add depth if needed) */}
+      {/* For simplicity, the backing mesh acts as the frame, and we just put a "canvas" on top */}
     </group>
   );
 }

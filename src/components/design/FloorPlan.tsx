@@ -142,15 +142,17 @@ export function FloorPlan({ room, furniture, selectedItem, onSelectItem, onUpdat
 
       const itemX = roomX + item.position.x * scale;
       const itemY = roomY + item.position.y * scale;
-      const width = item.width * scale;
-      const height = item.depth * scale;
+      
+      const rotation = item.rotation || 0;
+      const isRotated = rotation % 180 === 90;
+      const itemWidth = (isRotated ? item.depth : item.width) * scale;
+      const itemDepth = (isRotated ? item.width : item.depth) * scale;
 
-      // Simple bounding box check (not accounting for rotation for simplicity)
       if (
-        x >= itemX - width / 2 &&
-        x <= itemX + width / 2 &&
-        y >= itemY - height / 2 &&
-        y <= itemY + height / 2
+        x >= itemX - itemWidth / 2 &&
+        x <= itemX + itemWidth / 2 &&
+        y >= itemY - itemDepth / 2 &&
+        y <= itemY + itemDepth / 2
       ) {
         return item;
       }
@@ -204,8 +206,13 @@ export function FloorPlan({ room, furniture, selectedItem, onSelectItem, onUpdat
     // Constrain to room boundaries
     const item = furniture.find(f => f.id === draggingItem);
     if (item) {
-      const halfWidth = item.width / 2;
-      const halfDepth = item.depth / 2;
+      const rotation = item.rotation || 0;
+      const isRotated = rotation % 180 === 90;
+      const width = isRotated ? item.depth : item.width;
+      const depth = isRotated ? item.width : item.depth;
+      
+      const halfWidth = width / 2;
+      const halfDepth = depth / 2;
       
       newX = Math.max(halfWidth, Math.min(room.width - halfWidth, newX));
       newY = Math.max(halfDepth, Math.min(room.length - halfDepth, newY));
