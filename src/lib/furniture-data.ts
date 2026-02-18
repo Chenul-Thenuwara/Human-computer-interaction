@@ -63,7 +63,7 @@ export const furnitureLibrary: Omit<FurnitureItem, 'id' | 'position' | 'rotation
     },
     {
         type: 'chair',
-        name: 'urban Armchair',
+        name: 'Urban Armchair',
         width: 0.85,
         depth: 0.85,
         height: 0.95,
@@ -272,3 +272,91 @@ export const furnitureLibrary: Omit<FurnitureItem, 'id' | 'position' | 'rotation
     },
     */
 ];
+
+export const wallItems: Omit<FurnitureItem, 'id' | 'position' | 'rotation'>[] = [
+    // {
+    //     type: 'clock',
+    //     name: 'Modern Wall Clock',
+    //     width: 0.4,
+    //     depth: 0.05,
+    //     height: 0.4,
+    //     color: '#333333',
+    //     elevation: 1.8,
+    //     imageUrl: '', // No specific image yet
+    // },
+    {
+        type: 'clock',
+        name: 'Modern Wall Clock (3D)',
+        width: 0.6,
+        depth: 0.1,
+        height: 0.6,
+        color: '#222222',
+        elevation: 1.8,
+        modelUrl: '/models/modern-clock.glb',
+        modelRotationOffset: [Math.PI / 2, 0, 0],
+        imageUrl: '/images/modern-clock.png',
+    },
+    {
+        type: 'clock',
+        name: 'Simple Wall Clock (3D)',
+        width: 0.6,
+        depth: 0.1,
+        height: 0.6,
+        color: '#dddddd',
+        elevation: 1.8,
+        modelUrl: '/models/simple-clock.glb',
+        modelRotationOffset: [Math.PI / 2, 0, 0],
+        imageUrl: '/images/simple-clock.png',
+    },
+    // {
+    //     type: 'picture-frame',
+    //     name: 'Classic Picture Frame',
+    //     width: 0.6,
+    //     depth: 0.05,
+    //     height: 0.8,
+    //     color: '#8B4513',
+    //     elevation: 1.6,
+    //     imageUrl: '', // No specific image yet
+    // },
+    {
+        type: 'picture-frame',
+        name: 'Modern Picture (3D)',
+        width: 1.6,
+        depth: 0.05,
+        height: 2.0,
+        color: '#ffffff',
+        elevation: 1.5,
+        modelUrl: '/models/modern-picture.glb',
+        modelRotationOffset: [Math.PI / 2, 0, 0], // Rotate 90 degrees on X to stand up
+        imageUrl: '/images/modern-picture.png',
+    },
+    {
+        type: 'picture-frame',
+        name: 'Classic Frame (3D)',
+        width: 1.2,
+        depth: 0.05,
+        height: 1.6,
+        color: '#8B4513',
+        elevation: 1.5,
+        modelUrl: '/models/frame.glb',
+        modelRotationOffset: [Math.PI / 2, 0, 0], // Rotate 90 degrees on X to stand up
+        imageUrl: '/images/frame.png',
+    },
+];
+
+export const fireplaces: Omit<FurnitureItem, 'id' | 'position' | 'rotation'>[] = [
+    {
+        type: 'fireplace',
+        name: 'Modern Fireplace (3D)',
+        width: 1.2,
+        depth: 0.4,
+        height: 1.0,
+        color: '#2D3748',
+        modelUrl: '/models/fireplace.glb',
+        imageUrl: '/images/modern-fireplace.png',
+    },
+];
+
+// Combine standard furniture with wall items for the main library export if desired,
+// or export them separately. For now, let's append them to furnitureLibrary.
+furnitureLibrary.push(...wallItems, ...fireplaces);

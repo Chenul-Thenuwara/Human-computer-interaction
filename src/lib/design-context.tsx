@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 
 export interface FurnitureItem {
   id: string;
-  type: 'chair' | 'dining-table' | 'side-table' | 'sofa' | 'cabinet';
+  type: 'chair' | 'dining-table' | 'side-table' | 'sofa' | 'cabinet' | 'clock' | 'picture-frame' | 'fireplace';
   name: string;
   width: number;
   depth: number;
@@ -14,6 +14,8 @@ export interface FurnitureItem {
   position?: { x: number; y: number };
   rotation?: number;
   modelUrl?: string;
+  elevation?: number;
+  modelRotationOffset?: [number, number, number];
 }
 
 export interface Room {

@@ -73,6 +73,9 @@ export function Layout2D() {
     'side-table': 'Side Tables',
     'sofa': 'Sofas',
     'cabinet': 'Cabinets',
+    'clock': 'Clocks',
+    'picture-frame': 'Picture Frames',
+    'fireplace': 'Fireplaces',
   };
 
   return (
