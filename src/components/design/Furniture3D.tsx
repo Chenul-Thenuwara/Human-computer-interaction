@@ -1,9 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import * as THREE from "three";
 import { useGLTF } from "@react-three/drei";
 import { FurnitureItem } from "@/lib/design-context";
+import { storage } from "@/lib/firebase";
+import { ref, getDownloadURL } from "firebase/storage";
 
 interface Furniture3DProps {
   item: FurnitureItem;
@@ -11,6 +13,45 @@ interface Furniture3DProps {
 
 export function Furniture3D({ item }: Furniture3DProps) {
   const { type, width, depth, height, color, modelUrl, rotation = 0, elevation = 0, modelRotationOffset = [0, 0, 0] } = item;
+  const [resolvedUrl, setResolvedUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!modelUrl) {
+      setResolvedUrl(null);
+      return;
+    }
+
+    // If it's a full URL or absolute local path, use it directly
+    if (modelUrl.startsWith('http') || modelUrl.startsWith('/')) {
+      setResolvedUrl(modelUrl);
+      return;
+    }
+
+    // Otherwise, treat as Firebase Storage path and resolve it
+    let isMounted = true;
+    const resolveUrl = async () => {
+      try {
+        const storageRef = ref(storage, modelUrl);
+        const url = await getDownloadURL(storageRef);
+        if (isMounted) {
+          // Use our local proxy to bypass CORS
+          const proxyUrl = `/api/model-proxy?url=${encodeURIComponent(url)}`;
+          setResolvedUrl(proxyUrl);
+        }
+      } catch (error) {
+        console.error(`Failed to resolve model URL: ${modelUrl}`, error);
+        if (isMounted) {
+          setResolvedUrl(null);
+        }
+      }
+    };
+
+    resolveUrl();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [modelUrl]);
 
   // Convert material (for procedural fallback)
   const material = useMemo(() => {
@@ -22,16 +63,24 @@ export function Furniture3D({ item }: Furniture3DProps) {
   }, [color]);
 
   const renderContent = () => {
-    if (modelUrl) {
+    if (resolvedUrl) {
       return (
         <ModelLoader 
-          url={modelUrl} 
+          url={resolvedUrl} 
           width={width} 
           height={height} 
           depth={depth}
           rotationOffset={modelRotationOffset} 
         />
       );
+    }
+
+    // Fallback to procedural geometry (same as before) or while loading
+    // If modelUrl exists but not resolved yet, we might want to show nothing or a loader.
+    // But falling back to procedural geometry is a good "loading state" if available.
+    if (modelUrl && !resolvedUrl) {
+        // Optional: return null or a loader? 
+        // Returning procedural fallback allows instant feedback while model loads.
     }
 
     // Fallback to procedural geometry
