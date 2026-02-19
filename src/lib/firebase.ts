@@ -10,6 +10,8 @@ import {
   signOut as firebaseSignOut,
   type User,
 } from "firebase/auth";
+import { getStorage } from "firebase/storage";
+import { getFirestore } from "firebase/firestore";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -37,6 +39,8 @@ if (typeof window !== "undefined") {
 
 // Auth
 const auth = getAuth(app);
+const storage = getStorage(app);
+const db = getFirestore(app);
 
 async function signIn(email: string, password: string) {
   return signInWithEmailAndPassword(auth, email, password);
@@ -58,5 +62,5 @@ function onAuthChange(cb: (user: User | null) => void) {
   return onAuthStateChanged(auth, cb);
 }
 
-export { app, analytics, auth, signIn, signUp, resetPassword, signOut, onAuthChange };
+export { app, analytics, auth, storage, db, signIn, signUp, resetPassword, signOut, onAuthChange };
 export type { User };

@@ -1,5 +1,6 @@
 import { FurnitureItem } from './design-context';
 
+
 export const furnitureLibrary: Omit<FurnitureItem, 'id' | 'position' | 'rotation'>[] = [
     // Chairs
     /*
@@ -38,7 +39,7 @@ export const furnitureLibrary: Omit<FurnitureItem, 'id' | 'position' | 'rotation
         depth: 0.9,
         height: 0.9,
         color: '#8B4513',
-        modelUrl: '/models/leather-chair.glb',
+        modelUrl: 'models/leather-chair.glb',
         imageUrl: 'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsZWF0aGVyJTIwYXJtY2hhaXJ8ZW58MXx8fHwxNzcxMTcxMDUyfDA&ixlib=rb-4.1.0&q=80&w=1080',
     },
     {
@@ -48,7 +49,7 @@ export const furnitureLibrary: Omit<FurnitureItem, 'id' | 'position' | 'rotation
         depth: 0.4,
         height: 0.45,
         color: '#A0826D',
-        modelUrl: '/models/stool.glb',
+        modelUrl: 'models/stool.glb',
         imageUrl: '/images/stool.png',
     },
     {
@@ -58,7 +59,7 @@ export const furnitureLibrary: Omit<FurnitureItem, 'id' | 'position' | 'rotation
         depth: 0.9,
         height: 1.0,
         color: '#607D8B',
-        modelUrl: '/models/arm-chair.glb',
+        modelUrl: 'models/arm-chair.glb',
         imageUrl: '/images/concept-armchair.png',
     },
     {
@@ -68,7 +69,7 @@ export const furnitureLibrary: Omit<FurnitureItem, 'id' | 'position' | 'rotation
         depth: 0.85,
         height: 0.95,
         color: '#2E7D32',
-        modelUrl: '/models/green-arm-chai.glb',
+        modelUrl: 'models/green-arm-chai.glb',
         imageUrl: '/images/green-armchair.png',
     },
 
@@ -92,7 +93,7 @@ export const furnitureLibrary: Omit<FurnitureItem, 'id' | 'position' | 'rotation
         depth: 0.9,
         height: 0.75,
         color: '#fddddd',
-        modelUrl: '/models/table2.glb',
+        modelUrl: 'models/table2.glb',
         imageUrl: '/images/modern-table.png',
     },
     {
@@ -102,7 +103,7 @@ export const furnitureLibrary: Omit<FurnitureItem, 'id' | 'position' | 'rotation
         depth: 0.6,
         height: 0.75,
         color: '#2D3748',
-        modelUrl: '/models/study-desk.glb',
+        modelUrl: 'models/study-desk.glb',
         imageUrl: '/images/study-desk.png',
     },
     /*
@@ -163,7 +164,7 @@ export const furnitureLibrary: Omit<FurnitureItem, 'id' | 'position' | 'rotation
         depth: 0.45,
         height: 0.6,
         color: '#8D6E63',
-        modelUrl: '/models/nightstand.glb',
+        modelUrl: 'models/nightstand.glb',
         imageUrl: '/images/nightstand.png',
     },
 
@@ -205,7 +206,7 @@ export const furnitureLibrary: Omit<FurnitureItem, 'id' | 'position' | 'rotation
         depth: 0.9,
         height: 0.9,
         color: '#5D4037',
-        modelUrl: '/models/sofa.glb',
+        modelUrl: 'models/sofa.glb',
         imageUrl: '/images/classic-sofa.png',
     },
     {
@@ -215,7 +216,7 @@ export const furnitureLibrary: Omit<FurnitureItem, 'id' | 'position' | 'rotation
         depth: 0.9,
         height: 0.85,
         color: '#F5F5F5',
-        modelUrl: '/models/white-sofa.glb',
+        modelUrl: 'models/white-sofa.glb',
         imageUrl: '/images/white-sofa.png',
     },
     {
@@ -225,7 +226,7 @@ export const furnitureLibrary: Omit<FurnitureItem, 'id' | 'position' | 'rotation
         depth: 2.4,
         height: 1.1,
         color: '#795548',
-        modelUrl: '/models/bedroom set.glb',
+        modelUrl: 'models/bedroom set.glb',
         imageUrl: '/images/bedroom-set-1.png',
     },
 
@@ -248,7 +249,7 @@ export const furnitureLibrary: Omit<FurnitureItem, 'id' | 'position' | 'rotation
         depth: 0.6,
         height: 2.0,
         color: '#8B4513',
-        modelUrl: '/models/closet.glb',
+        modelUrl: 'models/closet.glb',
         imageUrl: '/images/closet.png',
     },
     /*
@@ -292,7 +293,7 @@ export const wallItems: Omit<FurnitureItem, 'id' | 'position' | 'rotation'>[] = 
         height: 0.6,
         color: '#222222',
         elevation: 1.8,
-        modelUrl: '/models/modern-clock.glb',
+        modelUrl: 'models/modern-clock.glb',
         modelRotationOffset: [Math.PI / 2, 0, 0],
         imageUrl: '/images/modern-clock.png',
     },
@@ -304,7 +305,7 @@ export const wallItems: Omit<FurnitureItem, 'id' | 'position' | 'rotation'>[] = 
         height: 0.6,
         color: '#dddddd',
         elevation: 1.8,
-        modelUrl: '/models/simple-clock.glb',
+        modelUrl: 'models/simple-clock.glb',
         modelRotationOffset: [Math.PI / 2, 0, 0],
         imageUrl: '/images/simple-clock.png',
     },
@@ -326,7 +327,7 @@ export const wallItems: Omit<FurnitureItem, 'id' | 'position' | 'rotation'>[] = 
         height: 2.0,
         color: '#ffffff',
         elevation: 1.5,
-        modelUrl: '/models/modern-picture.glb',
+        modelUrl: 'models/modern-picture.glb',
         modelRotationOffset: [Math.PI / 2, 0, 0], // Rotate 90 degrees on X to stand up
         imageUrl: '/images/modern-picture.png',
     },
@@ -338,7 +339,7 @@ export const wallItems: Omit<FurnitureItem, 'id' | 'position' | 'rotation'>[] = 
         height: 1.6,
         color: '#8B4513',
         elevation: 1.5,
-        modelUrl: '/models/frame.glb',
+        modelUrl: 'models/frame.glb',
         modelRotationOffset: [Math.PI / 2, 0, 0], // Rotate 90 degrees on X to stand up
         imageUrl: '/images/frame.png',
     },
@@ -352,7 +353,7 @@ export const fireplaces: Omit<FurnitureItem, 'id' | 'position' | 'rotation'>[] =
         depth: 0.4,
         height: 1.0,
         color: '#2D3748',
-        modelUrl: '/models/fireplace.glb',
+        modelUrl: 'models/fireplace.glb',
         imageUrl: '/images/modern-fireplace.png',
     },
 ];

@@ -4,7 +4,6 @@ import {
   Italiana,
   Jacques_Francois,
   Italianno,
-  Inter,
 } from "next/font/google"; // Import specific fonts
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
