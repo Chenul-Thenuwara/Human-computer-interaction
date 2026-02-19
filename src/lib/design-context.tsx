@@ -1,6 +1,8 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { db, auth } from "@/lib/firebase";
+import { doc, setDoc } from "firebase/firestore";
 
 export interface FurnitureItem {
   id: string;
@@ -61,20 +63,37 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const saveDesign = useCallback((design: Design) => {
+  const saveDesign = useCallback(async (design: Design) => {
     const existingIndex = designs.findIndex(d => d.id === design.id);
     let updatedDesigns;
+    const timestamp = new Date().toISOString();
+    const designToSave = { ...design, updatedAt: timestamp };
     
+    // Update local state and storage
     if (existingIndex >= 0) {
       updatedDesigns = [...designs];
-      updatedDesigns[existingIndex] = { ...design, updatedAt: new Date().toISOString() };
+      updatedDesigns[existingIndex] = designToSave;
     } else {
-      updatedDesigns = [...designs, design];
+      updatedDesigns = [...designs, designToSave];
     }
     
     setDesigns(updatedDesigns);
     localStorage.setItem('furnitureapp_designs', JSON.stringify(updatedDesigns));
-    setCurrentDesign(design);
+    setCurrentDesign(designToSave);
+
+    // Save to Firestore if user is logged in
+    const user = auth.currentUser;
+    if (user) {
+      try {
+        await setDoc(doc(db, "designs", design.id), {
+          ...designToSave,
+          userId: user.uid,
+        });
+        console.log("Design saved to Firestore");
+      } catch (error) {
+        console.error("Error saving design to Firestore:", error);
+      }
+    }
   }, [designs]);
 
   const deleteDesign = useCallback((id: string) => {
@@ -84,6 +103,7 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
     if (currentDesign?.id === id) {
       setCurrentDesign(null);
     }
+    // TODO: Delete from Firestore if needed
   }, [designs, currentDesign]);
 
   const updateDesignFurniture = useCallback((furniture: FurnitureItem[]) => {
