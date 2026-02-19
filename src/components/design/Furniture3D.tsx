@@ -16,20 +16,21 @@ export function Furniture3D({ item }: Furniture3DProps) {
   const [resolvedUrl, setResolvedUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!modelUrl) {
-      setResolvedUrl(null);
-      return;
-    }
-
-    // If it's a full URL or absolute local path, use it directly
-    if (modelUrl.startsWith('http') || modelUrl.startsWith('/')) {
-      setResolvedUrl(modelUrl);
-      return;
-    }
-
-    // Otherwise, treat as Firebase Storage path and resolve it
     let isMounted = true;
+
     const resolveUrl = async () => {
+      if (!modelUrl) {
+        if (isMounted) setResolvedUrl(null);
+        return;
+      }
+
+      // If it's a full URL or absolute local path, use it directly
+      if (modelUrl.startsWith('http') || modelUrl.startsWith('/')) {
+        if (isMounted) setResolvedUrl(modelUrl);
+        return;
+      }
+
+      // Otherwise, treat as Firebase Storage path and resolve it
       try {
         const storageRef = ref(storage, modelUrl);
         const url = await getDownloadURL(storageRef);

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthChange, signOut } from "./firebase";
 import type { User } from "firebase/auth";
@@ -22,7 +22,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     try {
       await signOut();
       localStorage.removeItem("loginTime");
@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error("Logout error:", error);
     }
-  };
+  }, [router]);
 
   useEffect(() => {
     // Subscribe to auth state changes
