@@ -18,17 +18,17 @@ export async function GET(request: NextRequest) {
         }
 
         const contentType = response.headers.get("Content-Type") || "application/octet-stream";
-        const arrayBuffer = await response.arrayBuffer();
 
-        // Create a new response with the fetched body
-        const proxyResponse = new NextResponse(arrayBuffer);
-
-        // Set appropriate headers
-        proxyResponse.headers.set("Content-Type", contentType);
-        proxyResponse.headers.set("Cache-Control", "public, max-age=31536000, immutable");
-
-        // Allow CORS from our origin (or all for simplicity in dev)
-        proxyResponse.headers.set("Access-Control-Allow-Origin", "*");
+        // Stream the response body directly
+        const proxyResponse = new NextResponse(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: {
+                "Content-Type": contentType,
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Access-Control-Allow-Origin": "*"
+            }
+        });
 
         return proxyResponse;
     } catch (error) {

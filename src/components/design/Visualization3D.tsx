@@ -1,7 +1,8 @@
 "use client";
 
+import { Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, PerspectiveCamera, Environment } from "@react-three/drei";
+import { OrbitControls, PerspectiveCamera, Environment, Loader } from "@react-three/drei";
 import { useDesign } from "@/lib/design-context";
 import * as THREE from "three";
 
@@ -136,9 +137,12 @@ export function Visualization3D() {
   return (
     <div className="absolute inset-0 w-full h-full bg-gradient-to-b from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800">
       <Canvas shadows dpr={[1, 2]}>
-        <SceneSetup />
-        <Room />
+        <Suspense fallback={null}>
+          <SceneSetup />
+          <Room />
+        </Suspense>
       </Canvas>
+      <Loader />
       
       <div className="absolute bottom-4 right-4 backdrop-blur-md bg-card/50 p-3 rounded-lg border border-white/20 shadow-lg text-xs text-muted-foreground pointer-events-none">
         <p>Left Click: Rotate • Right Click: Pan • Scroll: Zoom</p>
