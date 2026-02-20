@@ -11,6 +11,7 @@ import { FurnitureLibraryItem } from './FurnitureLibraryItem';
 import { FloorPlan } from './FloorPlan';
 import { Sofa, Trash2, RotateCw, Info } from 'lucide-react';
 import { toast } from 'sonner';
+import { motion, Variants } from 'framer-motion';
 
 export function Layout2D() {
   const { currentDesign, updateDesignFurniture } = useDesign();
@@ -78,11 +79,26 @@ export function Layout2D() {
     'fireplace': 'Fireplaces',
   };
 
+  const slideRight: Variants = {
+    hidden: { opacity: 0, x: -30 },
+    visible: { opacity: 1, x: 0, transition: { duration: 0.5, ease: "easeOut" } }
+  };
+
+  const fadeUp: Variants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut", delay: 0.2 } }
+  };
+
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="h-full flex overflow-hidden">
         {/* Furniture Library Sidebar */}
-        <div className="backdrop-blur-xl bg-card/70 border-r border-white/20 flex flex-col w-80 shadow-lg h-full">
+        <motion.div 
+          variants={slideRight}
+          initial="hidden"
+          animate="visible"
+          className="backdrop-blur-xl bg-card/70 border-r border-white/20 flex flex-col w-80 shadow-lg h-full z-10"
+        >
           <div className="p-4 border-b border-white/20">
             <h2 className="text-lg font-semibold text-foreground flex items-center gap-2" style={{ fontFamily: 'Jacques Francois, serif' }}>
               <Sofa className="w-5 h-5" />
@@ -123,10 +139,15 @@ export function Layout2D() {
               </p>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Main Canvas */}
-        <div className="flex-1 flex flex-col h-full bg-background/50 relative">
+        <motion.div 
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          className="flex-1 flex flex-col h-full bg-background/50 relative"
+        >
           <div className="flex-1 p-6 overflow-auto flex items-center justify-center pb-32">
             <FloorPlan
               room={currentDesign.room}
@@ -178,7 +199,7 @@ export function Layout2D() {
               </Card>
             </div>
           )}
-        </div>
+        </motion.div>
       </div>
     </DndProvider>
   );

@@ -49,7 +49,7 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={cn(
-          "antialiased min-h-screen",
+          "antialiased min-h-screen bg-[#233529] text-white selection:bg-[#f3b5a1] selection:text-[#233529]",
           abhayaLibre.variable,
           italiana.variable,
           jacquesFrancois.variable,
@@ -57,6 +57,17 @@ export default function RootLayout({
           "font-sans",
         )}
       >
+        {/* Global Grid Pattern Background */}
+        <div 
+          className="fixed inset-0 pointer-events-none opacity-20 z-[-1]"
+          style={{
+            backgroundImage: `
+              linear-gradient(to right, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+              linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 1px, transparent 1px)
+            `,
+            backgroundSize: '4rem 100%',
+          }}
+        />
         <AuthProvider>
           <DesignProvider>
             {children}

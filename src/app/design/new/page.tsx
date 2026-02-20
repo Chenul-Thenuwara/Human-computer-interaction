@@ -12,6 +12,7 @@ import { Visualization3D } from "@/components/design/Visualization3D";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { ArrowLeft, Save, Settings, Layout, Box, LogOut } from "lucide-react";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 export default function DesignStudioPage() {
   const router = useRouter();
@@ -77,7 +78,7 @@ export default function DesignStudioPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen flex flex-col relative bg-background text-foreground">
+      <div className="min-h-screen flex flex-col relative text-white">
         {/* Background grid pattern */}
         <div className="fixed inset-0 opacity-5 pointer-events-none">
           {Array.from({ length: 10 }).map((_, i) => (
@@ -94,7 +95,12 @@ export default function DesignStudioPage() {
         <div className="fixed bottom-0 right-0 w-125 h-125 bg-accent/10 rounded-full blur-3xl pointer-events-none"></div>
 
         {/* Header */}
-        <header className="backdrop-blur-xl bg-card/70 border-b border-white/20 sticky top-0 z-20 shadow-lg shadow-black/10">
+        <motion.header 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="backdrop-blur-xl bg-card/70 border-b border-white/20 sticky top-0 z-20 shadow-lg shadow-black/10"
+        >
           <div className="px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -136,10 +142,15 @@ export default function DesignStudioPage() {
               </div>
             </div>
           </div>
-        </header>
+        </motion.header>
 
         {/* Main Content */}
-        <div className="flex-1 overflow-hidden relative flex flex-col">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="flex-1 overflow-hidden relative flex flex-col"
+        >
           <Tabs
             value={activeTab}
             onValueChange={setActiveTab}
@@ -171,19 +182,19 @@ export default function DesignStudioPage() {
               </TabsList>
             </div>
 
-            <div className="flex-1 min-h-0 bg-transparent flex flex-col relative">
-              <TabsContent value="setup" className="h-full m-0 p-0 mt-0 overflow-auto">
-                <RoomSetup />
-              </TabsContent>
-              <TabsContent value="2d" className="h-full m-0 p-0 mt-0 overflow-hidden">
-                <Layout2D />
-              </TabsContent>
-              <TabsContent value="3d" className="h-full m-0 p-0 mt-0">
-                <Visualization3D />
-              </TabsContent>
-            </div>
-          </Tabs>
-        </div>
+          <div className="flex-1 min-h-0 bg-transparent flex flex-col relative">
+            <TabsContent value="setup" className="h-full m-0 p-0 mt-0 overflow-auto">
+              <RoomSetup />
+            </TabsContent>
+            <TabsContent value="2d" className="h-full m-0 p-0 mt-0 overflow-hidden">
+              <Layout2D />
+            </TabsContent>
+            <TabsContent value="3d" className="h-full m-0 p-0 mt-0">
+              <Visualization3D />
+            </TabsContent>
+          </div>
+        </Tabs>
+        </motion.div>
       </div>
     </ProtectedRoute>
   );
