@@ -106,10 +106,10 @@ export default function DesignStudioPage() {
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => router.push("/dashboard")}
-                  className="text-white hover:bg-white/10"
+                  className="flex items-center gap-2 text-white/80 hover:text-white hover:bg-white/10 px-3 py-2 rounded-lg transition-colors"
                 >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Dashboard
+                  <ArrowLeft className="w-4 h-4" />
+                  <span className="font-medium">Dashboard</span>
                 </button>
                 <div className="h-6 w-px bg-white/20" />
                 <div>
