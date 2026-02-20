@@ -53,8 +53,7 @@ export default function HomePage() {
           
           <nav className="hidden md:flex gap-10 text-[15px] font-light tracking-wide font-sans">
             <Link href="/" className="hover:text-[#f3b5a1] transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1px] auto after:bg-white after:origin-right after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 hover:after:origin-left">Home</Link>
-            <Link href="#" className="hover:text-[#f3b5a1] transition-colors">Products</Link>
-            <Link href="#" className="hover:text-[#f3b5a1] transition-colors">Gallery</Link>
+            <Link href="/gallery" className="hover:text-[#f3b5a1] transition-colors">Gallery</Link>
             <Link href="#" className="hover:text-[#f3b5a1] transition-colors">About</Link>
             <Link href="#" className="hover:text-[#f3b5a1] transition-colors">Contact</Link>
           </nav>
