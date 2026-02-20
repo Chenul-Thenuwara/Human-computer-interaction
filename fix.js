@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const fs = require('fs');
 const file = 'src/lib/furniture-data.ts';
 let content = fs.readFileSync(file, 'utf8');
