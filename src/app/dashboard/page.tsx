@@ -23,7 +23,7 @@ export interface Todo {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { setCurrentDesign } = useDesign();
   const [designs, setDesigns] = useState<Design[]>([]);
   const [loadingDesigns, setLoadingDesigns] = useState(true);
@@ -149,6 +149,15 @@ export default function DashboardPage() {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
   // Animation variants
   const fadeUp: Variants = {
     hidden: { opacity: 0, y: 20 },
@@ -166,11 +175,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen relative text-white selection:bg-[#f3b5a1] selection:text-[#233529] overflow-hidden flex flex-col">
-      {/* Decorative gradient orbs for ambient lighting */}
-      <div className="fixed top-0 left-0 w-[600px] h-[600px] bg-primary/10 rounded-full blur-3xl pointer-events-none z-0"></div>
-      <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-[#f3b5a1]/10 rounded-full blur-3xl pointer-events-none z-0"></div>
-
+    <div className="min-h-screen relative text-white selection:bg-[#f3b5a1] selection:text-[#233529] overflow-x-hidden flex flex-col">
       {/* Header */}
       <motion.header 
         initial={{ opacity: 0, y: -20 }}
@@ -203,7 +208,7 @@ export default function DashboardPage() {
                 <span className="sr-only">Home</span>
               </Button>
               <Button
-                onClick={() => router.push("/logout")}
+                onClick={handleLogout}
                 variant="ghost"
                 className="text-[#f3b5a1]/80 hover:text-[#f3b5a1] hover:bg-[#f3b5a1]/10 transition-colors flex items-center gap-2"
               >
