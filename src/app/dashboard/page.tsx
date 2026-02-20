@@ -53,15 +53,15 @@ export default function DashboardPage() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col items-center justify-center">
         <div className="grid grid-cols-3 gap-6 w-full px-8 py-12">
-          <div className="bg-card/70 p-6 rounded-lg shadow-md">
+          <div className="bg-card/70 backdrop-blur-md p-6 rounded-lg shadow-md">
             <h2 className="text-lg font-semibold text-primary">Total Designs</h2>
             <p className="text-4xl font-bold text-primary">0</p>
           </div>
-          <div className="bg-card/70 p-6 rounded-lg shadow-md">
+          <div className="bg-card/70 backdrop-blur-md p-6 rounded-lg shadow-md">
             <h2 className="text-lg font-semibold text-primary">This Month</h2>
             <p className="text-4xl font-bold text-primary">0</p>
           </div>
-          <div className="bg-card/70 p-6 rounded-lg shadow-md">
+          <div className="bg-card/70 backdrop-blur-md p-6 rounded-lg shadow-md">
             <h2 className="text-lg font-semibold text-primary">Quick Action</h2>
             <Button
               onClick={() => router.push("/design/new")}
@@ -74,7 +74,7 @@ export default function DashboardPage() {
 
         <div className="w-full px-8">
           <h2 className="text-2xl font-bold text-primary">Design Portfolio</h2>
-          <div className="mt-6 flex flex-col items-center justify-center bg-card/70 p-12 rounded-lg shadow-md">
+          <div className="mt-6 flex flex-col items-center justify-center bg-card/70 backdrop-blur-md p-12 rounded-lg shadow-md">
             <div className="text-primary text-6xl mb-4">🛋️</div>
             <h3 className="text-lg font-semibold text-primary">No designs yet</h3>
             <p className="text-muted-foreground mt-2">
