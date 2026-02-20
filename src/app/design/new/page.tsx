@@ -66,6 +66,7 @@ export default function DesignStudioPage() {
     try {
       await logout();
       toast.success("Logged out successfully");
+      router.push("/login");
     } catch (error) {
       toast.error("Failed to logout");
       console.error("Logout error:", error);
@@ -78,22 +79,7 @@ export default function DesignStudioPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen flex flex-col relative text-white">
-        {/* Background grid pattern */}
-        <div className="fixed inset-0 opacity-5 pointer-events-none">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <div
-              key={i}
-              className="absolute top-0 bottom-0 w-px bg-white"
-              style={{ left: `${(i + 1) * 10}%` }}
-            />
-          ))}
-        </div>
-
-        {/* Decorative gradient orbs */}
-        <div className="fixed top-0 left-0 w-150 h-150 bg-primary/15 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="fixed bottom-0 right-0 w-125 h-125 bg-accent/10 rounded-full blur-3xl pointer-events-none"></div>
-
+      <div className="min-h-screen flex flex-col relative text-white overflow-x-hidden">
         {/* Header */}
         <motion.header 
           initial={{ opacity: 0, y: -20 }}
