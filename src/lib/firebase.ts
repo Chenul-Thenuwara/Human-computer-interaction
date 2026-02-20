@@ -8,6 +8,8 @@ import {
   sendPasswordResetEmail,
   onAuthStateChanged,
   signOut as firebaseSignOut,
+  GoogleAuthProvider,
+  signInWithPopup,
   type User,
 } from "firebase/auth";
 import { getStorage } from "firebase/storage";
@@ -62,5 +64,11 @@ function onAuthChange(cb: (user: User | null) => void) {
   return onAuthStateChanged(auth, cb);
 }
 
-export { app, analytics, auth, storage, db, signIn, signUp, resetPassword, signOut, onAuthChange };
+const googleProvider = new GoogleAuthProvider();
+
+async function signInWithGoogle() {
+  return signInWithPopup(auth, googleProvider);
+}
+
+export { app, analytics, auth, storage, db, signIn, signUp, resetPassword, signOut, onAuthChange, signInWithGoogle };
 export type { User };
