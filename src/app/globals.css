@@ -77,15 +77,9 @@
 
 body {
   font-family: var(--font-abhaya-libre), system-ui, sans-serif;
-  background-color: var(--background);
-  color: var(--foreground);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-image: radial-gradient(ellipse at 30% 10%, rgba(159, 189, 169, 0.05), transparent 20%),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-  background-size: 100% 100%, 80px 100%, 100% 80px;
 }
 
 /* Typography Hierarchy */
