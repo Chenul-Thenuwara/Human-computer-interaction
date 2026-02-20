@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useDesign, Design } from "@/lib/design-context";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 
 export default function DesignStudioPage() {
+  const router = useRouter();
   // Always work with 'new' for now, or existing context
   const { currentDesign, setCurrentDesign, saveDesign } = useDesign();
   const { logout } = useAuth();
@@ -89,9 +90,9 @@ export default function DesignStudioPage() {
           ))}
         </div>
 
-      {/* Decorative gradient orbs */}
-      <div className="fixed top-0 left-0 w-[600px] h-[600px] bg-primary/15 rounded-full blur-3xl pointer-events-none"></div>
-      <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-accent/10 rounded-full blur-3xl pointer-events-none"></div>
+        {/* Decorative gradient orbs */}
+        <div className="fixed top-0 left-0 w-150 h-150 bg-primary/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="fixed bottom-0 right-0 w-125 h-125 bg-accent/10 rounded-full blur-3xl pointer-events-none"></div>
 
         {/* Header */}
         <motion.header 
@@ -103,15 +104,13 @@ export default function DesignStudioPage() {
           <div className="px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <Link href="/">
-                  <Button
-                    variant="ghost"
-                    className="text-white hover:bg-white/10"
-                  >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back to Dashboard
-                  </Button>
-                </Link>
+                <button
+                  onClick={() => router.push("/dashboard")}
+                  className="text-white hover:bg-white/10"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Dashboard
+                </button>
                 <div className="h-6 w-px bg-white/20" />
                 <div>
                   <h1 className="text-lg font-semibold text-white">
