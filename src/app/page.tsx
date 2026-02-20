@@ -61,7 +61,7 @@ export default function HomePage() {
           <div className="flex gap-6 items-center">
             {user ? (
               <button 
-                onClick={() => router.push('/design/new')}
+                onClick={() => router.push('/dashboard')}
                 className="px-6 py-2.5 rounded-full border border-white/30 hover:bg-white hover:text-[#233529] transition-all font-light tracking-wide text-sm flex items-center gap-2"
               >
                 Dashboard

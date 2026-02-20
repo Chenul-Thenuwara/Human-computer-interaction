@@ -21,9 +21,9 @@ export default function SignUp() {
   const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    // If user is already logged in, redirect to design page
+    // If user is already logged in, redirect to dashboard
     if (!authLoading && user) {
-      router.push("/design/new");
+      router.push("/dashboard");
     }
   }, [user, authLoading, router]);
 
@@ -46,8 +46,8 @@ export default function SignUp() {
       await signUp(email, password);
       // Set login timestamp in localStorage
       localStorage.setItem("loginTime", Date.now().toString());
-      // Redirect to design page after successful signup
-      router.push("/design/new");
+      // Redirect to dashboard after successful signup
+      router.push("/dashboard");
     } catch (err: unknown) {
       const error = err as { message?: string };
       setError(error?.message ?? "Sign up failed");
