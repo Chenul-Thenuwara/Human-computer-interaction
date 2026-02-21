@@ -11,7 +11,7 @@ import {
   type User,
 } from "firebase/auth";
 import { getStorage } from "firebase/storage";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, doc, getDoc } from "firebase/firestore";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -62,5 +62,13 @@ function onAuthChange(cb: (user: User | null) => void) {
   return onAuthStateChanged(auth, cb);
 }
 
-export { app, analytics, auth, storage, db, signIn, signUp, resetPassword, signOut, onAuthChange };
+async function getUserRole(uid: string): Promise<string | null> {
+  const userDoc = await getDoc(doc(db, "users", uid));
+  if (userDoc.exists()) {
+    return userDoc.data().role ?? null;
+  }
+  return null;
+}
+
+export { app, analytics, auth, storage, db, signIn, signUp, resetPassword, signOut, onAuthChange, getUserRole };
 export type { User };
