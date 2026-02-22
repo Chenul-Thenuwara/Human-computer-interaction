@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { fetchFurnitureFromDB } from "@/lib/furniture";
 import { FurnitureItem } from "@/lib/design-context";
+import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -63,6 +64,7 @@ const getDummyDescription = (type: string) => {
 
 export default function GalleryPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [furnitureLibrary, setFurnitureLibrary] = useState<FurnitureItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -131,8 +133,22 @@ export default function GalleryPage() {
           <Link href="#" className="hover:text-[#f3b5a1] transition-colors">Contact</Link>
         </nav>
 
-        <div className="flex gap-4 items-center">
-          {/* Navigation items can go here in the future if needed */}
+        <div className="flex gap-6 items-center">
+          {user ? (
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="px-6 py-2.5 rounded-full border border-white/30 hover:bg-white hover:text-[#233529] transition-all font-light tracking-wide text-sm flex items-center gap-2"
+            >
+              Dashboard
+            </button>
+          ) : (
+            <button
+              onClick={() => router.push('/login')}
+              className="px-6 py-2.5 rounded-full bg-white text-[#233529] hover:bg-white/90 transition-all font-medium tracking-wide text-sm"
+            >
+              Login
+            </button>
+          )}
         </div>
       </motion.header>
 
