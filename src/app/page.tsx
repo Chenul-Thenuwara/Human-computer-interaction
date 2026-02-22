@@ -29,11 +29,11 @@ export default function HomePage() {
 
   const archImageVariants: Variants = {
     hidden: { scale: 0.8, opacity: 0, clipPath: "polygon(0 100%, 100% 100%, 100% 100%, 0 100%)" },
-    visible: { 
-      scale: 1, 
-      opacity: 1, 
+    visible: {
+      scale: 1,
+      opacity: 1,
       clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)",
-      transition: { duration: 1.5, ease: [0.22, 1, 0.36, 1] } 
+      transition: { duration: 1.5, ease: [0.22, 1, 0.36, 1] }
     }
   };
 
@@ -41,7 +41,7 @@ export default function HomePage() {
     <div className="relative min-h-screen overflow-hidden">
       <div className="relative z-10 flex flex-col min-h-screen">
         {/* Navigation */}
-        <motion.header 
+        <motion.header
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.2 }}
@@ -50,24 +50,24 @@ export default function HomePage() {
           <div className="text-3xl font-medium tracking-wide" style={{ fontFamily: "var(--font-italiana)" }}>
             Prism
           </div>
-          
+
           <nav className="hidden md:flex gap-10 text-[15px] font-light tracking-wide font-sans">
             <Link href="/" className="hover:text-[#f3b5a1] transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1px] auto after:bg-white after:origin-right after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 hover:after:origin-left">Home</Link>
             <Link href="/gallery" className="hover:text-[#f3b5a1] transition-colors">Gallery</Link>
-            <Link href="#" className="hover:text-[#f3b5a1] transition-colors">About</Link>
+            <Link href="/about" className="hover:text-[#f3b5a1] transition-colors">About</Link>
             <Link href="#" className="hover:text-[#f3b5a1] transition-colors">Contact</Link>
           </nav>
 
           <div className="flex gap-6 items-center">
             {user ? (
-              <button 
+              <button
                 onClick={() => router.push('/dashboard')}
                 className="px-6 py-2.5 rounded-full border border-white/30 hover:bg-white hover:text-[#233529] transition-all font-light tracking-wide text-sm flex items-center gap-2"
               >
                 Dashboard
               </button>
             ) : (
-              <button 
+              <button
                 onClick={() => router.push('/login')}
                 className="px-6 py-2.5 rounded-full bg-white text-[#233529] hover:bg-white/90 transition-all font-medium tracking-wide text-sm"
               >
@@ -79,9 +79,9 @@ export default function HomePage() {
 
         {/* Main Content */}
         <main className="flex-1 relative flex items-center justify-center pt-10 pb-20">
-          
+
           {/* Centered Big Typography */}
-          <motion.div 
+          <motion.div
             variants={staggerContainer}
             initial="hidden"
             animate="visible"
@@ -90,20 +90,20 @@ export default function HomePage() {
             <motion.h1 variants={fadeUp} className="text-[7rem] md:text-[10rem] leading-[0.85] tracking-tight font-medium" style={{ fontFamily: "var(--font-italiana)" }}>
               Discover
             </motion.h1>
-            
+
             <motion.div variants={fadeUp} className="relative w-full flex justify-center -mt-6 md:-mt-10 mr-12 md:mr-24">
               <span className="text-[6rem] md:text-[9rem] text-[#f3b5a1] font-normal leading-[0.6] -rotate-2" style={{ fontFamily: "var(--font-italianno)" }}>
                 The best
               </span>
             </motion.div>
-            
+
             <motion.h1 variants={fadeUp} className="text-[7rem] md:text-[10rem] leading-[0.9] tracking-tight font-medium" style={{ fontFamily: "var(--font-italiana)" }}>
               Furniture
             </motion.h1>
           </motion.div>
 
           {/* Abstract Circle Arch Behind Main Text */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1.5, delay: 0.5 }}
@@ -111,15 +111,15 @@ export default function HomePage() {
           />
 
           {/* Left Arch Image */}
-          <motion.div 
+          <motion.div
             variants={archImageVariants}
             initial="hidden"
             animate="visible"
             className="absolute left-[5%] md:left-[10%] top-1/4 w-[14rem] h-[22rem] md:w-[18rem] md:h-[28rem] rounded-t-full overflow-hidden shadow-2xl z-20"
           >
             <Image
-              src="https://images.unsplash.com/photo-1540932239986-30128078f3c5?q=80&w=1200&auto=format&fit=crop" 
-              alt="Decorative desk area" 
+              src="https://images.unsplash.com/photo-1540932239986-30128078f3c5?q=80&w=1200&auto=format&fit=crop"
+              alt="Decorative desk area"
               fill
               className="object-cover"
               sizes="(max-width: 768px) 14rem, 18rem"
@@ -127,15 +127,15 @@ export default function HomePage() {
           </motion.div>
 
           {/* Center Bottom Image */}
-          <motion.div 
+          <motion.div
             variants={archImageVariants}
             initial="hidden"
             animate="visible"
             className="absolute left-1/2 transform -translate-x-1/2 bottom-[5%] w-[18rem] h-[22rem] md:w-[26rem] md:h-[28rem] rounded-t-full overflow-hidden shadow-2xl z-20"
           >
             <Image
-              src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=1600&auto=format&fit=crop" 
-              alt="Green sofa setting" 
+              src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=1600&auto=format&fit=crop"
+              alt="Green sofa setting"
               fill
               className="object-cover"
               sizes="(max-width: 768px) 18rem, 26rem"
@@ -143,15 +143,15 @@ export default function HomePage() {
           </motion.div>
 
           {/* Right Arch Image */}
-          <motion.div 
+          <motion.div
             variants={archImageVariants}
             initial="hidden"
             animate="visible"
             className="absolute right-[5%] md:right-[10%] top-1/4 w-[14rem] h-[22rem] md:w-[18rem] md:h-[28rem] rounded-t-full overflow-hidden shadow-2xl z-20"
           >
             <Image
-              src="https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?q=80&w=1200&auto=format&fit=crop" 
-              alt="Yellow armchair" 
+              src="https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?q=80&w=1200&auto=format&fit=crop"
+              alt="Yellow armchair"
               fill
               className="object-cover"
               sizes="(max-width: 768px) 14rem, 18rem"
@@ -159,7 +159,7 @@ export default function HomePage() {
           </motion.div>
 
           {/* Floating Element: Star */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0, rotate: -45 }}
             animate={{ opacity: 1, scale: 1, rotate: 0 }}
             transition={{ duration: 1, delay: 1, type: "spring" }}
@@ -171,7 +171,7 @@ export default function HomePage() {
           </motion.div>
 
           {/* Floating Element: Curved Arrow */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, pathLength: 0 }}
             animate={{ opacity: 1, pathLength: 1 }}
             transition={{ duration: 1, delay: 1.2 }}
@@ -184,7 +184,7 @@ export default function HomePage() {
           </motion.div>
 
           {/* Scroll Down Badge */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 1.5 }}
@@ -198,7 +198,7 @@ export default function HomePage() {
                 <circle cx="50" cy="50" r="45" fill="#8ea37e" className="opacity-90 transition-opacity group-hover:opacity-100" />
                 <text className="text-[12px] uppercase tracking-[0.2em] fill-[#233529] font-medium" style={{ fontFamily: "var(--font-abhaya-libre)" }}>
                   <textPath href="#circlePath" startOffset="0%">
-                    Welcome   •   Welcome   •   
+                    Welcome   •   Welcome   •
                   </textPath>
                 </text>
               </svg>
