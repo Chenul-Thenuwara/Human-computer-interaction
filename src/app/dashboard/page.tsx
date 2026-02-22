@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, LogOut, Plus, Home, Calendar, Armchair, ChevronLeft, ChevronRight, CheckCircle, Circle, Trash2 } from "lucide-react";
+import { ArrowLeft, LogOut, Plus, Home, Calendar, Armchair, ChevronLeft, ChevronRight, CheckCircle, Circle, Trash2, Settings } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { motion, Variants } from "framer-motion";
 import Link from "next/link";
@@ -229,6 +229,13 @@ export default function DashboardPage() {
               >
                 <Home className="w-4 h-4" />
                 <span className="sr-only">Home</span>
+              </Button>
+              <Button
+                onClick={() => router.push("/dashboard/settings")}
+                variant="ghost"
+                className="text-white/70 hover:text-white hover:bg-white/10 hidden sm:flex items-center gap-2"
+              >
+                <Settings className="w-4 h-4" />
               </Button>
               <Button
                 onClick={handleLogout}

@@ -114,8 +114,8 @@ export default function AdminPage() {
       active: true,
     },
     {
-      href: "/admin/furniture/add",
-      label: "Add Furniture",
+      href: "/admin/furniture",
+      label: "Furniture",
       icon: Sofa,
       active: false,
     },
@@ -312,8 +312,13 @@ export default function AdminPage() {
           {/* User info at bottom */}
           <div className="px-4 py-5 border-t border-white/10">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-8 h-8 rounded-full bg-[#f3b5a1]/20 border border-[#f3b5a1]/30 flex items-center justify-center text-[#f3b5a1] text-sm font-medium">
-                {user.email?.[0]?.toUpperCase()}
+              <div className="w-8 h-8 rounded-full bg-[#f3b5a1]/20 border border-[#f3b5a1]/30 flex items-center justify-center text-[#f3b5a1] text-sm font-medium overflow-hidden">
+                {user.photoURL ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  (user.displayName || user.email)?.[0]?.toUpperCase()
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium text-white truncate">
