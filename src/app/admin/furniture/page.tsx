@@ -224,9 +224,10 @@ export default function FurniturePage() {
       setImageFile(null);
       setGlbFile(null);
       setShowAddForm(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to add furniture item.";
       console.error("Error adding furniture:", error);
-      setErrorMessage(error?.message || "Failed to add furniture item.");
+      setErrorMessage(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -284,9 +285,10 @@ export default function FurniturePage() {
       );
       setSuccessMessage("Furniture item updated.");
       setEditItem(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to update furniture item.";
       console.error("Error updating furniture:", error);
-      setErrorMessage(error?.message || "Failed to update furniture item.");
+      setErrorMessage(message);
     } finally {
       setEditSubmitting(false);
     }

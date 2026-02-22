@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, LogOut, Plus, Home, Calendar, Armchair, ChevronLeft, ChevronRight, CheckCircle, Circle, Trash2, Settings } from "lucide-react";
+import { LogOut, Plus, Home, Calendar, Armchair, ChevronLeft, ChevronRight, CheckCircle, Circle, Trash2, Settings } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { motion, Variants } from "framer-motion";
 import Link from "next/link";

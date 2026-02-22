@@ -40,7 +40,6 @@ export function Layout2D() {
   const handleAddFurniture = (furnitureType: Omit<FurnitureItem, 'id' | 'position' | 'rotation'>) => {
     const newItem: FurnitureItem = {
       ...furnitureType,
-      // eslint-disable-next-line
       id: `${furnitureType.type}-${Date.now()}`,
       position: { x: 1, y: 1 },
       rotation: 0,

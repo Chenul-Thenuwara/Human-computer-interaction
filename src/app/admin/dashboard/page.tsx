@@ -7,7 +7,6 @@ import {
   ShieldCheck,
   LogOut,
   Users,
-  LayoutDashboard,
   Settings,
   Sofa,
   Home,

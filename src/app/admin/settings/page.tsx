@@ -16,7 +16,7 @@ import {
   Lock,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import { auth, db, storage } from "@/lib/firebase";
+import { db, storage } from "@/lib/firebase";
 import { updateProfile, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
 import { doc, updateDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -117,9 +117,10 @@ export default function AdminSettingsPage() {
 
       setProfileMessage("Profile updated.");
       if (photoURL) setPhotoPreview(photoURL);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to update profile.";
       console.error("Profile update error", error);
-      setProfileError(error?.message || "Failed to update profile.");
+      setProfileError(message);
     } finally {
       setProfileSaving(false);
     }
@@ -148,9 +149,10 @@ export default function AdminSettingsPage() {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to update password.";
       console.error("Password update error", error);
-      setPasswordError(error?.message || "Failed to update password.");
+      setPasswordError(message);
     } finally {
       setPasswordSaving(false);
     }

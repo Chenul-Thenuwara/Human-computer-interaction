@@ -103,9 +103,10 @@ export default function DesignerSettingsPage() {
 
       setProfileMessage("Profile updated.");
       if (photoURL) setPhotoPreview(photoURL);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to update profile.";
       console.error("Profile update error", error);
-      setProfileError(error?.message || "Failed to update profile.");
+      setProfileError(message);
     } finally {
       setProfileSaving(false);
     }
@@ -134,9 +135,10 @@ export default function DesignerSettingsPage() {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to update password.";
       console.error("Password update error", error);
-      setPasswordError(error?.message || "Failed to update password.");
+      setPasswordError(message);
     } finally {
       setPasswordSaving(false);
     }
