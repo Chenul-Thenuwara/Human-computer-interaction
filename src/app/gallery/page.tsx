@@ -80,7 +80,7 @@ export default function GalleryPage() {
       <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-[#f3b5a1]/10 rounded-full blur-3xl pointer-events-none z-0"></div>
 
       {/* Navigation Header */}
-      <motion.header 
+      <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
@@ -89,30 +89,30 @@ export default function GalleryPage() {
         <div className="text-3xl font-medium tracking-wide cursor-pointer" style={{ fontFamily: "var(--font-italiana)" }} onClick={() => router.push('/')}>
           Prism
         </div>
-        
+
         <nav className="hidden md:flex gap-10 text-[15px] font-light tracking-wide font-sans">
           <Link href="/" className="hover:text-[#f3b5a1] transition-colors">Home</Link>
           <Link href="/gallery" className="text-[#f3b5a1] relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1px] auto after:bg-[#f3b5a1]">Gallery</Link>
-          <Link href="#" className="hover:text-[#f3b5a1] transition-colors">About</Link>
+          <Link href="/about" className="hover:text-[#f3b5a1] transition-colors">About</Link>
           <Link href="#" className="hover:text-[#f3b5a1] transition-colors">Contact</Link>
         </nav>
 
         <div className="flex gap-4 items-center">
-            <Button
-              variant="ghost"
-              onClick={() => router.push('/')}
-              className="text-white hover:bg-white/10 hover:text-white"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
+          <Button
+            variant="ghost"
+            onClick={() => router.push('/')}
+            className="text-white hover:bg-white/10 hover:text-white"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
         </div>
       </motion.header>
 
       {/* Main Gallery Content */}
       <main className="relative z-10 max-w-[1400px] mx-auto px-8 md:px-12 py-12">
         {/* Page Title & Intro */}
-        <motion.div 
+        <motion.div
           initial="hidden"
           animate="visible"
           variants={staggerContainer}
@@ -145,7 +145,7 @@ export default function GalleryPage() {
         </motion.div>
 
         {/* Furniture Grid */}
-        <motion.div 
+        <motion.div
           variants={staggerContainer}
           initial="hidden"
           animate="visible"
@@ -154,8 +154,8 @@ export default function GalleryPage() {
           {filteredFurniture.length > 0 ? (
             <AnimatePresence>
               {filteredFurniture.map((item, index) => (
-                <motion.div 
-                  key={item.name} 
+                <motion.div
+                  key={item.name}
                   layout
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -168,7 +168,7 @@ export default function GalleryPage() {
                     <div className="relative aspect-square w-full overflow-hidden bg-black/20 p-6 flex items-center justify-center">
                       {/* Subtle highlight behind image */}
                       <div className="absolute inset-x-4 top-4 aspect-square rounded-full bg-white/5 blur-2xl group-hover:bg-white/10 transition-colors duration-500"></div>
-                      
+
                       <div className="relative w-full h-full transform transition-transform duration-700 group-hover:scale-110">
                         <Image
                           src={item.imageUrl || ''}
@@ -178,7 +178,7 @@ export default function GalleryPage() {
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                         />
                       </div>
-                      
+
                       {/* Category Badge */}
                       <div className="absolute top-4 left-4 z-10">
                         <Badge variant="outline" className="bg-black/40 border-white/20 text-white/90 backdrop-blur-md font-normal text-xs uppercase tracking-wider">
@@ -197,11 +197,11 @@ export default function GalleryPage() {
                             {getDummyPrice(item.type)}
                           </p>
                         </div>
-                        
+
                         <p className="text-sm text-white/60 line-clamp-2 leading-relaxed">
                           {getDummyDescription(item.type)}
                         </p>
-                        
+
                         <div className="flex items-center gap-4 text-xs text-white/40 pt-2 border-t border-white/10 w-fit">
                           <span>W: {item.width}m</span>
                           <span>D: {item.depth}m</span>
@@ -211,13 +211,13 @@ export default function GalleryPage() {
 
                       {/* Hover action button */}
                       <div className="mt-6 flex justify-end">
-                         <Button 
-                           variant="ghost" 
-                           size="icon" 
-                           className="rounded-full bg-white/5 text-white opacity-0 transform translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 hover:bg-[#f3b5a1] hover:text-[#233529]"
-                         >
-                           <ShoppingBag className="w-4 h-4" />
-                         </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="rounded-full bg-white/5 text-white opacity-0 transform translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 hover:bg-[#f3b5a1] hover:text-[#233529]"
+                        >
+                          <ShoppingBag className="w-4 h-4" />
+                        </Button>
                       </div>
 
                       {/* Decorative background number on hover based on index */}
@@ -230,9 +230,9 @@ export default function GalleryPage() {
               ))}
             </AnimatePresence>
           ) : (
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               className="col-span-full py-20 text-center flex flex-col items-center justify-center space-y-4"
             >
               <div className="p-4 rounded-full bg-white/5 border border-white/10 text-white/30">
@@ -242,8 +242,8 @@ export default function GalleryPage() {
               <p className="text-white/50 max-w-sm">
                 We couldn&apos;t find anything matching &quot;{searchQuery}&quot;. Try adjusting your search or browse our categories.
               </p>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setSearchQuery("")}
                 className="mt-4 rounded-full border-white/20 text-white hover:bg-white/10"
               >
