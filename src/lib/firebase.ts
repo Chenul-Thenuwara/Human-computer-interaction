@@ -8,6 +8,8 @@ import {
   sendPasswordResetEmail,
   onAuthStateChanged,
   signOut as firebaseSignOut,
+  GoogleAuthProvider,
+  signInWithPopup,
   type User,
 } from "firebase/auth";
 import { getStorage } from "firebase/storage";
@@ -62,6 +64,12 @@ function onAuthChange(cb: (user: User | null) => void) {
   return onAuthStateChanged(auth, cb);
 }
 
+const googleProvider = new GoogleAuthProvider();
+
+async function signInWithGoogle() {
+  return signInWithPopup(auth, googleProvider);
+}
+
 async function getUserRole(uid: string): Promise<string | null> {
   const userDoc = await getDoc(doc(db, "users", uid));
   if (userDoc.exists()) {
@@ -70,5 +78,5 @@ async function getUserRole(uid: string): Promise<string | null> {
   return null;
 }
 
-export { app, analytics, auth, storage, db, signIn, signUp, resetPassword, signOut, onAuthChange, getUserRole };
+export { app, analytics, auth, storage, db, signIn, signUp, resetPassword, signOut, onAuthChange, signInWithGoogle, getUserRole };
 export type { User };

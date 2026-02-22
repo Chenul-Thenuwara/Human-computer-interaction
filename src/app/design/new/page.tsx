@@ -18,7 +18,7 @@ export default function DesignStudioPage() {
   const router = useRouter();
   // Always work with 'new' for now, or existing context
   const { currentDesign, setCurrentDesign, saveDesign } = useDesign();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState("setup");
 
   useEffect(() => {
@@ -81,7 +81,7 @@ export default function DesignStudioPage() {
     <ProtectedRoute>
       <div className="min-h-screen flex flex-col relative text-white overflow-x-hidden">
         {/* Header */}
-        <motion.header 
+        <motion.header
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -109,7 +109,13 @@ export default function DesignStudioPage() {
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-4">
+                {user && (
+                  <div className="flex flex-col items-end gap-0.5 mr-2">
+                    <span className="text-sm font-medium text-white">{user.displayName || user.email?.split('@')[0]}</span>
+                    <span className="text-xs text-white/50">{user.email}</span>
+                  </div>
+                )}
                 <Button
                   onClick={handleSave}
                   className="bg-primary hover:bg-primary/90 text-white"
@@ -131,7 +137,7 @@ export default function DesignStudioPage() {
         </motion.header>
 
         {/* Main Content */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
@@ -168,18 +174,18 @@ export default function DesignStudioPage() {
               </TabsList>
             </div>
 
-          <div className="flex-1 min-h-0 bg-transparent flex flex-col relative">
-            <TabsContent value="setup" className="h-full m-0 p-0 mt-0 overflow-auto">
-              <RoomSetup />
-            </TabsContent>
-            <TabsContent value="2d" className="h-full m-0 p-0 mt-0 overflow-hidden">
-              <Layout2D />
-            </TabsContent>
-            <TabsContent value="3d" className="h-full m-0 p-0 mt-0">
-              <Visualization3D />
-            </TabsContent>
-          </div>
-        </Tabs>
+            <div className="flex-1 min-h-0 bg-transparent flex flex-col relative">
+              <TabsContent value="setup" className="h-full m-0 p-0 mt-0 overflow-auto">
+                <RoomSetup />
+              </TabsContent>
+              <TabsContent value="2d" className="h-full m-0 p-0 mt-0 overflow-hidden">
+                <Layout2D />
+              </TabsContent>
+              <TabsContent value="3d" className="h-full m-0 p-0 mt-0">
+                <Visualization3D />
+              </TabsContent>
+            </div>
+          </Tabs>
         </motion.div>
       </div>
     </ProtectedRoute>
