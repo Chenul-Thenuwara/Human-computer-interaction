@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState, FormEvent, useEffect } from "react";
-import { signUp, signInWithGoogle } from "../../lib/firebase";
+import { signUp, signInWithGoogle, createUserProfile } from "../../lib/firebase";
 import Link from "next/link";
 import { motion, Variants } from "framer-motion";
 import { useRouter } from "next/navigation";
@@ -43,7 +43,8 @@ export default function SignUp() {
 
     setLoading(true);
     try {
-      await signUp(email, password);
+      const credential = await signUp(email, password);
+      await createUserProfile(credential.user.uid, credential.user.email ?? email);
       localStorage.setItem("loginTime", Date.now().toString());
       router.push("/dashboard");
     } catch (err: unknown) {
@@ -58,7 +59,8 @@ export default function SignUp() {
     setError(null);
     setLoading(true);
     try {
-      await signInWithGoogle();
+      const credential = await signInWithGoogle();
+      await createUserProfile(credential.user.uid, credential.user.email ?? "", "user", credential.user.displayName ?? undefined);
       localStorage.setItem("loginTime", Date.now().toString());
       router.push("/dashboard");
     } catch (err: unknown) {

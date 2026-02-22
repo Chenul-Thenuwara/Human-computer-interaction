@@ -13,7 +13,7 @@ import {
   type User,
 } from "firebase/auth";
 import { getStorage } from "firebase/storage";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -65,6 +65,7 @@ function onAuthChange(cb: (user: User | null) => void) {
 }
 
 const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: "select_account" });
 
 async function signInWithGoogle() {
   return signInWithPopup(auth, googleProvider);
@@ -78,5 +79,29 @@ async function getUserRole(uid: string): Promise<string | null> {
   return null;
 }
 
-export { app, analytics, auth, storage, db, signIn, signUp, resetPassword, signOut, onAuthChange, signInWithGoogle, getUserRole };
+/**
+ * Creates a user profile document in Firestore.
+ * Called after signup. role defaults to "user" unless overridden.
+ */
+async function createUserProfile(
+  uid: string,
+  email: string,
+  role: "admin" | "user" = "user",
+  displayName?: string
+) {
+  const userRef = doc(db, "users", uid);
+  const existing = await getDoc(userRef);
+  if (!existing.exists()) {
+    await setDoc(userRef, {
+      uid,
+      email,
+      displayName: displayName ?? email.split("@")[0],
+      role,
+      createdAt: serverTimestamp(),
+    });
+  }
+}
+
+export { app, analytics, auth, storage, db, signIn, signUp, resetPassword, signOut, onAuthChange, signInWithGoogle, getUserRole, createUserProfile };
 export type { User };
+
