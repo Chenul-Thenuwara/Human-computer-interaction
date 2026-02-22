@@ -63,14 +63,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         let role = await getUserRole(user.uid);
 
         // Auto-create a profile for existing users who signed up before the
-        // role system was introduced (role will be null if no doc exists)
+        // role system was introduced (role will be null if no doc exists).
+        // Wrapped in try/catch so a Firestore permission error never blocks login.
         if (role === null) {
-          await createUserProfile(
-            user.uid,
-            user.email ?? "",
-            "user",
-            user.displayName ?? undefined
-          );
+          try {
+            await createUserProfile(
+              user.uid,
+              user.email ?? "",
+              "user",
+              user.displayName ?? undefined
+            );
+          } catch (e) {
+            console.warn("Could not create user profile in Firestore:", e);
+          }
           role = "user";
         }
 

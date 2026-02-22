@@ -65,6 +65,7 @@ function onAuthChange(cb: (user: User | null) => void) {
 }
 
 const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: "select_account" });
 
 async function signInWithGoogle() {
   return signInWithPopup(auth, googleProvider);
