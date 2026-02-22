@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { onAuthChange, signOut, getUserRole } from "./firebase";
+import { onAuthChange, signOut, getUserRole, createUserProfile } from "./firebase";
 import type { User } from "firebase/auth";
 
 interface AuthContextType {
@@ -16,7 +16,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   isAdmin: false,
-  logout: async () => {},
+  logout: async () => { },
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -60,7 +60,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         // Fetch role from Firestore
-        const role = await getUserRole(user.uid);
+        let role = await getUserRole(user.uid);
+
+        // Auto-create a profile for existing users who signed up before the
+        // role system was introduced (role will be null if no doc exists)
+        if (role === null) {
+          await createUserProfile(
+            user.uid,
+            user.email ?? "",
+            "user",
+            user.displayName ?? undefined
+          );
+          role = "user";
+        }
+
         setIsAdmin(role === "admin");
         setUser(user);
       } else {
