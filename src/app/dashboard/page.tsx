@@ -23,10 +23,12 @@ export interface Todo {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout, isAdmin, loading } = useAuth();
   const { setCurrentDesign } = useDesign();
   const [designs, setDesigns] = useState<Design[]>([]);
   const [loadingDesigns, setLoadingDesigns] = useState(true);
+  const [redirectingAdmin, setRedirectingAdmin] = useState(false);
+  const shouldRedirectAdmin = !loading && isAdmin;
 
   // Calendar & Todo State
   const [currentMonth, setCurrentMonth] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
@@ -34,12 +36,13 @@ export default function DashboardPage() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [newTodoText, setNewTodoText] = useState("");
 
-  // Redirect admins to the admin panel
+  // Redirect admins to the admin panel without flashing the designer dashboard
   useEffect(() => {
-    if (isAdmin) {
-      router.push("/admin/dashboard");
+    if (shouldRedirectAdmin) {
+      setRedirectingAdmin(true);
+      router.replace("/admin/dashboard");
     }
-  }, [isAdmin, router]);
+  }, [shouldRedirectAdmin, router]);
 
   useEffect(() => {
     async function fetchDesigns() {
@@ -180,6 +183,14 @@ export default function DashboardPage() {
       }
     }
   };
+
+  if (loading || redirectingAdmin || shouldRedirectAdmin) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#0e1713]">
+        <div className="animate-spin rounded-full h-12 w-12 border-2 border-t-[#f3b5a1] border-white/10" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen relative text-white selection:bg-[#f3b5a1] selection:text-[#233529] overflow-x-hidden flex flex-col">

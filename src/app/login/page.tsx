@@ -19,15 +19,15 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, isAdmin } = useAuth();
 
   useEffect(() => {
     // Only auto-redirect if the user was already logged in before visiting this page
     // (not during an active form submission)
     if (!authLoading && user && !submitting) {
-      router.push("/dashboard");
+      router.replace(isAdmin ? "/admin/dashboard" : "/dashboard");
     }
-  }, [user, authLoading, router, submitting]);
+  }, [user, authLoading, router, submitting, isAdmin]);
 
   function handleTabSwitch(tab: "user" | "admin") {
     setActiveTab(tab);
@@ -47,7 +47,12 @@ export default function Login() {
       localStorage.setItem("loginTime", Date.now().toString());
 
       if (activeTab === "admin") {
-        const role = await getUserRole(credential.user.uid);
+        let role: string | null = null;
+        try {
+          role = await getUserRole(credential.user.uid);
+        } catch {
+          // Firestore permission error — treat as non-admin
+        }
         if (role !== "admin") {
           await signOut();
           localStorage.removeItem("loginTime");
@@ -55,7 +60,7 @@ export default function Login() {
           setLoading(false);
           return;
         }
-        router.push("/admin/dashboard");
+        router.push("/admin/users");
       } else {
         router.push("/dashboard");
       }

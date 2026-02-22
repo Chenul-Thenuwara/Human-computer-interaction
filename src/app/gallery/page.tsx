@@ -29,6 +29,23 @@ const getDummyPrice = (type: string) => {
   }
 };
 
+// Helper function to format price strings
+const formatPrice = (priceStr?: string, type: string = '') => {
+  if (!priceStr) return getDummyPrice(type);
+  
+  // If it already contains LKR (case insensitive), return as is
+  if (/lkr/i.test(priceStr)) return priceStr;
+  
+  // Try to parse as number to add commas if it's mostly digits
+  const numeric = parseFloat(priceStr.replace(/,/g, ''));
+  if (!isNaN(numeric)) {
+    return `${numeric.toLocaleString('en-US')} LKR`;
+  }
+  
+  // Fallback for non-numeric strings missing LKR
+  return `${priceStr} LKR`;
+};
+
 // Helper function to generate a dummy description based on furniture type
 const getDummyDescription = (type: string) => {
   switch (type) {
@@ -206,7 +223,7 @@ export default function GalleryPage() {
                             {item.name}
                           </h3>
                           <p className="text-[#f3b5a1] font-medium whitespace-nowrap">
-                            {item.price || getDummyPrice(item.type)}
+                            {formatPrice(item.price, item.type)}
                           </p>
                         </div>
 
