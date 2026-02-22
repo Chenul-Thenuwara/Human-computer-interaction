@@ -4,8 +4,16 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // Allow users to read their own profile (for role checking)
     match /users/{userId} {
+      // Allow read to own profile (for role checking)
       allow read: if request.auth != null && request.auth.uid == userId;
-      allow write: if false; // Only writable via Admin SDK / Firebase Console
+
+      // Allow create own profile (triggered on signup / first login)
+      allow create: if request.auth != null && request.auth.uid == userId;
+
+      // Allow update own profile BUT not the role field (only Firebase Console / Admin SDK can change role)
+      allow update: if request.auth != null
+                    && request.auth.uid == userId
+                    && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']);
     }
 
     // Allow users to read and write their own designs

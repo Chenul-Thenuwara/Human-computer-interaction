@@ -48,6 +48,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
+        suppressHydrationWarning
         className={cn(
           "antialiased min-h-screen bg-[#233529] text-white selection:bg-[#f3b5a1] selection:text-[#233529]",
           abhayaLibre.variable,
@@ -58,7 +59,7 @@ export default function RootLayout({
         )}
       >
         {/* Global Grid Pattern Background */}
-        <div 
+        <div
           className="fixed inset-0 pointer-events-none opacity-20 z-[-1]"
           style={{
             backgroundImage: `
