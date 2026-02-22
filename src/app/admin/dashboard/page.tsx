@@ -38,7 +38,13 @@ export default function AdminPage() {
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [userToChangeRole, setUserToChangeRole] = useState<User | null>(null);
+  const [userToChangeStatus, setUserToChangeStatus] = useState<User | null>(
+    null,
+  );
   const [newUser, setNewUser] = useState({
     name: "",
     email: "",
@@ -122,14 +128,18 @@ export default function AdminPage() {
   ];
 
   // Toggle user role
-  const toggleUserRole = async (userId: string) => {
-    const userToUpdate = users.find((u) => u.id === userId);
-    if (!userToUpdate) return;
+  const handleRoleClick = (user: User) => {
+    setUserToChangeRole(user);
+    setShowRoleModal(true);
+  };
 
-    const newRole = userToUpdate.role === "admin" ? "user" : "admin";
+  const confirmRoleChange = async () => {
+    if (!userToChangeRole) return;
+
+    const newRole = userToChangeRole.role === "admin" ? "user" : "admin";
 
     try {
-      const userRef = doc(db, "users", userId);
+      const userRef = doc(db, "users", userToChangeRole.id);
       await updateDoc(userRef, {
         role: newRole,
       });
@@ -137,24 +147,36 @@ export default function AdminPage() {
       // Update local state
       setUsers(
         users.map((user) =>
-          user.id === userId ? { ...user, role: newRole } : user,
+          user.id === userToChangeRole.id ? { ...user, role: newRole } : user,
         ),
       );
+      setShowRoleModal(false);
+      setUserToChangeRole(null);
     } catch (error) {
       console.error("Error updating user role:", error);
       alert("Failed to update user role");
     }
   };
 
-  // Toggle user status
-  const toggleUserStatus = async (userId: string) => {
-    const userToUpdate = users.find((u) => u.id === userId);
-    if (!userToUpdate) return;
+  const cancelRoleChange = () => {
+    setShowRoleModal(false);
+    setUserToChangeRole(null);
+  };
 
-    const newStatus = userToUpdate.status === "active" ? "inactive" : "active";
+  // Toggle user status
+  const handleStatusClick = (user: User) => {
+    setUserToChangeStatus(user);
+    setShowStatusModal(true);
+  };
+
+  const confirmStatusChange = async () => {
+    if (!userToChangeStatus) return;
+
+    const newStatus =
+      userToChangeStatus.status === "active" ? "inactive" : "active";
 
     try {
-      const userRef = doc(db, "users", userId);
+      const userRef = doc(db, "users", userToChangeStatus.id);
       await updateDoc(userRef, {
         status: newStatus,
       });
@@ -162,13 +184,22 @@ export default function AdminPage() {
       // Update local state
       setUsers(
         users.map((user) =>
-          user.id === userId ? { ...user, status: newStatus } : user,
+          user.id === userToChangeStatus.id
+            ? { ...user, status: newStatus }
+            : user,
         ),
       );
+      setShowStatusModal(false);
+      setUserToChangeStatus(null);
     } catch (error) {
       console.error("Error updating user status:", error);
       alert("Failed to update user status");
     }
+  };
+
+  const cancelStatusChange = () => {
+    setShowStatusModal(false);
+    setUserToChangeStatus(null);
   };
 
   // Delete user
@@ -547,7 +578,7 @@ export default function AdminPage() {
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-2">
                           <button
-                            onClick={() => toggleUserRole(user.id)}
+                            onClick={() => handleRoleClick(user)}
                             className="px-3 py-2 text-xs font-medium text-white bg-[#8a9d96] rounded-lg hover:bg-[#7a8d86] transition-colors"
                             title={
                               user.role === "admin"
@@ -560,7 +591,7 @@ export default function AdminPage() {
                               : "Make Admin"}
                           </button>
                           <button
-                            onClick={() => toggleUserStatus(user.id)}
+                            onClick={() => handleStatusClick(user)}
                             className="px-3 py-2 text-xs font-medium text-[#a8b5b1] bg-[#4a5d5a] rounded-lg hover:bg-[#5a6d6a] transition-colors"
                           >
                             {user.status === "active"
@@ -745,6 +776,143 @@ export default function AdminPage() {
                   className="flex-1 px-4 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 hover:shadow-lg transition-all font-semibold"
                 >
                   Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Role Change Confirmation Modal */}
+        {showRoleModal && userToChangeRole && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-gradient-to-b from-[#2d3e3c] to-[#1a2d2a] rounded-2xl p-8 border-2 border-[#6b7f78] w-full max-w-md shadow-2xl">
+              <div className="flex items-center justify-center mb-6">
+                <div className="w-16 h-16 bg-[#8a9d96]/20 rounded-full flex items-center justify-center">
+                  <svg
+                    className="w-8 h-8 text-[#8a9d96]"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                    />
+                  </svg>
+                </div>
+              </div>
+
+              <h2 className="text-2xl font-bold text-white text-center mb-3">
+                {userToChangeRole.role === "admin"
+                  ? "Remove Admin"
+                  : "Make Admin"}
+              </h2>
+              <p className="text-[#a8b5b1] text-center mb-6">
+                Are you sure you want to{" "}
+                {userToChangeRole.role === "admin"
+                  ? "remove admin privileges from"
+                  : "make"}{" "}
+                <span className="font-semibold text-white">
+                  {userToChangeRole.name}
+                </span>
+                {userToChangeRole.role === "admin" ? "" : " an admin"}?
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={cancelRoleChange}
+                  className="flex-1 px-4 py-3 bg-transparent border-2 border-[#6b7f78] text-[#a8b5b1] rounded-xl hover:bg-[#2d3e3c] hover:border-[#8a9d96] hover:text-white transition-all font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmRoleChange}
+                  className="flex-1 px-4 py-3 bg-[#8a9d96] text-white rounded-xl hover:bg-[#7a8d86] hover:shadow-lg transition-all font-semibold"
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Status Change Confirmation Modal */}
+        {showStatusModal && userToChangeStatus && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-gradient-to-b from-[#2d3e3c] to-[#1a2d2a] rounded-2xl p-8 border-2 border-[#6b7f78] w-full max-w-md shadow-2xl">
+              <div className="flex items-center justify-center mb-6">
+                <div
+                  className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                    userToChangeStatus.status === "active"
+                      ? "bg-orange-500/20"
+                      : "bg-green-500/20"
+                  }`}
+                >
+                  <svg
+                    className={`w-8 h-8 ${
+                      userToChangeStatus.status === "active"
+                        ? "text-orange-400"
+                        : "text-green-400"
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    {userToChangeStatus.status === "active" ? (
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
+                      />
+                    ) : (
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    )}
+                  </svg>
+                </div>
+              </div>
+
+              <h2 className="text-2xl font-bold text-white text-center mb-3">
+                {userToChangeStatus.status === "active"
+                  ? "Deactivate User"
+                  : "Activate User"}
+              </h2>
+              <p className="text-[#a8b5b1] text-center mb-6">
+                Are you sure you want to{" "}
+                {userToChangeStatus.status === "active"
+                  ? "deactivate"
+                  : "activate"}{" "}
+                <span className="font-semibold text-white">
+                  {userToChangeStatus.name}
+                </span>
+                ?
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={cancelStatusChange}
+                  className="flex-1 px-4 py-3 bg-transparent border-2 border-[#6b7f78] text-[#a8b5b1] rounded-xl hover:bg-[#2d3e3c] hover:border-[#8a9d96] hover:text-white transition-all font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmStatusChange}
+                  className={`flex-1 px-4 py-3 text-white rounded-xl hover:shadow-lg transition-all font-semibold ${
+                    userToChangeStatus.status === "active"
+                      ? "bg-orange-500 hover:bg-orange-600"
+                      : "bg-green-500 hover:bg-green-600"
+                  }`}
+                >
+                  {userToChangeStatus.status === "active"
+                    ? "Deactivate"
+                    : "Activate"}
                 </button>
               </div>
             </div>
