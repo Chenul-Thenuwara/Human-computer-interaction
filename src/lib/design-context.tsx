@@ -12,6 +12,7 @@ export interface FurnitureItem {
   depth: number;
   height: number;
   color: string;
+  price?: string;
   imageUrl?: string;
   position?: { x: number; y: number };
   rotation?: number;

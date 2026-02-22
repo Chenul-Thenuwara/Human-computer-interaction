@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 
 import { motion, Variants, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ShoppingBag, Search } from "lucide-react";
+import { ShoppingBag, Search } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { furnitureLibrary } from "@/lib/furniture-data";
+import { fetchFurnitureFromDB } from "@/lib/furniture";
+import { FurnitureItem } from "@/lib/design-context";
+import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +30,23 @@ const getDummyPrice = (type: string) => {
   }
 };
 
+// Helper function to format price strings
+const formatPrice = (priceStr?: string, type: string = '') => {
+  if (!priceStr) return getDummyPrice(type);
+  
+  // If it already contains LKR (case insensitive), return as is
+  if (/lkr/i.test(priceStr)) return priceStr;
+  
+  // Try to parse as number to add commas if it's mostly digits
+  const numeric = parseFloat(priceStr.replace(/,/g, ''));
+  if (!isNaN(numeric)) {
+    return `${numeric.toLocaleString('en-US')} LKR`;
+  }
+  
+  // Fallback for non-numeric strings missing LKR
+  return `${priceStr} LKR`;
+};
+
 // Helper function to generate a dummy description based on furniture type
 const getDummyDescription = (type: string) => {
   switch (type) {
@@ -45,7 +64,24 @@ const getDummyDescription = (type: string) => {
 
 export default function GalleryPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
+  const [furnitureLibrary, setFurnitureLibrary] = useState<FurnitureItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    const loadData = async () => {
+      try {
+        const data = await fetchFurnitureFromDB();
+        setFurnitureLibrary(data);
+      } catch (error) {
+        console.error("Error fetching furniture:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
 
   // Animation variants
   const fadeUp: Variants = {
@@ -97,15 +133,22 @@ export default function GalleryPage() {
           <Link href="#" className="hover:text-[#f3b5a1] transition-colors">Contact</Link>
         </nav>
 
-        <div className="flex gap-4 items-center">
-          <Button
-            variant="ghost"
-            onClick={() => router.push('/')}
-            className="text-white hover:bg-white/10 hover:text-white"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
+        <div className="flex gap-6 items-center">
+          {user ? (
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="px-6 py-2.5 rounded-full border border-white/30 hover:bg-white hover:text-[#233529] transition-all font-light tracking-wide text-sm flex items-center gap-2"
+            >
+              Dashboard
+            </button>
+          ) : (
+            <button
+              onClick={() => router.push('/login')}
+              className="px-6 py-2.5 rounded-full bg-white text-[#233529] hover:bg-white/90 transition-all font-medium tracking-wide text-sm"
+            >
+              Login
+            </button>
+          )}
         </div>
       </motion.header>
 
@@ -151,7 +194,9 @@ export default function GalleryPage() {
           animate="visible"
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 pb-20"
         >
-          {filteredFurniture.length > 0 ? (
+          {loading ? (
+            <div className="col-span-full py-20 text-center text-white/50">Loading furniture...</div>
+          ) : filteredFurniture.length > 0 ? (
             <AnimatePresence>
               {filteredFurniture.map((item, index) => (
                 <motion.div
@@ -194,7 +239,7 @@ export default function GalleryPage() {
                             {item.name}
                           </h3>
                           <p className="text-[#f3b5a1] font-medium whitespace-nowrap">
-                            {getDummyPrice(item.type)}
+                            {formatPrice(item.price, item.type)}
                           </p>
                         </div>
 

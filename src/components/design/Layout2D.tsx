@@ -1,8 +1,10 @@
-import { useState } from 'react';
+"use client";
+
+import { useState, useEffect } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDesign, FurnitureItem } from '../../lib/design-context';
-import { furnitureLibrary } from '../../lib/furniture-data';
+import { fetchFurnitureFromDB } from '../../lib/furniture';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -16,13 +18,28 @@ import { motion, Variants } from 'framer-motion';
 export function Layout2D() {
   const { currentDesign, updateDesignFurniture } = useDesign();
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
+  const [furnitureLibrary, setFurnitureLibrary] = useState<FurnitureItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const data = await fetchFurnitureFromDB();
+        setFurnitureLibrary(data);
+      } catch (error) {
+        console.error("Error fetching furniture:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
 
   if (!currentDesign) return null;
 
   const handleAddFurniture = (furnitureType: Omit<FurnitureItem, 'id' | 'position' | 'rotation'>) => {
     const newItem: FurnitureItem = {
       ...furnitureType,
-      // eslint-disable-next-line
       id: `${furnitureType.type}-${Date.now()}`,
       position: { x: 1, y: 1 },
       rotation: 0,
@@ -66,7 +83,7 @@ export function Layout2D() {
     }
     acc[item.type].push(item);
     return acc;
-  }, {} as Record<string, typeof furnitureLibrary>);
+  }, {} as Record<string, FurnitureItem[]>);
 
   const typeLabels = {
     'chair': 'Chairs',
@@ -111,8 +128,11 @@ export function Layout2D() {
           
           <ScrollArea className="flex-1">
             <div className="p-4 space-y-6">
-              {Object.entries(groupedFurniture).map(([type, items]) => (
-                <div key={type}>
+              {loading ? (
+                <div className="text-sm text-white/50 animate-pulse">Loading furniture library...</div>
+              ) : (
+                Object.entries(groupedFurniture).map(([type, items]) => (
+                  <div key={type}>
                   <h3 className="text-sm font-medium text-accent mb-3">
                     {typeLabels[type as keyof typeof typeLabels]}
                   </h3>
@@ -126,7 +146,7 @@ export function Layout2D() {
                     ))}
                   </div>
                 </div>
-              ))}
+              )))}
             </div>
           </ScrollArea>
 
