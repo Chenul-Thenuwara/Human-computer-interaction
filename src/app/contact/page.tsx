@@ -1,185 +1,150 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
+import { useState } from "react"
+import Image from "next/image"
 
 export default function ContactPage() {
-    const [name, setName] = useState('')
-    const [email, setEmail] = useState('')
-    const [message, setMessage] = useState('')
-    const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
+    const [name, setName] = useState("")
+    const [email, setEmail] = useState("")
+    const [subject, setSubject] = useState("")
+    const [message, setMessage] = useState("")
+    const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle")
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
         if (!name.trim() || !email.trim() || !message.trim()) {
-            setStatus('error')
+            setStatus("error")
             return
         }
-        setStatus('sending')
+        setStatus("sending")
         try {
-            // Attempt to send to an API endpoint if available
-            const res = await fetch('/api/contact', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, email, message }),
+            const res = await fetch("/api/contact", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, email, subject, message }),
             })
             if (res.ok) {
-                setStatus('success')
-                setName(''); setEmail(''); setMessage('')
-            } else {
-                // Fallback: open mail client
-                window.location.href = `mailto:hello@furnitureapp.example?subject=Contact from ${encodeURIComponent(
-                    name
-                )}&body=${encodeURIComponent(message + '\n\nContact: ' + email)}`
-                setStatus('success')
+                setStatus("success")
+                setName("")
+                setEmail("")
+                setSubject("")
+                setMessage("")
+                return
             }
-        } catch {
-            window.location.href = `mailto:hello@furnitureapp.example?subject=Contact from ${encodeURIComponent(
-                name
-            )}&body=${encodeURIComponent(message + '\n\nContact: ' + email)}`
-            setStatus('success')
+        } catch (err) {
+            // fallthrough to mailto
         }
+
+        // fallback to mail client if API not available
+        window.location.href = `mailto:hello@furnitureapp.example?subject=${encodeURIComponent(
+            subject || `Contact from ${name}`
+        )}&body=${encodeURIComponent(message + "\n\nContact: " + email)}`
+        setStatus("success")
     }
 
     return (
-        <main className="contact-root" style={{ padding: 28 }}>
-            <section className="hero" aria-labelledby="contact-heading">
-                <div className="hero-left">
-                    <h1 id="contact-heading" className="title">Get in touch</h1>
-                    <p className="subtitle">
-                        Questions about visualization, 3D furniture assets, or collaboration? Send us a message —
-                        we typically respond within one business day.
-                    </p>
+        <main className="contact-root">
+            <section className="panel grid">
+                <div className="left card slideIn">
+                    <h2 className="heading">Get in Touch</h2>
+                    <p className="lead">We'd love to hear from you. Fill the form and we'll get back within one business day.</p>
 
-                    <form onSubmit={handleSubmit} className="form" noValidate>
-                        <label className="label">
-                            Name
-                            <input
-                                className="input"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder="Your name"
-                                required
-                            />
+                    <form className="contact-form" onSubmit={handleSubmit} noValidate>
+                        <div className="row two">
+                            <label className="field">
+                                <span className="label-text">Name</span>
+                                <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" required />
+                            </label>
+
+                            <label className="field">
+                                <span className="label-text">Email</span>
+                                <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@domain.com" required />
+                            </label>
+                        </div>
+
+                        <label className="field">
+                            <span className="label-text">Subject</span>
+                            <input className="input" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="What is this regarding?" />
                         </label>
 
-                        <label className="label">
-                            Email
-                            <input
-                                className="input"
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="you@domain.com"
-                                required
-                            />
+                        <label className="field">
+                            <span className="label-text">Message</span>
+                            <textarea className="textarea" rows={7} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Your message..." required />
                         </label>
 
-                        <label className="label">
-                            Message
-                            <textarea
-                                className="textarea"
-                                value={message}
-                                onChange={(e) => setMessage(e.target.value)}
-                                rows={6}
-                                placeholder="Tell us what you need..."
-                                required
-                            />
-                        </label>
-
-                        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                            <button
-                                type="submit"
-                                className="btn"
-                                disabled={status === 'sending'}
-                                aria-busy={status === 'sending'}
-                            >
-                                {status === 'sending' ? 'Sending…' : 'Send message'}
+                        <div className="actions">
+                            <button className="send" type="submit" disabled={status === "sending"} aria-busy={status === "sending"}>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+                                    <path d="M2 21l21-9L2 3v7l15 2-15 2v7z" fill="currentColor" />
+                                </svg>
+                                <span>{status === "sending" ? "Sending..." : "Send Message"}</span>
                             </button>
-                            {status === 'success' && <span className="msg success">Thanks — we received it!</span>}
-                            {status === 'error' && <span className="msg error">Please fill all fields.</span>}
+                            <div className="status">
+                                {status === "success" && <span className="ok">Thanks — we'll reply soon.</span>}
+                                {status === "error" && <span className="err">Please complete required fields.</span>}
+                            </div>
                         </div>
                     </form>
                 </div>
 
-                <aside className="hero-right" aria-hidden={false}>
-                    <div className="card float">
-                        <svg className="icon" viewBox="0 0 24 24" width="36" height="36" fill="none">
-                            <path d="M3 8v8a1 1 0 001 1h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M8 19h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                            <rect x="14" y="6" width="6" height="8" rx="1" stroke="currentColor" strokeWidth="1.5"/>
-                            <path d="M7 6V4a2 2 0 012-2h6a2 2 0 012 2v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                        <div>
-                            <strong>Office</strong>
-                            <div>123 Design Ave, Suite 5</div>
-                        </div>
+                <aside className="right">
+                    <div className="info card slideIn delay">
+                        <h3>Visit Our Showroom</h3>
+                        <p>123 Luxury Lane, Design District<br/>New York, NY 10012</p>
+
+                        <h3>Call Us</h3>
+                        <p>+1 (212) 555-0123<br/><small>Mon–Fri: 9am – 6pm</small></p>
+
+                        <h3>Email Us</h3>
+                        <p>concierge@prism-furniture.com<br/>design@prism-furniture.com</p>
                     </div>
 
-                    <div className="card float delay">
-                        <svg className="icon" viewBox="0 0 24 24" width="36" height="36" fill="none">
-                            <path d="M3 8l9 6 9-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M21 8v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                        <div>
-                            <strong>Email</strong>
-                            <div>hello@furnitureapp.example</div>
-                        </div>
-                    </div>
-
-                    <div className="card float delay2">
-                        <svg className="icon" viewBox="0 0 24 24" width="36" height="36" fill="none">
-                            <path d="M22 16.92V21a1 1 0 01-1.11 1A19.86 19.86 0 013 5.11 1 1 0 014 4h4.09a1 1 0 01.95.68l.83 2.49a1 1 0 01-.24 1l-1.38 1.38a14 14 0 006.6 6.6l1.38-1.38a1 1 0 011-.24l2.49.83a1 1 0 01.68.95z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                        <div>
-                            <strong>Phone</strong>
-                            <div>+1 (555) 123-4567</div>
+                    <div className="showroom card slideIn delay2">
+                        <div className="imageWrap">
+                            <Image src="/images/showroom.jpg" alt="Prism Showroom" width={720} height={420} className="img"/>
+                            <div className="badge">Prism Showroom</div>
                         </div>
                     </div>
                 </aside>
             </section>
 
             <style jsx>{`
-                .contact-root { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; color: #0f172a; max-width: 1100px; margin: 0 auto; }
-                .hero { display: grid; grid-template-columns: 1fr 360px; gap: 36px; align-items: start; margin-top: 36px; }
-                .title { font-size: 2.1rem; margin: 0 0 8px; animation: fadeUp 520ms var(--ease) both; }
-                .subtitle { color: #475569; margin-bottom: 20px; animation: fadeUp 620ms var(--ease) both; }
-                .hero-left { padding-right: 12px; }
-                .form { display: grid; gap: 12px; max-width: 720px; }
-                .label { display: flex; flex-direction: column; gap: 8px; font-size: 14px; color: #0f172a; }
-                .input, .textarea { padding: 10px 12px; border: 1px solid #e6eef6; border-radius: 8px; outline: none; transition: box-shadow .15s, transform .15s; background: #fff; }
-                .input:focus, .textarea:focus { box-shadow: 0 6px 18px rgba(15,23,42,0.06); transform: translateY(-2px); border-color: #c7e1ff; }
-                .textarea { min-height: 120px; resize: vertical; }
-                .btn { background: linear-gradient(90deg,#0ea5a4,#3b82f6); color: #fff; padding: 10px 16px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 8px 30px rgba(59,130,246,0.12); transition: transform .12s ease, box-shadow .12s; }
-                .btn:active { transform: translateY(1px) scale(.995); }
-                .btn[disabled] { opacity: .7; cursor: default; transform: none; }
-                .msg { font-size: 13px; margin-left: 6px; }
-                .msg.success { color: #16a34a; }
-                .msg.error { color: #dc2626; }
+                :root{ --bg:#233529; --panel:#294033; --muted:#8ea089; }
+                .contact-root{ max-width:1120px; margin:36px auto; padding:28px; color: #e6efe6; }
+                .panel.grid{ display:grid; grid-template-columns: 1fr 420px; gap:22px; align-items:start; }
+                .card{ background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06)); border:1px solid rgba(255,255,255,0.03); padding:22px; border-radius:12px; }
+                .left{ padding:28px 26px; }
+                .heading{ margin:0 0 6px; font-size:1.8rem; color:#f5fff5; }
+                .lead{ color: #cfe1cf; margin-bottom:18px; }
+                .contact-form{ display:flex; flex-direction:column; gap:12px; }
+                .row.two{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+                .field{ display:flex; flex-direction:column; gap:8px; }
+                .label-text{ font-size:13px; color:#cfe1cf; }
+                .input, .textarea{ background:transparent; border:1px solid rgba(255,255,255,0.06); padding:12px 14px; border-radius:8px; color: #eef7ee; outline:none; }
+                .input::placeholder, .textarea::placeholder{ color: rgba(230,245,230,0.35); }
+                .input:focus, .textarea:focus{ box-shadow: 0 8px 30px rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.12); transform: translateY(-2px); }
+                .textarea{ min-height:140px; resize:vertical; }
+                .actions{ display:flex; align-items:center; gap:12px; margin-top:6px; }
+                .send{ display:inline-flex; align-items:center; gap:10px; background: linear-gradient(90deg, rgba(150,185,163,0.14), rgba(120,165,135,0.12)); color: #e8f6e8; padding:12px 18px; border-radius:8px; border:1px solid rgba(255,255,255,0.04); cursor:pointer; }
+                .send:disabled{ opacity:.6; cursor:default; }
+                .status .ok{ color:#9fe3ad; }
+                .status .err{ color:#ff9b9b; }
 
-                .hero-right { display: flex; flex-direction: column; gap: 14px; }
-                .card { display: flex; gap: 14px; align-items: center; background: linear-gradient(180deg,#ffffff, #fbfdff); border: 1px solid #eef2f7; padding: 14px; border-radius: 12px; box-shadow: 0 8px 24px rgba(15,23,42,0.04); }
-                .icon { color: #0f172a; opacity: .9; }
-                .float { animation: floatUp 900ms cubic-bezier(.2,.9,.2,1) both; transform-origin: center; }
-                .float.delay { animation-delay: 80ms; }
-                .float.delay2 { animation-delay: 160ms; }
+                .right{ display:flex; flex-direction:column; gap:14px; }
+                .info h3{ margin:0 0 6px; color:#fff; }
+                .info p{ color:#cfe1cf; margin:0 0 12px; }
 
-                /* animations */
-                :root { --ease: cubic-bezier(.2,.9,.2,1); }
-                @keyframes fadeUp {
-                    from { opacity: 0; transform: translateY(10px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-                @keyframes floatUp {
-                    0% { transform: translateY(14px); opacity: 0; }
-                    60% { transform: translateY(-6px); opacity: 1; }
-                    100% { transform: translateY(0); opacity: 1; }
-                }
+                .showroom .imageWrap{ position:relative; border-radius:10px; overflow:hidden; }
+                .showroom .img{ display:block; width:100%; height:auto; filter:grayscale(.05) contrast(.9); }
+                .badge{ position:absolute; left:12px; bottom:12px; background:rgba(0,0,0,0.6); color:#fff; padding:6px 12px; border-radius:999px; font-size:13px; }
 
-                /* responsive */
-                @media (max-width: 880px) {
-                    .hero { grid-template-columns: 1fr; }
-                    .hero-right { order: -1; }
-                }
+                /* entrance animations */
+                .slideIn{ animation: slideUp .6s cubic-bezier(.2,.9,.2,1) both; }
+                .delay{ animation-delay:80ms; }
+                .delay2{ animation-delay:160ms; }
+                @keyframes slideUp{ from{ opacity:0; transform: translateY(18px); } to{ opacity:1; transform: translateY(0); } }
+
+                @media (max-width:980px){ .panel.grid{ grid-template-columns: 1fr; } .row.two{ grid-template-columns: 1fr; } }
             `}</style>
         </main>
     )
