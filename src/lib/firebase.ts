@@ -13,7 +13,7 @@ import {
   type User,
 } from "firebase/auth";
 import { getStorage } from "firebase/storage";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, doc, getDoc } from "firebase/firestore";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -70,5 +70,13 @@ async function signInWithGoogle() {
   return signInWithPopup(auth, googleProvider);
 }
 
-export { app, analytics, auth, storage, db, signIn, signUp, resetPassword, signOut, onAuthChange, signInWithGoogle };
+async function getUserRole(uid: string): Promise<string | null> {
+  const userDoc = await getDoc(doc(db, "users", uid));
+  if (userDoc.exists()) {
+    return userDoc.data().role ?? null;
+  }
+  return null;
+}
+
+export { app, analytics, auth, storage, db, signIn, signUp, resetPassword, signOut, onAuthChange, signInWithGoogle, getUserRole };
 export type { User };

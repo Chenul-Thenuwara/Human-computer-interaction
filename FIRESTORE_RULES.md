@@ -19,13 +19,15 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // Allow users to read and write their own designs
     match /designs/{designId} {
-      // Allow create if authenticated and userId matches
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      
-      // Allow update/delete if authenticated and userId matches existing doc
       allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
-      
-      // Allow read if authenticated and userId matches
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
+    // Allow users to read and write their own todos
+    match /todos/{todoId} {
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
     }
   }

@@ -2,24 +2,27 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { onAuthChange, signOut } from "./firebase";
+import { onAuthChange, signOut, getUserRole } from "./firebase";
 import type { User } from "firebase/auth";
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  isAdmin: boolean;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
+  isAdmin: false,
   logout: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const router = useRouter();
 
   const handleLogout = useCallback(async () => {
@@ -27,6 +30,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await signOut();
       localStorage.removeItem("loginTime");
       setUser(null);
+      setIsAdmin(false);
       router.push("/login");
     } catch (error) {
       console.error("Logout error:", error);
@@ -35,7 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Subscribe to auth state changes
-    const unsubscribe = onAuthChange((user) => {
+    const unsubscribe = onAuthChange(async (user) => {
       if (user) {
         // User is signed in
         const loginTime = localStorage.getItem("loginTime");
@@ -55,10 +59,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           localStorage.setItem("loginTime", now.toString());
         }
 
+        // Fetch role from Firestore
+        const role = await getUserRole(user.uid);
+        setIsAdmin(role === "admin");
         setUser(user);
       } else {
         // User is signed out
         setUser(null);
+        setIsAdmin(false);
         localStorage.removeItem("loginTime");
       }
       setLoading(false);
@@ -68,7 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [handleLogout]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, logout: handleLogout }}>
+    <AuthContext.Provider value={{ user, loading, isAdmin, logout: handleLogout }}>
       {children}
     </AuthContext.Provider>
   );

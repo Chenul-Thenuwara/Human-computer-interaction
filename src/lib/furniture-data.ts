@@ -34,7 +34,7 @@ export const furnitureLibrary: Omit<FurnitureItem, 'id' | 'position' | 'rotation
     */
     {
         type: 'chair',
-        name: 'Leather Armchair (3D)',
+        name: 'Leather Armchair',
         width: 0.9,
         depth: 0.9,
         height: 0.9,
@@ -44,23 +44,23 @@ export const furnitureLibrary: Omit<FurnitureItem, 'id' | 'position' | 'rotation
     },
     {
         type: 'chair',
-        name: 'Stool (3D)',
+        name: 'Stool',
         width: 0.4,
         depth: 0.4,
         height: 0.45,
         color: '#A0826D',
         modelUrl: 'models/stool.glb',
-        imageUrl: '/images/stool.png',
+        imageUrl: 'https://firebasestorage.googleapis.com/v0/b/furniture-visualization-app.firebasestorage.app/o/furniture-images%2Fstool.png?alt=media',
     },
     {
         type: 'chair',
-        name: 'Concept Armchair (3D)',
+        name: 'Concept Armchair',
         width: 0.9,
         depth: 0.9,
         height: 1.0,
         color: '#607D8B',
         modelUrl: 'models/arm-chair.glb',
-        imageUrl: '/images/concept-armchair.png',
+        imageUrl: 'https://firebasestorage.googleapis.com/v0/b/furniture-visualization-app.firebasestorage.app/o/furniture-images%2Fconcept-armchair.png?alt=media',
     },
     {
         type: 'chair',
@@ -70,7 +70,7 @@ export const furnitureLibrary: Omit<FurnitureItem, 'id' | 'position' | 'rotation
         height: 0.95,
         color: '#2E7D32',
         modelUrl: 'models/green-arm-chai.glb',
-        imageUrl: '/images/green-armchair.png',
+        imageUrl: 'https://firebasestorage.googleapis.com/v0/b/furniture-visualization-app.firebasestorage.app/o/furniture-images%2Fgreen-armchair.png?alt=media',
     },
 
 
@@ -88,23 +88,23 @@ export const furnitureLibrary: Omit<FurnitureItem, 'id' | 'position' | 'rotation
     */
     {
         type: 'dining-table',
-        name: 'Modern Table (3D)',
+        name: 'Modern Table',
         width: 1.6,
         depth: 0.9,
         height: 0.75,
         color: '#fddddd',
         modelUrl: 'models/table2.glb',
-        imageUrl: '/images/modern-table.png',
+        imageUrl: 'https://firebasestorage.googleapis.com/v0/b/furniture-visualization-app.firebasestorage.app/o/furniture-images%2Fmodern-table.png?alt=media',
     },
     {
         type: 'dining-table',
-        name: 'Study Desk (3D)',
+        name: 'Study Desk',
         width: 1.2,
         depth: 0.6,
         height: 0.75,
         color: '#2D3748',
         modelUrl: 'models/study-desk.glb',
-        imageUrl: '/images/study-desk.png',
+        imageUrl: 'https://firebasestorage.googleapis.com/v0/b/furniture-visualization-app.firebasestorage.app/o/furniture-images%2Fstudy-desk.png?alt=media',
     },
     /*
     {
@@ -159,13 +159,13 @@ export const furnitureLibrary: Omit<FurnitureItem, 'id' | 'position' | 'rotation
     */
     {
         type: 'side-table',
-        name: 'Nightstand (3D)',
+        name: 'Nightstand',
         width: 0.5,
         depth: 0.45,
         height: 0.6,
         color: '#8D6E63',
         modelUrl: 'models/nightstand.glb',
-        imageUrl: '/images/nightstand.png',
+        imageUrl: 'https://firebasestorage.googleapis.com/v0/b/furniture-visualization-app.firebasestorage.app/o/furniture-images%2Fnightstand.png?alt=media',
     },
 
 
@@ -201,33 +201,33 @@ export const furnitureLibrary: Omit<FurnitureItem, 'id' | 'position' | 'rotation
     */
     {
         type: 'sofa',
-        name: 'Classic Sofa (3D)',
+        name: 'Classic Sofa',
         width: 2.0,
         depth: 0.9,
         height: 0.9,
         color: '#5D4037',
         modelUrl: 'models/sofa.glb',
-        imageUrl: '/images/classic-sofa.png',
+        imageUrl: 'https://firebasestorage.googleapis.com/v0/b/furniture-visualization-app.firebasestorage.app/o/furniture-images%2Fclassic-sofa.png?alt=media',
     },
     {
         type: 'sofa',
-        name: 'White Sofa (3D)',
+        name: 'White Sofa',
         width: 2.2,
         depth: 0.9,
         height: 0.85,
         color: '#F5F5F5',
         modelUrl: 'models/white-sofa.glb',
-        imageUrl: '/images/white-sofa.png',
+        imageUrl: 'https://firebasestorage.googleapis.com/v0/b/furniture-visualization-app.firebasestorage.app/o/furniture-images%2Fwhite-sofa.png?alt=media',
     },
     {
         type: 'sofa', // Using Sofa type for Bedroom Set as it's a large set
-        name: 'Bedroom Set (3D)',
+        name: 'Bedroom Set',
         width: 2.2,
         depth: 2.4,
         height: 1.1,
         color: '#795548',
         modelUrl: 'models/bedroom set.glb',
-        imageUrl: '/images/bedroom-set-1.png',
+        imageUrl: 'https://firebasestorage.googleapis.com/v0/b/furniture-visualization-app.firebasestorage.app/o/furniture-images%2Fbedroom-set-1.png?alt=media',
     },
 
     // Cabinets
@@ -244,13 +244,13 @@ export const furnitureLibrary: Omit<FurnitureItem, 'id' | 'position' | 'rotation
     */
     {
         type: 'cabinet',
-        name: 'Closet (3D)',
+        name: 'Closet',
         width: 1.0,
         depth: 0.6,
         height: 2.0,
         color: '#8B4513',
         modelUrl: 'models/closet.glb',
-        imageUrl: '/images/closet.png',
+        imageUrl: 'https://firebasestorage.googleapis.com/v0/b/furniture-visualization-app.firebasestorage.app/o/furniture-images%2Fcloset.png?alt=media',
     },
     /*
     {
@@ -287,7 +287,7 @@ export const wallItems: Omit<FurnitureItem, 'id' | 'position' | 'rotation'>[] = 
     // },
     {
         type: 'clock',
-        name: 'Modern Wall Clock (3D)',
+        name: 'Modern Wall Clock',
         width: 0.6,
         depth: 0.1,
         height: 0.6,
@@ -295,11 +295,11 @@ export const wallItems: Omit<FurnitureItem, 'id' | 'position' | 'rotation'>[] = 
         elevation: 1.8,
         modelUrl: 'models/modern-clock.glb',
         modelRotationOffset: [Math.PI / 2, 0, 0],
-        imageUrl: '/images/modern-clock.png',
+        imageUrl: 'https://firebasestorage.googleapis.com/v0/b/furniture-visualization-app.firebasestorage.app/o/furniture-images%2Fmodern-clock.png?alt=media',
     },
     {
         type: 'clock',
-        name: 'Simple Wall Clock (3D)',
+        name: 'Simple Wall Clock',
         width: 0.6,
         depth: 0.1,
         height: 0.6,
@@ -307,7 +307,7 @@ export const wallItems: Omit<FurnitureItem, 'id' | 'position' | 'rotation'>[] = 
         elevation: 1.8,
         modelUrl: 'models/simple-clock.glb',
         modelRotationOffset: [Math.PI / 2, 0, 0],
-        imageUrl: '/images/simple-clock.png',
+        imageUrl: 'https://firebasestorage.googleapis.com/v0/b/furniture-visualization-app.firebasestorage.app/o/furniture-images%2Fsimple-clock.png?alt=media',
     },
     // {
     //     type: 'picture-frame',
@@ -321,7 +321,7 @@ export const wallItems: Omit<FurnitureItem, 'id' | 'position' | 'rotation'>[] = 
     // },
     {
         type: 'picture-frame',
-        name: 'Modern Picture (3D)',
+        name: 'Modern Picture',
         width: 1.6,
         depth: 0.05,
         height: 2.0,
@@ -329,11 +329,11 @@ export const wallItems: Omit<FurnitureItem, 'id' | 'position' | 'rotation'>[] = 
         elevation: 1.5,
         modelUrl: 'models/modern-picture.glb',
         modelRotationOffset: [Math.PI / 2, 0, 0], // Rotate 90 degrees on X to stand up
-        imageUrl: '/images/modern-picture.png',
+        imageUrl: 'https://firebasestorage.googleapis.com/v0/b/furniture-visualization-app.firebasestorage.app/o/furniture-images%2Fmodern-picture.png?alt=media',
     },
     {
         type: 'picture-frame',
-        name: 'Classic Frame (3D)',
+        name: 'Classic Frame',
         width: 1.2,
         depth: 0.05,
         height: 1.6,
@@ -341,20 +341,20 @@ export const wallItems: Omit<FurnitureItem, 'id' | 'position' | 'rotation'>[] = 
         elevation: 1.5,
         modelUrl: 'models/frame.glb',
         modelRotationOffset: [Math.PI / 2, 0, 0], // Rotate 90 degrees on X to stand up
-        imageUrl: '/images/frame.png',
+        imageUrl: 'https://firebasestorage.googleapis.com/v0/b/furniture-visualization-app.firebasestorage.app/o/furniture-images%2Fframe.png?alt=media',
     },
 ];
 
 export const fireplaces: Omit<FurnitureItem, 'id' | 'position' | 'rotation'>[] = [
     {
         type: 'fireplace',
-        name: 'Modern Fireplace (3D)',
+        name: 'Modern Fireplace',
         width: 1.2,
         depth: 0.4,
         height: 1.0,
         color: '#2D3748',
         modelUrl: 'models/fireplace.glb',
-        imageUrl: '/images/modern-fireplace.png',
+        imageUrl: 'https://firebasestorage.googleapis.com/v0/b/furniture-visualization-app.firebasestorage.app/o/furniture-images%2Fmodern-fireplace.png?alt=media',
     },
 ];
 

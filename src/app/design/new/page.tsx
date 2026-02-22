@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useDesign, Design } from "@/lib/design-context";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
@@ -12,8 +12,10 @@ import { Visualization3D } from "@/components/design/Visualization3D";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { ArrowLeft, Save, Settings, Layout, Box, LogOut } from "lucide-react";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 export default function DesignStudioPage() {
+  const router = useRouter();
   // Always work with 'new' for now, or existing context
   const { currentDesign, setCurrentDesign, saveDesign } = useDesign();
   const { user, logout } = useAuth();
@@ -64,6 +66,7 @@ export default function DesignStudioPage() {
     try {
       await logout();
       toast.success("Logged out successfully");
+      router.push("/login");
     } catch (error) {
       toast.error("Failed to logout");
       console.error("Logout error:", error);
@@ -76,36 +79,24 @@ export default function DesignStudioPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen flex flex-col relative bg-background text-foreground">
-        {/* Background grid pattern */}
-        <div className="fixed inset-0 opacity-5 pointer-events-none">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <div
-              key={i}
-              className="absolute top-0 bottom-0 w-px bg-white"
-              style={{ left: `${(i + 1) * 10}%` }}
-            />
-          ))}
-        </div>
-
-        {/* Decorative gradient orbs */}
-        <div className="fixed top-0 left-0 w-[600px] h-[600px] bg-primary/15 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-accent/10 rounded-full blur-3xl pointer-events-none"></div>
-
+      <div className="min-h-screen flex flex-col relative text-white overflow-x-hidden">
         {/* Header */}
-        <header className="backdrop-blur-xl bg-card/70 border-b border-white/20 sticky top-0 z-20 shadow-lg shadow-black/10">
+        <motion.header
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="backdrop-blur-xl bg-card/70 border-b border-white/20 sticky top-0 z-20 shadow-lg shadow-black/10"
+        >
           <div className="px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <Link href="/">
-                  <Button
-                    variant="ghost"
-                    className="text-white hover:bg-white/10"
-                  >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back to Dashboard
-                  </Button>
-                </Link>
+                <button
+                  onClick={() => router.push("/dashboard")}
+                  className="flex items-center gap-2 text-white/80 hover:text-white hover:bg-white/10 px-3 py-2 rounded-lg transition-colors"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span className="font-medium">Dashboard</span>
+                </button>
                 <div className="h-6 w-px bg-white/20" />
                 <div>
                   <h1 className="text-lg font-semibold text-white">
@@ -143,10 +134,15 @@ export default function DesignStudioPage() {
               </div>
             </div>
           </div>
-        </header>
+        </motion.header>
 
         {/* Main Content */}
-        <div className="flex-1 overflow-hidden relative flex flex-col">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="flex-1 overflow-hidden relative flex flex-col"
+        >
           <Tabs
             value={activeTab}
             onValueChange={setActiveTab}
@@ -190,7 +186,7 @@ export default function DesignStudioPage() {
               </TabsContent>
             </div>
           </Tabs>
-        </div>
+        </motion.div>
       </div>
     </ProtectedRoute>
   );
