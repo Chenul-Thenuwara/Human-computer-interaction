@@ -44,31 +44,62 @@ export default function Login() {
 
     try {
       const credential = await signIn(email, password);
-      localStorage.setItem("loginTime", Date.now().toString());
+
+      let role: string | null = null;
+      try {
+        role = await getUserRole(credential.user.uid);
+      } catch {
+        // Firestore permission error — treat as no role
+      }
+
+      // If no role exists and this is a user login, create a user profile
+      if (role === null && activeTab === "user") {
+        try {
+          await createUserProfile(
+            credential.user.uid,
+            credential.user.email ?? "",
+            "user",
+            credential.user.displayName ?? undefined,
+          );
+          role = "user";
+        } catch {
+          role = null;
+        }
+      }
 
       if (activeTab === "admin") {
-        let role: string | null = null;
-        try {
-          role = await getUserRole(credential.user.uid);
-        } catch {
-          // Firestore permission error — treat as non-admin
-        }
         if (role !== "admin") {
           await signOut();
           localStorage.removeItem("loginTime");
           setError("Access denied. This account does not have admin privileges.");
           setLoading(false);
+          setSubmitting(false);
           return;
         }
-        router.push("/admin/users");
-      } else {
-        router.push("/dashboard");
+        localStorage.setItem("loginTime", Date.now().toString());
+        router.replace("/admin/users");
+        return;
       }
+
+      // User login tab: block admin accounts
+      if (role === "admin") {
+        await signOut();
+        localStorage.removeItem("loginTime");
+        setError("Admin accounts must use the Admin Login tab.");
+        setLoading(false);
+        setSubmitting(false);
+        return;
+      }
+
+      // Default user path
+      localStorage.setItem("loginTime", Date.now().toString());
+      router.replace("/dashboard");
     } catch (err: unknown) {
       const error = err as { message?: string };
       setError(error?.message ?? "Login failed");
     } finally {
       setLoading(false);
+      setSubmitting(false);
     }
   }
 
@@ -78,7 +109,6 @@ export default function Login() {
     setSubmitting(true);
     try {
       const credential = await signInWithGoogle();
-      localStorage.setItem("loginTime", Date.now().toString());
 
       // Check role to determine where to redirect
       let role = await getUserRole(credential.user.uid);
@@ -89,13 +119,38 @@ export default function Login() {
         } catch { /* rules may not be deployed yet */ }
         role = "user";
       }
+      if (activeTab === "admin") {
+        if (role !== "admin") {
+          await signOut();
+          localStorage.removeItem("loginTime");
+          setError("Access denied. Only admins can use the Admin Login tab.");
+          setLoading(false);
+          setSubmitting(false);
+          return;
+        }
+        localStorage.setItem("loginTime", Date.now().toString());
+        router.replace("/admin/dashboard");
+        return;
+      }
 
-      router.push(role === "admin" ? "/admin/dashboard" : "/dashboard");
+      // User tab: block admins
+      if (role === "admin") {
+        await signOut();
+        localStorage.removeItem("loginTime");
+        setError("Admin accounts must use the Admin Login tab.");
+        setLoading(false);
+        setSubmitting(false);
+        return;
+      }
+
+      localStorage.setItem("loginTime", Date.now().toString());
+      router.replace("/dashboard");
     } catch (err: unknown) {
       const error = err as { message?: string };
       setError(error?.message ?? "Google Sign-in failed");
     } finally {
       setLoading(false);
+      setSubmitting(false);
     }
   }
 
