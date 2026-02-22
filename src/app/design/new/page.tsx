@@ -43,7 +43,7 @@ export default function DesignStudioPage() {
     }
   }, [currentDesign, setCurrentDesign]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!currentDesign) return;
 
     if (!currentDesign.name || currentDesign.name === "Untitled Design") {
@@ -58,8 +58,18 @@ export default function DesignStudioPage() {
       return;
     }
 
-    saveDesign(currentDesign);
-    toast.success("Design saved successfully!");
+    try {
+      await saveDesign(currentDesign);
+      toast.success("Design saved successfully!");
+
+      // Navigate back to dashboard after a short delay
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1000);
+    } catch (error) {
+      toast.error("Failed to save design");
+      console.error("Save error:", error);
+    }
   };
 
   const handleLogout = async () => {
@@ -112,7 +122,9 @@ export default function DesignStudioPage() {
               <div className="flex items-center gap-4">
                 {user && (
                   <div className="flex flex-col items-end gap-0.5 mr-2">
-                    <span className="text-sm font-medium text-white">{user.displayName || user.email?.split('@')[0]}</span>
+                    <span className="text-sm font-medium text-white">
+                      {user.displayName || user.email?.split("@")[0]}
+                    </span>
                     <span className="text-xs text-white/50">{user.email}</span>
                   </div>
                 )}
@@ -175,10 +187,16 @@ export default function DesignStudioPage() {
             </div>
 
             <div className="flex-1 min-h-0 bg-transparent flex flex-col relative">
-              <TabsContent value="setup" className="h-full m-0 p-0 mt-0 overflow-auto">
+              <TabsContent
+                value="setup"
+                className="h-full m-0 p-0 mt-0 overflow-auto"
+              >
                 <RoomSetup />
               </TabsContent>
-              <TabsContent value="2d" className="h-full m-0 p-0 mt-0 overflow-hidden">
+              <TabsContent
+                value="2d"
+                className="h-full m-0 p-0 mt-0 overflow-hidden"
+              >
                 <Layout2D />
               </TabsContent>
               <TabsContent value="3d" className="h-full m-0 p-0 mt-0">
