@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState, FormEvent, useEffect } from "react";
-import { signIn, getUserRole, signOut, signInWithGoogle } from "../../lib/firebase";
+import { signIn, getUserRole, signOut, signInWithGoogle, createUserProfile } from "../../lib/firebase";
 import Link from "next/link";
 import { motion, Variants } from "framer-motion";
 import { useRouter } from "next/navigation";
@@ -72,9 +72,20 @@ export default function Login() {
     setLoading(true);
     setSubmitting(true);
     try {
-      await signInWithGoogle();
+      const credential = await signInWithGoogle();
       localStorage.setItem("loginTime", Date.now().toString());
-      router.push("/dashboard");
+
+      // Check role to determine where to redirect
+      let role = await getUserRole(credential.user.uid);
+      if (role === null) {
+        // First-time Google sign-in — create profile
+        try {
+          await createUserProfile(credential.user.uid, credential.user.email ?? "", "user", credential.user.displayName ?? undefined);
+        } catch { /* rules may not be deployed yet */ }
+        role = "user";
+      }
+
+      router.push(role === "admin" ? "/admin/dashboard" : "/dashboard");
     } catch (err: unknown) {
       const error = err as { message?: string };
       setError(error?.message ?? "Google Sign-in failed");
@@ -162,8 +173,8 @@ export default function Login() {
               type="button"
               onClick={() => handleTabSwitch("user")}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${!isAdminTab
-                  ? "bg-white text-[#233529] shadow"
-                  : "text-white/60 hover:text-white"
+                ? "bg-white text-[#233529] shadow"
+                : "text-white/60 hover:text-white"
                 }`}
             >
               <User className="w-4 h-4" />
@@ -173,8 +184,8 @@ export default function Login() {
               type="button"
               onClick={() => handleTabSwitch("admin")}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${isAdminTab
-                  ? "bg-white text-[#233529] shadow"
-                  : "text-white/60 hover:text-white"
+                ? "bg-white text-[#233529] shadow"
+                : "text-white/60 hover:text-white"
                 }`}
             >
               <ShieldCheck className="w-4 h-4" />
