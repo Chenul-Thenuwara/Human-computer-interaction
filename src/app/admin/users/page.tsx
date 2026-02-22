@@ -9,6 +9,7 @@ import {
   Users,
   LayoutDashboard,
   Settings,
+  Sofa,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -119,6 +120,12 @@ export default function UsersPage() {
       active: false,
     },
     { href: "/admin/users", label: "Users", icon: Users, active: true },
+    {
+      href: "/admin/furniture/add",
+      label: "Add Furniture",
+      icon: Sofa,
+      active: false,
+    },
     {
       href: "/admin/settings",
       label: "Settings",
