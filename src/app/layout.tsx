@@ -36,7 +36,7 @@ const italianno = Italianno({
 });
 
 export const metadata: Metadata = {
-  title: "Furniture Visualization App",
+  title: "Prism — Furniture Visualization",
   description: "Design your dream room",
 };
 
