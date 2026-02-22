@@ -94,7 +94,7 @@ export default function GalleryPage() {
           <Link href="/" className="hover:text-[#f3b5a1] transition-colors">Home</Link>
           <Link href="/gallery" className="text-[#f3b5a1] relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1px] auto after:bg-[#f3b5a1]">Gallery</Link>
           <Link href="/about" className="hover:text-[#f3b5a1] transition-colors">About</Link>
-          <Link href="#" className="hover:text-[#f3b5a1] transition-colors">Contact</Link>
+          <Link href="/contact" className="hover:text-[#f3b5a1] transition-colors">Contact</Link>
         </nav>
 
         <div className="flex gap-4 items-center">

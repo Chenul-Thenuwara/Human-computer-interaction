@@ -72,7 +72,7 @@ export default function AboutPage() {
           <Link href="/" className="hover:text-[#f3b5a1] transition-colors">Home</Link>
           <Link href="/gallery" className="hover:text-[#f3b5a1] transition-colors">Gallery</Link>
           <Link href="/about" className="text-[#f3b5a1] border-b border-[#f3b5a1]/60 pb-0.5">About</Link>
-          <Link href="#" className="hover:text-[#f3b5a1] transition-colors">Contact</Link>
+          <Link href="/contact" className="hover:text-[#f3b5a1] transition-colors">Contact</Link>
         </nav>
 
         <div className="flex gap-6 items-center">
@@ -385,6 +385,7 @@ export default function AboutPage() {
           <Link href="/" className="hover:text-white transition-colors">Home</Link>
           <Link href="/gallery" className="hover:text-white transition-colors">Gallery</Link>
           <Link href="/about" className="hover:text-white transition-colors">About</Link>
+          <Link href="/contact" className="hover:text-white transition-colors">Contact</Link>
         </div>
       </footer>
     </div>

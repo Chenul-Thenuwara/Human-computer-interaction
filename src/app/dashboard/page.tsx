@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, LogOut, Plus, Home, Calendar, Armchair, ChevronLeft, ChevronRight, CheckCircle, Circle, Trash2 } from "lucide-react";
+import { LogOut, Plus, Home, Calendar, Armchair, ChevronLeft, ChevronRight, CheckCircle, Circle, Trash2 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { motion, Variants } from "framer-motion";
 import Link from "next/link";
@@ -51,10 +51,10 @@ export default function DashboardPage() {
         querySnapshot.forEach((doc) => {
           fetchedDesigns.push({ id: doc.id, ...doc.data() } as Design);
         });
-        
+
         // Sort manually by updatedAt descending since we didn't add a composite index yet
         fetchedDesigns.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-        
+
         setDesigns(fetchedDesigns);
       } catch (error) {
         console.error("Error fetching designs:", error);
@@ -177,7 +177,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen relative text-white selection:bg-[#f3b5a1] selection:text-[#233529] overflow-x-hidden flex flex-col">
       {/* Header */}
-      <motion.header 
+      <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
@@ -223,7 +223,7 @@ export default function DashboardPage() {
       {/* Main Content */}
       <main className="flex-1 relative z-10 w-full max-w-[1400px] mx-auto px-6 md:px-12 py-12 flex flex-col gap-12">
         {/* Top Metric Cards */}
-        <motion.div 
+        <motion.div
           variants={staggerContainer}
           initial="hidden"
           animate="visible"
@@ -237,16 +237,16 @@ export default function DashboardPage() {
               {loadingDesigns ? "-" : designs.length}
             </p>
           </motion.div>
-          
+
           {/* Card 2 */}
           <motion.div variants={fadeUp} className="backdrop-blur-xl bg-white/5 border border-white/10 shadow-xl rounded-2xl p-8 relative overflow-hidden group">
-             <div className="absolute top-0 right-0 w-32 h-32 bg-[#f3b5a1]/5 blur-2xl rounded-full translate-x-1/2 -translate-y-1/2 group-hover:bg-[#f3b5a1]/10 transition-colors duration-500"></div>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#f3b5a1]/5 blur-2xl rounded-full translate-x-1/2 -translate-y-1/2 group-hover:bg-[#f3b5a1]/10 transition-colors duration-500"></div>
             <h2 className="text-sm font-medium text-white/50 uppercase tracking-wider mb-2">This Month</h2>
             <p className="text-5xl font-light text-white" style={{ fontFamily: "var(--font-italiana)" }}>
               {loadingDesigns ? "-" : designs.filter(d => new Date(d.updatedAt).getMonth() === new Date().getMonth()).length}
             </p>
           </motion.div>
-          
+
           {/* Card 3 - Quick Action */}
           <motion.div variants={fadeUp} className="backdrop-blur-xl bg-white/5 border border-white/10 shadow-xl rounded-2xl p-8 flex flex-col justify-between items-start relative overflow-hidden group">
             <h2 className="text-sm font-medium text-white/50 uppercase tracking-wider mb-4">Quick Action</h2>
@@ -264,15 +264,15 @@ export default function DashboardPage() {
 
         {/* Calendar & Todo Section */}
         <motion.div
-           initial={{ opacity: 0, y: 20 }}
-           animate={{ opacity: 1, y: 0 }}
-           transition={{ duration: 0.8, delay: 0.2 }}
-           className="w-full grid grid-cols-1 lg:grid-cols-3 gap-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="w-full grid grid-cols-1 lg:grid-cols-3 gap-6"
         >
           {/* Calendar Card */}
           <div className="backdrop-blur-xl bg-white/5 border border-white/10 shadow-xl rounded-2xl p-6 lg:p-8 flex flex-col relative overflow-hidden">
             <div className="absolute top-0 left-0 w-32 h-32 bg-[#8ea37e]/10 blur-2xl rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
-            
+
             {/* Calendar Header */}
             <div className="flex items-center justify-between mb-6 relative z-10">
               <h3 className="text-xl font-medium tracking-wide" style={{ fontFamily: "var(--font-italiana)" }}>
@@ -304,20 +304,19 @@ export default function DashboardPage() {
                 const hasTodos = todos.some(t => t.date === dateStr);
                 const isSelected = selectedDateString === dateStr;
                 const isToday = formatTodoDate(new Date()) === dateStr;
-                
+
                 return (
                   <motion.button
                     key={day}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setSelectedDate(dateOfThisDay)}
-                    className={`aspect-square flex flex-col items-center justify-center rounded-xl relative transition-colors ${
-                      isSelected 
-                        ? 'bg-white text-[#233529]' 
-                        : isToday 
-                          ? 'bg-white/10 text-white border border-white/20' 
+                    className={`aspect-square flex flex-col items-center justify-center rounded-xl relative transition-colors ${isSelected
+                        ? 'bg-white text-[#233529]'
+                        : isToday
+                          ? 'bg-white/10 text-white border border-white/20'
                           : 'text-white/70 hover:bg-white/10 hover:text-white'
-                    }`}
+                      }`}
                   >
                     <span className="text-sm font-medium">{day}</span>
                     {hasTodos && (
@@ -331,81 +330,81 @@ export default function DashboardPage() {
 
           {/* Todo List Card */}
           <div className="lg:col-span-2 backdrop-blur-xl bg-white/5 border border-white/10 shadow-xl rounded-2xl p-6 lg:p-8 flex flex-col relative overflow-hidden h-[450px]">
-             <div className="absolute bottom-0 right-0 w-48 h-48 bg-[#f3b5a1]/5 blur-3xl rounded-full translate-x-1/2 translate-y-1/2 pointer-events-none"></div>
-             
-             <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4 relative z-10">
-                <h3 className="text-2xl font-medium tracking-wide" style={{ fontFamily: "var(--font-italiana)" }}>
-                  Tasks for {selectedDate.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
-                </h3>
-                <span className="text-white/40 text-sm font-light">
-                  {todosForSelectedDate.filter(t => t.completed).length} / {todosForSelectedDate.length} completed
-                </span>
-             </div>
+            <div className="absolute bottom-0 right-0 w-48 h-48 bg-[#f3b5a1]/5 blur-3xl rounded-full translate-x-1/2 translate-y-1/2 pointer-events-none"></div>
 
-             <div className="flex-1 overflow-y-auto pr-2 space-y-3 relative z-10 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full">
-                {todosForSelectedDate.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-white/30 font-light">
-                    <CheckCircle className="w-12 h-12 mb-3 opacity-20" />
-                    <p>No tasks for this day.</p>
-                  </div>
-                ) : (
-                  todosForSelectedDate.map(todo => (
-                    <motion.div
-                      key={todo.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="group flex items-center justify-between p-3 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/5 transition-all"
-                    >
-                      <button 
-                        onClick={() => handleToggleTodo(todo)}
-                        className="flex items-center gap-3 flex-1 text-left"
-                      >
-                        {todo.completed ? (
-                          <CheckCircle className="w-5 h-5 text-[#8ea37e] shrink-0" />
-                        ) : (
-                          <Circle className="w-5 h-5 text-white/40 group-hover:text-white/60 shrink-0" />
-                        )}
-                        <span className={`text-[15px] font-light transition-all ${todo.completed ? 'text-white/30 line-through' : 'text-white/80'}`}>
-                          {todo.text}
-                        </span>
-                      </button>
-                      <button
-                        onClick={() => handleDeleteTodo(todo.id)}
-                        className="opacity-0 group-hover:opacity-100 p-2 text-white/30 hover:text-red-400 transition-colors"
-                        title="Delete task"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </motion.div>
-                  ))
-                )}
-             </div>
+            <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4 relative z-10">
+              <h3 className="text-2xl font-medium tracking-wide" style={{ fontFamily: "var(--font-italiana)" }}>
+                Tasks for {selectedDate.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+              </h3>
+              <span className="text-white/40 text-sm font-light">
+                {todosForSelectedDate.filter(t => t.completed).length} / {todosForSelectedDate.length} completed
+              </span>
+            </div>
 
-             {/* Add Todo Input */}
-             <form onSubmit={handleAddTodo} className="mt-6 relative z-10 flex gap-3">
-                <div className="relative flex-1">
-                  <Input
-                    type="text"
-                    value={newTodoText}
-                    onChange={(e) => setNewTodoText(e.target.value)}
-                    placeholder="Add a new task..."
-                    className="w-full bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-[#f3b5a1]/50 focus:ring-[#f3b5a1]/20 rounded-xl h-12 pl-4 pr-4 font-light"
-                  />
+            <div className="flex-1 overflow-y-auto pr-2 space-y-3 relative z-10 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full">
+              {todosForSelectedDate.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-white/30 font-light">
+                  <CheckCircle className="w-12 h-12 mb-3 opacity-20" />
+                  <p>No tasks for this day.</p>
                 </div>
-                <Button 
-                  type="submit"
-                  disabled={!newTodoText.trim() || !user}
-                  className="h-12 w-12 rounded-xl bg-white text-[#233529] hover:bg-white/90 shrink-0 p-0 flex items-center justify-center shadow-lg disabled:opacity-50"
-                >
-                  <Plus className="w-5 h-5" />
-                </Button>
-             </form>
+              ) : (
+                todosForSelectedDate.map(todo => (
+                  <motion.div
+                    key={todo.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="group flex items-center justify-between p-3 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/5 transition-all"
+                  >
+                    <button
+                      onClick={() => handleToggleTodo(todo)}
+                      className="flex items-center gap-3 flex-1 text-left"
+                    >
+                      {todo.completed ? (
+                        <CheckCircle className="w-5 h-5 text-[#8ea37e] shrink-0" />
+                      ) : (
+                        <Circle className="w-5 h-5 text-white/40 group-hover:text-white/60 shrink-0" />
+                      )}
+                      <span className={`text-[15px] font-light transition-all ${todo.completed ? 'text-white/30 line-through' : 'text-white/80'}`}>
+                        {todo.text}
+                      </span>
+                    </button>
+                    <button
+                      onClick={() => handleDeleteTodo(todo.id)}
+                      className="opacity-0 group-hover:opacity-100 p-2 text-white/30 hover:text-red-400 transition-colors"
+                      title="Delete task"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </motion.div>
+                ))
+              )}
+            </div>
+
+            {/* Add Todo Input */}
+            <form onSubmit={handleAddTodo} className="mt-6 relative z-10 flex gap-3">
+              <div className="relative flex-1">
+                <Input
+                  type="text"
+                  value={newTodoText}
+                  onChange={(e) => setNewTodoText(e.target.value)}
+                  placeholder="Add a new task..."
+                  className="w-full bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-[#f3b5a1]/50 focus:ring-[#f3b5a1]/20 rounded-xl h-12 pl-4 pr-4 font-light"
+                />
+              </div>
+              <Button
+                type="submit"
+                disabled={!newTodoText.trim() || !user}
+                className="h-12 w-12 rounded-xl bg-white text-[#233529] hover:bg-white/90 shrink-0 p-0 flex items-center justify-center shadow-lg disabled:opacity-50"
+              >
+                <Plus className="w-5 h-5" />
+              </Button>
+            </form>
 
           </div>
         </motion.div>
 
         {/* Portfolio Section */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
@@ -414,7 +413,7 @@ export default function DashboardPage() {
           <div className="flex justify-between items-end border-b border-white/10 pb-4">
             <h2 className="text-3xl font-medium tracking-wide text-white" style={{ fontFamily: "var(--font-italiana)" }}>Design Portfolio</h2>
           </div>
-          
+
           {loadingDesigns ? (
             <div className="w-full min-h-[400px] flex items-center justify-center backdrop-blur-md bg-white/[0.02] border border-white/10 rounded-2xl">
               <div className="w-10 h-10 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
@@ -450,20 +449,19 @@ export default function DashboardPage() {
                   className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between group transition-colors"
                 >
                   <div className="flex items-center gap-6">
-                    <div 
-                      className={`w-16 h-16 rounded-xl flex items-center justify-center shrink-0 shadow-lg ${
-                        [
+                    <div
+                      className={`w-16 h-16 rounded-xl flex items-center justify-center shrink-0 shadow-lg ${[
                           "bg-gradient-to-br from-pink-400 to-rose-500",
                           "bg-gradient-to-br from-purple-400 to-indigo-500",
                           "bg-gradient-to-br from-[#8ea37e] to-emerald-600",
                           "bg-gradient-to-br from-amber-400 to-orange-500",
                           "bg-gradient-to-br from-cyan-400 to-blue-500"
                         ][index % 5]
-                      } transition-transform group-hover:scale-105 group-hover:rotate-3`}
+                        } transition-transform group-hover:scale-105 group-hover:rotate-3`}
                     >
                       <Armchair className="w-7 h-7 text-white opacity-90" />
                     </div>
-                    
+
                     <div className="flex flex-col">
                       <h3 className="text-xl font-medium text-white mb-1 tracking-wide" style={{ fontFamily: "var(--font-italiana)" }}>
                         {design.name || "Untitled Design"}
@@ -475,7 +473,7 @@ export default function DashboardPage() {
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-8">
                     <div className="hidden md:flex flex-col items-end">
                       <span className="text-xs text-white/40 uppercase tracking-wider font-medium mb-1">Last Updated</span>
