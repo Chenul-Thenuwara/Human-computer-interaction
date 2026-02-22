@@ -7,52 +7,66 @@ import { FurnitureItem } from "@/lib/design-context";
 import { storage } from "@/lib/firebase";
 import { ref, getDownloadURL } from "firebase/storage";
 
+// Module-level cache: Firebase path -> resolved proxy URL (or null for errors)
+const urlCache = new Map<string, string | null>();
+
 interface Furniture3DProps {
   item: FurnitureItem;
 }
 
 export function Furniture3D({ item }: Furniture3DProps) {
   const { type, width, depth, height, color, modelUrl, rotation = 0, elevation = 0, modelRotationOffset = [0, 0, 0] } = item;
-  const [resolvedUrl, setResolvedUrl] = useState<string | null>(null);
+
+  // Determine initial state from cache so there's no flicker on re-renders
+  const getInitial = () => {
+    if (!modelUrl) return null;
+    if (modelUrl.startsWith('http') || modelUrl.startsWith('/')) return modelUrl;
+    return urlCache.has(modelUrl) ? urlCache.get(modelUrl)! : undefined; // undefined = still resolving
+  };
+
+  // undefined = resolving, null = error/no modelUrl, string = resolved
+  const [resolvedUrl, setResolvedUrl] = useState<string | null | undefined>(getInitial);
 
   useEffect(() => {
+    if (!modelUrl) {
+      setResolvedUrl(null);
+      return;
+    }
+
+    // Direct URLs — no async needed
+    if (modelUrl.startsWith('http') || modelUrl.startsWith('/')) {
+      setResolvedUrl(modelUrl);
+      return;
+    }
+
+    // Already cached
+    if (urlCache.has(modelUrl)) {
+      setResolvedUrl(urlCache.get(modelUrl)!);
+      return;
+    }
+
     let isMounted = true;
+    THREE.DefaultLoadingManager.itemStart(modelUrl);
 
-    const resolveUrl = async () => {
-      if (!modelUrl) {
-        if (isMounted) setResolvedUrl(null);
-        return;
-      }
-
-      // If it's a full URL or absolute local path, use it directly
-      if (modelUrl.startsWith('http') || modelUrl.startsWith('/')) {
-        if (isMounted) setResolvedUrl(modelUrl);
-        return;
-      }
-
-      // Otherwise, treat as Firebase Storage path and resolve it
+    (async () => {
       try {
         const storageRef = ref(storage, modelUrl);
         const url = await getDownloadURL(storageRef);
-        if (isMounted) {
-          // Use our local proxy to bypass CORS
-          const proxyUrl = `/api/model-proxy?url=${encodeURIComponent(url)}`;
-          setResolvedUrl(proxyUrl);
-        }
-      } catch (error) {
-        console.error(`Failed to resolve model URL: ${modelUrl}`, error);
-        if (isMounted) {
-          setResolvedUrl(null);
-        }
+        const proxyUrl = `/api/model-proxy?url=${encodeURIComponent(url)}`;
+        urlCache.set(modelUrl, proxyUrl);
+        if (isMounted) setResolvedUrl(proxyUrl);
+      } catch (err) {
+        console.error(`Failed to resolve model URL: ${modelUrl}`, err);
+        urlCache.set(modelUrl, null);
+        if (isMounted) setResolvedUrl(null);
+      } finally {
+        THREE.DefaultLoadingManager.itemEnd(modelUrl);
       }
-    };
+    })();
 
-    resolveUrl();
-
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, [modelUrl]);
+
 
   // Convert material (for procedural fallback)
   const material = useMemo(() => {
@@ -64,6 +78,12 @@ export function Furniture3D({ item }: Furniture3DProps) {
   }, [color]);
 
   const renderContent = () => {
+    // Still resolving the URL — render nothing to avoid placeholder flash
+    if (resolvedUrl === undefined) {
+      return null;
+    }
+
+    // URL resolved successfully — render the 3D model
     if (resolvedUrl) {
       return (
         <ModelLoader 
@@ -76,15 +96,8 @@ export function Furniture3D({ item }: Furniture3DProps) {
       );
     }
 
-    // Fallback to procedural geometry (same as before) or while loading
-    // If modelUrl exists but not resolved yet, we might want to show nothing or a loader.
-    // But falling back to procedural geometry is a good "loading state" if available.
-    if (modelUrl && !resolvedUrl) {
-        // Optional: return null or a loader? 
-        // Returning procedural fallback allows instant feedback while model loads.
-    }
+    // resolvedUrl is null: no model URL, or failed to resolve — use procedural fallback
 
-    // Fallback to procedural geometry
     switch (type) {
       case 'chair':
         return <ChairGeometry width={width} depth={depth} height={height} material={material} />;
