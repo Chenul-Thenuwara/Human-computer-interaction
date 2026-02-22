@@ -228,6 +228,15 @@ export default function AdminPage() {
     activeUsers: users.filter((u) => u.status === "active").length,
   };
 
+  // Get 5 most recent users
+  const recentUsers = [...users]
+    .sort((a, b) => {
+      const dateA = new Date(a.joinedDate).getTime();
+      const dateB = new Date(b.joinedDate).getTime();
+      return dateB - dateA; // Sort descending (most recent first)
+    })
+    .slice(0, 5);
+
   return (
     <div className="min-h-screen bg-[#0e1713] text-white flex">
       {/* ── Sidebar ── */}
@@ -432,7 +441,7 @@ export default function AdminPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#4a5d5a]">
-                  {users.map((user) => (
+                  {recentUsers.map((user) => (
                     <tr
                       key={user.id}
                       className="hover:bg-[#3a4d4a] transition-colors"
@@ -514,7 +523,7 @@ export default function AdminPage() {
               </table>
             </div>
 
-            {users.length === 0 && (
+            {recentUsers.length === 0 && (
               <div className="text-center py-12">
                 <svg
                   className="w-16 h-16 text-[#4a5d5a] mx-auto mb-4"
