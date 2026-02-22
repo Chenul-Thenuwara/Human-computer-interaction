@@ -23,7 +23,7 @@ export interface Todo {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const { setCurrentDesign } = useDesign();
   const [designs, setDesigns] = useState<Design[]>([]);
   const [loadingDesigns, setLoadingDesigns] = useState(true);
@@ -33,6 +33,13 @@ export default function DashboardPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [todos, setTodos] = useState<Todo[]>([]);
   const [newTodoText, setNewTodoText] = useState("");
+
+  // Redirect admins to the admin panel
+  useEffect(() => {
+    if (isAdmin) {
+      router.push("/admin/dashboard");
+    }
+  }, [isAdmin, router]);
 
   useEffect(() => {
     async function fetchDesigns() {
@@ -195,9 +202,14 @@ export default function DashboardPage() {
               </span>
             </div>
             <div className="flex items-center gap-6">
-              <span className="text-white/80 font-light text-sm hidden sm:block">
-                {user?.email || "designer@prism.com"}
-              </span>
+              <div className="flex flex-col items-end gap-0.5 hidden sm:flex">
+                <span className="text-white/90 font-light text-sm">
+                  {user?.displayName || user?.email?.split("@")[0]}
+                </span>
+                <span className="text-white/40 text-xs">
+                  {user?.email}
+                </span>
+              </div>
               <Button
                 onClick={() => router.push("/")}
                 variant="ghost"
@@ -312,10 +324,10 @@ export default function DashboardPage() {
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setSelectedDate(dateOfThisDay)}
                     className={`aspect-square flex flex-col items-center justify-center rounded-xl relative transition-colors ${isSelected
-                        ? 'bg-white text-[#233529]'
-                        : isToday
-                          ? 'bg-white/10 text-white border border-white/20'
-                          : 'text-white/70 hover:bg-white/10 hover:text-white'
+                      ? 'bg-white text-[#233529]'
+                      : isToday
+                        ? 'bg-white/10 text-white border border-white/20'
+                        : 'text-white/70 hover:bg-white/10 hover:text-white'
                       }`}
                   >
                     <span className="text-sm font-medium">{day}</span>
@@ -451,12 +463,12 @@ export default function DashboardPage() {
                   <div className="flex items-center gap-6">
                     <div
                       className={`w-16 h-16 rounded-xl flex items-center justify-center shrink-0 shadow-lg ${[
-                          "bg-gradient-to-br from-pink-400 to-rose-500",
-                          "bg-gradient-to-br from-purple-400 to-indigo-500",
-                          "bg-gradient-to-br from-[#8ea37e] to-emerald-600",
-                          "bg-gradient-to-br from-amber-400 to-orange-500",
-                          "bg-gradient-to-br from-cyan-400 to-blue-500"
-                        ][index % 5]
+                        "bg-gradient-to-br from-pink-400 to-rose-500",
+                        "bg-gradient-to-br from-purple-400 to-indigo-500",
+                        "bg-gradient-to-br from-[#8ea37e] to-emerald-600",
+                        "bg-gradient-to-br from-amber-400 to-orange-500",
+                        "bg-gradient-to-br from-cyan-400 to-blue-500"
+                      ][index % 5]
                         } transition-transform group-hover:scale-105 group-hover:rotate-3`}
                     >
                       <Armchair className="w-7 h-7 text-white opacity-90" />

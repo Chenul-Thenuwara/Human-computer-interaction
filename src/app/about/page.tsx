@@ -325,7 +325,7 @@ export default function AboutPage() {
       <section className="py-32 relative overflow-hidden">
         <div className="absolute inset-0 z-0">
           <Image
-            src="https://images.unsplash.com/photo-1600607687644-aac4c3eac7f4?q=80&w=2400&auto=format&fit=crop"
+            src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=2400&auto=format&fit=crop"
             alt="Dream living room"
             fill
             className="object-cover opacity-30"
