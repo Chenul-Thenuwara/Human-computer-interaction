@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 
 import { motion, Variants, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ShoppingBag, Search } from "lucide-react";
+import { ShoppingBag, Search } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { furnitureLibrary } from "@/lib/furniture-data";
+import { fetchFurnitureFromDB } from "@/lib/furniture";
+import { FurnitureItem } from "@/lib/design-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -46,6 +47,22 @@ const getDummyDescription = (type: string) => {
 export default function GalleryPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const [furnitureLibrary, setFurnitureLibrary] = useState<FurnitureItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    const loadData = async () => {
+      try {
+        const data = await fetchFurnitureFromDB();
+        setFurnitureLibrary(data);
+      } catch (error) {
+        console.error("Error fetching furniture:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
 
   // Animation variants
   const fadeUp: Variants = {
@@ -98,14 +115,7 @@ export default function GalleryPage() {
         </nav>
 
         <div className="flex gap-4 items-center">
-          <Button
-            variant="ghost"
-            onClick={() => router.push('/')}
-            className="text-white hover:bg-white/10 hover:text-white"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
+          {/* Navigation items can go here in the future if needed */}
         </div>
       </motion.header>
 
@@ -151,7 +161,9 @@ export default function GalleryPage() {
           animate="visible"
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 pb-20"
         >
-          {filteredFurniture.length > 0 ? (
+          {loading ? (
+            <div className="col-span-full py-20 text-center text-white/50">Loading furniture...</div>
+          ) : filteredFurniture.length > 0 ? (
             <AnimatePresence>
               {filteredFurniture.map((item, index) => (
                 <motion.div
@@ -194,7 +206,7 @@ export default function GalleryPage() {
                             {item.name}
                           </h3>
                           <p className="text-[#f3b5a1] font-medium whitespace-nowrap">
-                            {getDummyPrice(item.type)}
+                            {item.price || getDummyPrice(item.type)}
                           </p>
                         </div>
 
