@@ -87,6 +87,13 @@ export function Layout2D() {
     updateDesignFurniture(updated);
   };
 
+  const handleUpdateRotation = (id: string, rotation: number) => {
+    const updated = currentDesign.furniture.map(item =>
+      item.id === id ? { ...item, rotation } : item
+    );
+    updateDesignFurniture(updated);
+  };
+
   const selectedFurniture = currentDesign.furniture.find(item => item.id === selectedItem);
 
   // Group furniture by type
@@ -188,6 +195,7 @@ export function Layout2D() {
               selectedItem={selectedItem}
               onSelectItem={setSelectedItem}
               onUpdatePosition={handleUpdatePosition}
+              onUpdateRotation={handleUpdateRotation}
               onDropItem={handleDropFurniture}
             />
           </div>

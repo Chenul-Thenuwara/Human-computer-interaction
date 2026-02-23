@@ -8,10 +8,11 @@ interface FloorPlanProps {
   selectedItem: string | null;
   onSelectItem: (id: string | null) => void;
   onUpdatePosition: (id: string, position: { x: number; y: number }) => void;
+  onUpdateRotation?: (id: string, rotation: number) => void;
   onDropItem?: (item: Omit<FurnitureItem, 'id' | 'position' | 'rotation'>, position: { x: number; y: number }) => void;
 }
 
-export function FloorPlan({ room, furniture, selectedItem, onSelectItem, onUpdatePosition, onDropItem }: FloorPlanProps) {
+export function FloorPlan({ room, furniture, selectedItem, onSelectItem, onUpdatePosition, onUpdateRotation, onDropItem }: FloorPlanProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const [{ isOver }, drop] = useDrop(() => ({
@@ -48,6 +49,7 @@ export function FloorPlan({ room, furniture, selectedItem, onSelectItem, onUpdat
   }), [room, onDropItem]);
 
   const [draggingItem, setDraggingItem] = useState<string | null>(null);
+  const [rotatingItem, setRotatingItem] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const scale = 60; // pixels per meter
 
@@ -114,15 +116,29 @@ export function FloorPlan({ room, furniture, selectedItem, onSelectItem, onUpdat
       ctx.fillStyle = item.color;
       ctx.fillRect(-width / 2, -height / 2, width, height);
 
-      // Border
+      // Border and UI Controls
       if (selectedItem === item.id) {
         ctx.strokeStyle = '#4f46e5';
         ctx.lineWidth = 3;
+        ctx.strokeRect(-width / 2, -height / 2, width, height);
+
+        // Draw rotation handle
+        ctx.beginPath();
+        ctx.moveTo(0, -height / 2);
+        ctx.lineTo(0, -height / 2 - 25);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(0, -height / 2 - 25, 6, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.stroke();
       } else {
         ctx.strokeStyle = '#64748b';
         ctx.lineWidth = 2;
+        ctx.strokeRect(-width / 2, -height / 2, width, height);
       }
-      ctx.strokeRect(-width / 2, -height / 2, width, height);
 
       // Draw direction indicator (small triangle at front)
       ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
@@ -204,6 +220,35 @@ export function FloorPlan({ room, furniture, selectedItem, onSelectItem, onUpdat
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
+    const roomX = 50;
+    const roomY = 50;
+
+    // Check rotation handle first
+    if (selectedItem) {
+      const item = furniture.find(f => f.id === selectedItem);
+      if (item && item.position) {
+        const itemX = roomX + item.position.x * scale;
+        const itemY = roomY + item.position.y * scale;
+        const rotation = item.rotation || 0;
+
+        // Inverse transform mouse coordinates
+        const dx = x - itemX;
+        const dy = y - itemY;
+        const rad = (-rotation * Math.PI) / 180;
+        const localX = dx * Math.cos(rad) - dy * Math.sin(rad);
+        const localY = dx * Math.sin(rad) + dy * Math.cos(rad);
+
+        const height = item.depth * scale;
+        const handleY = -height / 2 - 25;
+
+        // Hit test for rotation handle (radius 6, test 12 for easier clicking)
+        if (Math.abs(localX - 0) <= 12 && Math.abs(localY - handleY) <= 12) {
+          setRotatingItem(selectedItem);
+          return;
+        }
+      }
+    }
+
     const item = getItemAtPosition(x, y);
     if (item) {
       setDraggingItem(item.id);
@@ -224,8 +269,6 @@ export function FloorPlan({ room, furniture, selectedItem, onSelectItem, onUpdat
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!draggingItem) return;
-
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -235,6 +278,33 @@ export function FloorPlan({ room, furniture, selectedItem, onSelectItem, onUpdat
 
     const roomX = 50;
     const roomY = 50;
+
+    if (rotatingItem && onUpdateRotation) {
+      const item = furniture.find(f => f.id === rotatingItem);
+      if (item && item.position) {
+        const itemX = roomX + item.position.x * scale;
+        const itemY = roomY + item.position.y * scale;
+
+        const dx = x - itemX;
+        const dy = y - itemY;
+
+        let angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+        angle += 90; // Adjust so straight up is 0 degrees
+
+        // Snap to 15 degrees unless shift key is pressed
+        if (!e.shiftKey) {
+          angle = Math.round(angle / 15) * 15;
+        } else {
+          angle = Math.round(angle);
+        }
+
+        angle = (angle + 360) % 360;
+        onUpdateRotation(rotatingItem, angle);
+      }
+      return;
+    }
+
+    if (!draggingItem) return;
 
     let newX = (x - roomX - dragOffset.x) / scale;
     let newY = (y - roomY - dragOffset.y) / scale;
@@ -259,10 +329,12 @@ export function FloorPlan({ room, furniture, selectedItem, onSelectItem, onUpdat
 
   const handleMouseUp = () => {
     setDraggingItem(null);
+    setRotatingItem(null);
   };
 
   const handleMouseLeave = () => {
     setDraggingItem(null);
+    setRotatingItem(null);
   };
 
   return (
