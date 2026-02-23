@@ -49,6 +49,19 @@ export function Layout2D() {
     toast.success(`${furnitureType.name} added to room`);
   };
 
+  const handleDropFurniture = (furnitureType: Omit<FurnitureItem, 'id' | 'position' | 'rotation'>, position: { x: number; y: number }) => {
+    const newItem: FurnitureItem = {
+      ...furnitureType,
+      id: `${furnitureType.type}-${Date.now()}`,
+      position,
+      rotation: 0,
+    };
+
+    updateDesignFurniture([...currentDesign.furniture, newItem]);
+    setSelectedItem(newItem.id);
+    toast.success(`${furnitureType.name} placed in room`);
+  };
+
   const handleRemoveItem = (id: string) => {
     const updated = currentDesign.furniture.filter(item => item.id !== id);
     updateDesignFurniture(updated);
@@ -110,7 +123,7 @@ export function Layout2D() {
     <DndProvider backend={HTML5Backend}>
       <div className="h-full flex overflow-hidden">
         {/* Furniture Library Sidebar */}
-        <motion.div 
+        <motion.div
           variants={slideRight}
           initial="hidden"
           animate="visible"
@@ -125,7 +138,7 @@ export function Layout2D() {
               Click items to add them to your room
             </p>
           </div>
-          
+
           <ScrollArea className="flex-1">
             <div className="p-4 space-y-6">
               {loading ? (
@@ -133,20 +146,20 @@ export function Layout2D() {
               ) : (
                 Object.entries(groupedFurniture).map(([type, items]) => (
                   <div key={type}>
-                  <h3 className="text-sm font-medium text-accent mb-3">
-                    {typeLabels[type as keyof typeof typeLabels]}
-                  </h3>
-                  <div className="space-y-2">
-                    {items.map((item, index) => (
-                      <FurnitureLibraryItem
-                        key={`${type}-${index}`}
-                        item={item}
-                        onAdd={() => handleAddFurniture(item)}
-                      />
-                    ))}
+                    <h3 className="text-sm font-medium text-accent mb-3">
+                      {typeLabels[type as keyof typeof typeLabels]}
+                    </h3>
+                    <div className="space-y-2">
+                      {items.map((item, index) => (
+                        <FurnitureLibraryItem
+                          key={`${type}-${index}`}
+                          item={item}
+                          onAdd={() => handleAddFurniture(item)}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )))}
+                )))}
             </div>
           </ScrollArea>
 
@@ -154,7 +167,7 @@ export function Layout2D() {
             <div className="flex items-start gap-2 text-xs text-muted-foreground">
               <Info className="w-4 h-4 mt-0.5 flex-shrink-0 text-accent" />
               <p>
-                Click furniture images to add them to your floor plan. 
+                Click furniture images to add them to your floor plan.
                 Drag items to reposition, and use controls below to rotate or remove.
               </p>
             </div>
@@ -162,7 +175,7 @@ export function Layout2D() {
         </motion.div>
 
         {/* Main Canvas */}
-        <motion.div 
+        <motion.div
           variants={fadeUp}
           initial="hidden"
           animate="visible"
@@ -175,6 +188,7 @@ export function Layout2D() {
               selectedItem={selectedItem}
               onSelectItem={setSelectedItem}
               onUpdatePosition={handleUpdatePosition}
+              onDropItem={handleDropFurniture}
             />
           </div>
 

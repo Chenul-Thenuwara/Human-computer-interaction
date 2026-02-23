@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
+import { useDrop } from 'react-dnd';
 import { Room, FurnitureItem } from '../../lib/design-context';
 
 interface FloorPlanProps {
@@ -7,10 +8,45 @@ interface FloorPlanProps {
   selectedItem: string | null;
   onSelectItem: (id: string | null) => void;
   onUpdatePosition: (id: string, position: { x: number; y: number }) => void;
+  onDropItem?: (item: Omit<FurnitureItem, 'id' | 'position' | 'rotation'>, position: { x: number; y: number }) => void;
 }
 
-export function FloorPlan({ room, furniture, selectedItem, onSelectItem, onUpdatePosition }: FloorPlanProps) {
+export function FloorPlan({ room, furniture, selectedItem, onSelectItem, onUpdatePosition, onDropItem }: FloorPlanProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const [{ isOver }, drop] = useDrop(() => ({
+    accept: 'furniture',
+    drop: (item: Omit<FurnitureItem, 'id' | 'position' | 'rotation'>, monitor) => {
+      if (!canvasRef.current || !onDropItem) return;
+
+      const rect = canvasRef.current.getBoundingClientRect();
+      const clientOffset = monitor.getClientOffset();
+      if (!clientOffset) return;
+
+      const x = clientOffset.x - rect.left;
+      const y = clientOffset.y - rect.top;
+
+      const roomX = 50;
+      const roomY = 50;
+
+      let newX = (x - roomX) / scale;
+      let newY = (y - roomY) / scale;
+
+      const width = item.width;
+      const depth = item.depth;
+      const halfWidth = width / 2;
+      const halfDepth = depth / 2;
+
+      newX = Math.max(halfWidth, Math.min(room.width - halfWidth, newX));
+      newY = Math.max(halfDepth, Math.min(room.length - halfDepth, newY));
+
+      onDropItem(item, { x: newX, y: newY });
+    },
+    collect: (monitor) => ({
+      isOver: !!monitor.isOver(),
+    }),
+  }), [room, onDropItem]);
+
   const [draggingItem, setDraggingItem] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const scale = 60; // pixels per meter
@@ -105,12 +141,12 @@ export function FloorPlan({ room, furniture, selectedItem, onSelectItem, onUpdat
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
       const labelY = y + (item.depth * scale) / 2 + 5;
-      
+
       // Background for label to make it readable
       const metrics = ctx.measureText(item.name);
       ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
       ctx.fillRect(x - metrics.width / 2 - 2, labelY, metrics.width + 4, 14);
-      
+
       ctx.fillStyle = '#1e293b';
       ctx.fillText(item.name, x, labelY);
     });
@@ -120,10 +156,10 @@ export function FloorPlan({ room, furniture, selectedItem, onSelectItem, onUpdat
     ctx.font = '12px system-ui, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    
+
     // Width dimension
     ctx.fillText(`${room.width}m`, roomX + roomWidth / 2, roomY - 20);
-    
+
     // Length dimension
     ctx.save();
     ctx.translate(roomX - 20, roomY + roomHeight / 2);
@@ -142,7 +178,7 @@ export function FloorPlan({ room, furniture, selectedItem, onSelectItem, onUpdat
 
       const itemX = roomX + item.position.x * scale;
       const itemY = roomY + item.position.y * scale;
-      
+
       const rotation = item.rotation || 0;
       const isRotated = rotation % 180 === 90;
       const itemWidth = (isRotated ? item.depth : item.width) * scale;
@@ -172,12 +208,12 @@ export function FloorPlan({ room, furniture, selectedItem, onSelectItem, onUpdat
     if (item) {
       setDraggingItem(item.id);
       onSelectItem(item.id);
-      
+
       const roomX = 50;
       const roomY = 50;
       const itemX = roomX + (item.position?.x || 0) * scale;
       const itemY = roomY + (item.position?.y || 0) * scale;
-      
+
       setDragOffset({
         x: x - itemX,
         y: y - itemY,
@@ -210,10 +246,10 @@ export function FloorPlan({ room, furniture, selectedItem, onSelectItem, onUpdat
       const isRotated = rotation % 180 === 90;
       const width = isRotated ? item.depth : item.width;
       const depth = isRotated ? item.width : item.depth;
-      
+
       const halfWidth = width / 2;
       const halfDepth = depth / 2;
-      
+
       newX = Math.max(halfWidth, Math.min(room.width - halfWidth, newX));
       newY = Math.max(halfDepth, Math.min(room.length - halfDepth, newY));
     }
@@ -230,7 +266,7 @@ export function FloorPlan({ room, furniture, selectedItem, onSelectItem, onUpdat
   };
 
   return (
-    <div className="inline-block bg-white rounded-lg shadow-lg p-4">
+    <div ref={drop as any} className={`inline-block bg-white rounded-lg shadow-lg p-4 transition-colors ${isOver ? 'ring-2 ring-primary ring-offset-2' : ''}`}>
       <canvas
         ref={canvasRef}
         width={canvasWidth}

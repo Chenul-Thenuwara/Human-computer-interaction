@@ -2,6 +2,7 @@ import { Button } from '../ui/button';
 import { Plus } from 'lucide-react';
 import { FurnitureItem } from '../../lib/design-context';
 import { ImageWithFallback } from '../ui/image-with-fallback';
+import { useDrag } from 'react-dnd';
 
 interface FurnitureLibraryItemProps {
   item: Omit<FurnitureItem, 'id' | 'position' | 'rotation'>;
@@ -9,8 +10,20 @@ interface FurnitureLibraryItemProps {
 }
 
 export function FurnitureLibraryItem({ item, onAdd }: FurnitureLibraryItemProps) {
+  const [{ isDragging }, dragRef] = useDrag(() => ({
+    type: 'furniture',
+    item: { ...item },
+    collect: (monitor) => ({
+      isDragging: !!monitor.isDragging(),
+    }),
+  }));
+
   return (
-    <div className="flex items-center gap-3 p-3 backdrop-blur-xl bg-card/60 border border-white/20 rounded-lg hover:border-accent/40 hover:bg-card/80 transition-all shadow-md hover:shadow-lg group cursor-pointer" onClick={onAdd}>
+    <div
+      ref={dragRef}
+      className={`flex items-center gap-3 p-3 backdrop-blur-xl bg-card/60 border border-white/20 rounded-lg hover:border-accent/40 hover:bg-card/80 transition-all shadow-md hover:shadow-lg group ${isDragging ? 'opacity-50 cursor-grabbing' : 'cursor-grab'}`}
+      onClick={onAdd}
+    >
       {item.imageUrl ? (
         <ImageWithFallback
           src={item.imageUrl}
