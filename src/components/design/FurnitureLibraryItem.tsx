@@ -20,7 +20,7 @@ export function FurnitureLibraryItem({ item, onAdd }: FurnitureLibraryItemProps)
 
   return (
     <div
-      ref={dragRef}
+      ref={dragRef as unknown as React.Ref<HTMLDivElement>}
       className={`flex items-center gap-3 p-3 backdrop-blur-xl bg-card/60 border border-white/20 rounded-lg hover:border-accent/40 hover:bg-card/80 transition-all shadow-md hover:shadow-lg group ${isDragging ? 'opacity-50 cursor-grabbing' : 'cursor-grab'}`}
       onClick={onAdd}
     >

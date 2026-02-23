@@ -173,7 +173,7 @@ function ModelLoader({ url, width, height, depth, rotationOffset = [0, 0, 0] }: 
     const box = new THREE.Box3();
 
     // Traverse and expand box only for meshes to avoid including lights/cameras
-    clonedScene.traverse((obj) => {
+    clonedScene.traverse((obj: THREE.Object3D) => {
       if ((obj as THREE.Mesh).isMesh) {
         box.expandByObject(obj);
       }
