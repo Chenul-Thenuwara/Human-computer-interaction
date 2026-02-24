@@ -2,8 +2,16 @@
 
 import { useState } from "react"
 import Image from "next/image"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/lib/auth-context"
+import { motion, Variants } from "framer-motion"
+import { ArrowRight, Mail, Phone, MapPin } from "lucide-react"
 
 export default function ContactPage() {
+    const router = useRouter()
+    const { user } = useAuth()
+
     const [name, setName] = useState("")
     const [email, setEmail] = useState("")
     const [subject, setSubject] = useState("")
@@ -17,135 +25,255 @@ export default function ContactPage() {
             return
         }
         setStatus("sending")
+        
         try {
+            // Call the secure Next.js API route to handle the Firebase insertion
             const res = await fetch("/api/contact", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name, email, subject, message }),
             })
-            if (res.ok) {
-                setStatus("success")
-                setName("")
-                setEmail("")
-                setSubject("")
-                setMessage("")
-                return
+            
+            if (!res.ok) {
+                throw new Error("Failed to send message via API")
             }
+            
+            setStatus("success")
+            setName("")
+            setEmail("")
+            setSubject("")
+            setMessage("")
+            
+            // Revert back to idle after a few seconds
+            setTimeout(() => setStatus("idle"), 5000)
+            
         } catch (err) {
-            // fallthrough to mailto
+            console.error("Error saving contact message:", err)
+            // fallback to mail client if API not available or blocked
+            window.location.href = `mailto:hello@furnitureapp.example?subject=${encodeURIComponent(
+                subject || `Contact from ${name}`
+            )}&body=${encodeURIComponent(message + "\n\nContact: " + email)}`
+            setStatus("success")
         }
+    }
 
-        // fallback to mail client if API not available
-        window.location.href = `mailto:hello@furnitureapp.example?subject=${encodeURIComponent(
-            subject || `Contact from ${name}`
-        )}&body=${encodeURIComponent(message + "\n\nContact: " + email)}`
-        setStatus("success")
+    // --- Animation Variants ---
+    const fadeUp: Variants = {
+        hidden: { opacity: 0, y: 40 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }
+    }
+
+    const staggerContainer: Variants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: { staggerChildren: 0.15 }
+        }
     }
 
     return (
-        <main className="contact-root">
-            <section className="panel grid">
-                <div className="left card slideIn">
-                    <h2 className="heading">Get in Touch</h2>
-                    <p className="lead">We'd love to hear from you. Fill the form and we'll get back within one business day.</p>
+        <div className="relative min-h-screen text-white selection:bg-[#f3b5a1] overflow-hidden">
+            {/* Abstract Background Elements */}
+            <div className="fixed top-[-10%] left-[-10%] w-[40vw] h-[40vw] rounded-full bg-[#9fbda9]/5 blur-[120px] pointer-events-none" />
+            <div className="fixed bottom-[-20%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-[#f3b5a1]/5 blur-[150px] pointer-events-none" />
 
-                    <form className="contact-form" onSubmit={handleSubmit} noValidate>
-                        <div className="row two">
-                            <label className="field">
-                                <span className="label-text">Name</span>
-                                <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" required />
-                            </label>
-
-                            <label className="field">
-                                <span className="label-text">Email</span>
-                                <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@domain.com" required />
-                            </label>
-                        </div>
-
-                        <label className="field">
-                            <span className="label-text">Subject</span>
-                            <input className="input" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="What is this regarding?" />
-                        </label>
-
-                        <label className="field">
-                            <span className="label-text">Message</span>
-                            <textarea className="textarea" rows={7} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Your message..." required />
-                        </label>
-
-                        <div className="actions">
-                            <button className="send" type="submit" disabled={status === "sending"} aria-busy={status === "sending"}>
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-                                    <path d="M2 21l21-9L2 3v7l15 2-15 2v7z" fill="currentColor" />
-                                </svg>
-                                <span>{status === "sending" ? "Sending..." : "Send Message"}</span>
-                            </button>
-                            <div className="status">
-                                {status === "success" && <span className="ok">Thanks — we'll reply soon.</span>}
-                                {status === "error" && <span className="err">Please complete required fields.</span>}
-                            </div>
-                        </div>
-                    </form>
+            {/* Navigation */}
+            <motion.header
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1, delay: 0.2 }}
+                className="flex justify-between items-center px-8 md:px-12 py-6 max-w-[1400px] mx-auto w-full relative z-20"
+            >
+                <div className="text-3xl font-medium tracking-wide" style={{ fontFamily: "var(--font-italiana)" }}>
+                    <Link href="/">Prism</Link>
                 </div>
 
-                <aside className="right">
-                    <div className="info card slideIn delay">
-                        <h3>Visit Our Showroom</h3>
-                        <p>123 Luxury Lane, Design District<br/>New York, NY 10012</p>
+                <nav className="hidden md:flex gap-10 text-[15px] font-light tracking-wide font-sans">
+                    <Link href="/" className="hover:text-[#f3b5a1] transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1px] auto after:bg-white after:origin-right after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 hover:after:origin-left">Home</Link>
+                    <Link href="/gallery" className="hover:text-[#f3b5a1] transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1px] auto after:bg-white after:origin-right after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 hover:after:origin-left">Gallery</Link>
+                    <Link href="/about" className="hover:text-[#f3b5a1] transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1px] auto after:bg-white after:origin-right after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 hover:after:origin-left">About</Link>
+                    <Link href="/contact" className="text-[#f3b5a1] relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1px] auto after:bg-[#f3b5a1]">Contact</Link>
+                </nav>
 
-                        <h3>Call Us</h3>
-                        <p>+1 (212) 555-0123<br/><small>Mon–Fri: 9am – 6pm</small></p>
+                <div className="flex gap-6 items-center">
+                    {user ? (
+                        <button
+                            onClick={() => router.push('/dashboard')}
+                            className="px-6 py-2.5 rounded-full border border-white/20 hover:bg-white hover:text-[#10251f] transition-all font-light tracking-wide text-sm flex items-center gap-2"
+                        >
+                            Dashboard
+                        </button>
+                    ) : (
+                        <button
+                            onClick={() => router.push('/login')}
+                            className="px-6 py-2.5 rounded-full bg-white text-[#10251f] hover:bg-white/90 transition-all font-medium tracking-wide text-sm"
+                        >
+                            Login
+                        </button>
+                    )}
+                </div>
+            </motion.header>
 
-                        <h3>Email Us</h3>
-                        <p>concierge@prism-furniture.com<br/>design@prism-furniture.com</p>
-                    </div>
-
-                    <div className="showroom card slideIn delay2">
-                        <div className="imageWrap">
-                            <Image src="/images/showroom.jpg" alt="Prism Showroom" width={720} height={420} className="img"/>
-                            <div className="badge">Prism Showroom</div>
+            <main className="max-w-[1400px] mx-auto px-8 md:px-12 py-12 md:py-20 relative z-10 min-h-[calc(100vh-100px)] flex flex-col justify-center">
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+                    
+                    {/* Left Column - Form */}
+                    <motion.div 
+                        variants={staggerContainer}
+                        initial="hidden"
+                        animate="visible"
+                        className="flex flex-col gap-10"
+                    >
+                        <div>
+                            <motion.h1 variants={fadeUp} className="text-5xl md:text-7xl font-medium tracking-tight mb-4" style={{ fontFamily: "var(--font-italiana)" }}>
+                                Let's create <br/><span className="text-[#f3b5a1] italic" style={{ fontFamily: "var(--font-italianno)", fontSize: "1.2em", lineHeight: "0.8" }}>together</span>
+                            </motion.h1>
+                            <motion.p variants={fadeUp} className="text-lg text-white/50 font-light max-w-md">
+                                Have a vision in mind? Reach out to our design concierge team and let's craft your perfect space.
+                            </motion.p>
                         </div>
-                    </div>
-                </aside>
-            </section>
 
-            <style jsx>{`
-                :root{ --bg:#233529; --panel:#294033; --muted:#8ea089; }
-                .contact-root{ max-width:1120px; margin:36px auto; padding:28px; color: #e6efe6; }
-                .panel.grid{ display:grid; grid-template-columns: 1fr 420px; gap:22px; align-items:start; }
-                .card{ background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06)); border:1px solid rgba(255,255,255,0.03); padding:22px; border-radius:12px; }
-                .left{ padding:28px 26px; }
-                .heading{ margin:0 0 6px; font-size:1.8rem; color:#f5fff5; }
-                .lead{ color: #cfe1cf; margin-bottom:18px; }
-                .contact-form{ display:flex; flex-direction:column; gap:12px; }
-                .row.two{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
-                .field{ display:flex; flex-direction:column; gap:8px; }
-                .label-text{ font-size:13px; color:#cfe1cf; }
-                .input, .textarea{ background:transparent; border:1px solid rgba(255,255,255,0.06); padding:12px 14px; border-radius:8px; color: #eef7ee; outline:none; }
-                .input::placeholder, .textarea::placeholder{ color: rgba(230,245,230,0.35); }
-                .input:focus, .textarea:focus{ box-shadow: 0 8px 30px rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.12); transform: translateY(-2px); }
-                .textarea{ min-height:140px; resize:vertical; }
-                .actions{ display:flex; align-items:center; gap:12px; margin-top:6px; }
-                .send{ display:inline-flex; align-items:center; gap:10px; background: linear-gradient(90deg, rgba(150,185,163,0.14), rgba(120,165,135,0.12)); color: #e8f6e8; padding:12px 18px; border-radius:8px; border:1px solid rgba(255,255,255,0.04); cursor:pointer; }
-                .send:disabled{ opacity:.6; cursor:default; }
-                .status .ok{ color:#9fe3ad; }
-                .status .err{ color:#ff9b9b; }
+                        <motion.form variants={fadeUp} className="flex flex-col gap-8 w-full max-w-xl" onSubmit={handleSubmit} noValidate>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="group relative">
+                                    <input 
+                                        type="text" 
+                                        id="name"
+                                        className="w-full bg-transparent border-b border-white/20 py-4 text-white outline-none focus:border-[#f3b5a1] transition-colors peer placeholder-transparent" 
+                                        value={name} 
+                                        onChange={(e) => setName(e.target.value)} 
+                                        placeholder="Name"
+                                        required 
+                                    />
+                                    <label htmlFor="name" className="absolute left-0 top-4 text-white/40 text-sm transition-all peer-focus:-top-3 peer-focus:text-xs peer-focus:text-[#f3b5a1] peer-valid:-top-3 peer-valid:text-xs">
+                                        Your Name
+                                    </label>
+                                </div>
 
-                .right{ display:flex; flex-direction:column; gap:14px; }
-                .info h3{ margin:0 0 6px; color:#fff; }
-                .info p{ color:#cfe1cf; margin:0 0 12px; }
+                                <div className="group relative">
+                                    <input 
+                                        type="email" 
+                                        id="email"
+                                        className="w-full bg-transparent border-b border-white/20 py-4 text-white outline-none focus:border-[#f3b5a1] transition-colors peer placeholder-transparent" 
+                                        value={email} 
+                                        onChange={(e) => setEmail(e.target.value)} 
+                                        placeholder="Email"
+                                        required 
+                                    />
+                                    <label htmlFor="email" className="absolute left-0 top-4 text-white/40 text-sm transition-all peer-focus:-top-3 peer-focus:text-xs peer-focus:text-[#f3b5a1] peer-valid:-top-3 peer-valid:text-xs">
+                                        Email Address
+                                    </label>
+                                </div>
+                            </div>
 
-                .showroom .imageWrap{ position:relative; border-radius:10px; overflow:hidden; }
-                .showroom .img{ display:block; width:100%; height:auto; filter:grayscale(.05) contrast(.9); }
-                .badge{ position:absolute; left:12px; bottom:12px; background:rgba(0,0,0,0.6); color:#fff; padding:6px 12px; border-radius:999px; font-size:13px; }
+                            <div className="group relative">
+                                <input 
+                                    type="text" 
+                                    id="subject"
+                                    className="w-full bg-transparent border-b border-white/20 py-4 text-white outline-none focus:border-[#f3b5a1] transition-colors peer placeholder-transparent" 
+                                    value={subject} 
+                                    onChange={(e) => setSubject(e.target.value)} 
+                                    placeholder="Subject"
+                                />
+                                <label htmlFor="subject" className="absolute left-0 top-4 text-white/40 text-sm transition-all peer-focus:-top-3 peer-focus:text-xs peer-focus:text-[#f3b5a1] peer-[&:not(:placeholder-shown)]:-top-3 peer-[&:not(:placeholder-shown)]:text-xs">
+                                    Inquiry Subject (Optional)
+                                </label>
+                            </div>
 
-                /* entrance animations */
-                .slideIn{ animation: slideUp .6s cubic-bezier(.2,.9,.2,1) both; }
-                .delay{ animation-delay:80ms; }
-                .delay2{ animation-delay:160ms; }
-                @keyframes slideUp{ from{ opacity:0; transform: translateY(18px); } to{ opacity:1; transform: translateY(0); } }
+                            <div className="group relative">
+                                <textarea 
+                                    id="message"
+                                    className="w-full bg-transparent border-b border-white/20 py-4 text-white outline-none focus:border-[#f3b5a1] transition-colors peer placeholder-transparent min-h-[120px] resize-y" 
+                                    value={message} 
+                                    onChange={(e) => setMessage(e.target.value)} 
+                                    placeholder="Message"
+                                    required 
+                                />
+                                <label htmlFor="message" className="absolute left-0 top-4 text-white/40 text-sm transition-all peer-focus:-top-3 peer-focus:text-xs peer-focus:text-[#f3b5a1] peer-valid:-top-3 peer-valid:text-xs">
+                                    Tell us about your project
+                                </label>
+                            </div>
 
-                @media (max-width:980px){ .panel.grid{ grid-template-columns: 1fr; } .row.two{ grid-template-columns: 1fr; } }
-            `}</style>
-        </main>
+                            <div className="flex items-center justify-between pt-4">
+                                <button 
+                                    className="group relative inline-flex items-center gap-4 bg-[#9fbda9] text-[#10251f] px-8 py-4 rounded-full overflow-hidden transition-transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100" 
+                                    type="submit" 
+                                    disabled={status === "sending"}
+                                >
+                                    <span className="font-medium tracking-wide relative z-10">
+                                        {status === "sending" ? "Sending..." : "Send Request"}
+                                    </span>
+                                    <ArrowRight className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform" />
+                                    {/* Hover effect background */}
+                                    <div className="absolute inset-0 bg-white translate-y-[100%] group-hover:translate-y-0 transition-transform duration-300 ease-in-out" />
+                                </button>
+                                
+                                {status === "error" && (
+                                    <motion.span initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="text-red-400 text-sm font-light">
+                                        Please fill out all required fields.
+                                    </motion.span>
+                                )}
+                                {status === "success" && (
+                                    <motion.span initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="text-[#9fbda9] text-sm font-light">
+                                        Message sent successfully!
+                                    </motion.span>
+                                )}
+                            </div>
+                        </motion.form>
+                    </motion.div>
+
+                    {/* Right Column - Image & Info */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+                        className="relative h-[600px] rounded-[2rem] overflow-hidden group"
+                    >
+                        <Image 
+                            src="https://images.unsplash.com/photo-1600607686527-6fb886090705?q=80&w=1200&auto=format&fit=crop" 
+                            alt="Prism Studio" 
+                            fill 
+                            className="object-cover transition-transform duration-1000 group-hover:scale-105 filter brightness-75"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#10251f] via-transparent to-transparent opacity-80" />
+                        
+                        {/* Glassmorphic Contact Info Card */}
+                        <motion.div 
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8, delay: 0.5 }}
+                            className="absolute bottom-8 left-8 right-8 bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 flex flex-col gap-6"
+                        >
+                            <div className="flex items-start gap-4">
+                                <div className="p-3 bg-white/10 rounded-full shrink-0">
+                                    <MapPin className="w-5 h-5 text-[#f3b5a1]" />
+                                </div>
+                                <div>
+                                    <h3 className="text-white font-medium mb-1" style={{ fontFamily: "var(--font-jacques-francois)" }}>Prism Showroom</h3>
+                                    <p className="text-white/60 text-sm font-light leading-relaxed">
+                                        123 Luxury Lane, Design District<br/>New York, NY 10012
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div className="h-[1px] w-full bg-white/10" />
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="flex items-center gap-3">
+                                    <Phone className="w-4 h-4 text-white/40" />
+                                    <span className="text-sm text-white/70 font-light">+1 (212) 555-0123</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <Mail className="w-4 h-4 text-white/40" />
+                                    <span className="text-sm text-white/70 font-light">design@prism.com</span>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+
+                </div>
+            </main>
+        </div>
     )
 }
