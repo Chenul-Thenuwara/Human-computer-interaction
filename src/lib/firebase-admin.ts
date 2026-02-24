@@ -1,22 +1,31 @@
 import * as admin from 'firebase-admin';
 
 // Initialize Firebase Admin SDK
-if (!admin.apps.length) {
-  // In production, use service account credentials
-  // For now, we'll use application default credentials or environment variables
-  const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY 
-    ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY)
-    : undefined;
+const initializeFirebaseAdmin = () => {
+    if (!admin.apps.length) {
+        // Try to load service account credentials from environment variables first
+        const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY
+            ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY)
+            : undefined;
 
-  admin.initializeApp({
-    credential: serviceAccount 
-      ? admin.credential.cert(serviceAccount)
-      : admin.credential.applicationDefault(),
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  });
-}
+        try {
+            admin.initializeApp({
+                credential: serviceAccount
+                    ? admin.credential.cert(serviceAccount)
+                    : admin.credential.applicationDefault(),
+                projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+            });
+        } catch (error) {
+            console.warn("Failed to initialize default admin credentials, attempting fallback initialization.", error);
+            // Fallback: Initialize without credentials. 
+            // This relies on the environment having appropriate defaults.
+            admin.initializeApp();
+        }
+    }
+    return admin;
+};
 
-const adminDb = admin.firestore();
-const adminAuth = admin.auth();
-
-export { admin, adminDb, adminAuth };
+export const adminApp = initializeFirebaseAdmin();
+export const adminDb = adminApp.firestore();
+export const adminAuth = adminApp.auth();
+export { admin };

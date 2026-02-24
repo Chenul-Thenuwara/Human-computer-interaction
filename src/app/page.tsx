@@ -60,7 +60,7 @@ export default function HomePage() {
             </Link>
             <Link href="/gallery" className="hover:text-[#f3b5a1] transition-colors">Gallery</Link>
             <Link href="/about" className="hover:text-[#f3b5a1] transition-colors">About</Link>
-            <Link href="#" className="hover:text-[#f3b5a1] transition-colors">Contact</Link>
+            <Link href="/contact" className="hover:text-[#f3b5a1] transition-colors">Contact</Link>
           </nav>
 
           <div className="flex gap-6 items-center">

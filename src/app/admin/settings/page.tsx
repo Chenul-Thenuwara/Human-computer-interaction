@@ -7,7 +7,7 @@ import { motion, Variants } from "framer-motion";
 import {
   ShieldCheck,
   LogOut,
-  Users,
+  User,
   Settings,
   Sofa,
   Home,
@@ -41,7 +41,7 @@ export default function AdminSettingsPage() {
 
   const navLinks = useMemo(
     () => [
-      { href: "/admin/users", label: "Users", icon: Users, active: false },
+      { href: "/admin/users", label: "Users", icon: User, active: false },
       { href: "/admin/furniture", label: "Furniture", icon: Sofa, active: false },
       { href: "/admin/settings", label: "Settings", icon: Settings, active: true },
     ],
