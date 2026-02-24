@@ -14,6 +14,7 @@ interface FloorPlanProps {
 
 export function FloorPlan({ room, furniture, selectedItem, onSelectItem, onUpdatePosition, onUpdateRotation, onDropItem }: FloorPlanProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const scale = 60; // pixels per meter
 
   const [{ isOver }, drop] = useDrop(() => ({
     accept: 'furniture',
@@ -51,7 +52,6 @@ export function FloorPlan({ room, furniture, selectedItem, onSelectItem, onUpdat
   const [draggingItem, setDraggingItem] = useState<string | null>(null);
   const [rotatingItem, setRotatingItem] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const scale = 60; // pixels per meter
 
   const canvasWidth = room.width * scale + 100;
   const canvasHeight = room.length * scale + 100;
