@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import {
   ShieldCheck,
   LogOut,
-  Users,
+  User,
   Settings,
   Sofa,
   Home,
@@ -78,7 +78,7 @@ export default function FurniturePage() {
       {
         href: "/admin/users",
         label: "Users",
-        icon: Users,
+        icon: User,
         active: false,
       },
       {

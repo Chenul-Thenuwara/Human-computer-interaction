@@ -35,6 +35,11 @@ declare module 'lucide-react' {
   export const Mail: React.FC<LucideProps>;
   export const Phone: React.FC<LucideProps>;
   export const MapPin: React.FC<LucideProps>;
+  export const Camera: React.FC<LucideProps>;
+  export const Lock: React.FC<LucideProps>;
+  export const Upload: React.FC<LucideProps>;
+  export const PlusCircle: React.FC<LucideProps>;
+  export const Pencil: React.FC<LucideProps>;
 
   const icons: { [key: string]: React.FC<LucideProps> };
   export default icons;
