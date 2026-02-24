@@ -337,8 +337,11 @@ export function FloorPlan({ room, furniture, selectedItem, onSelectItem, onUpdat
     setRotatingItem(null);
   };
 
+  const dropRef = useRef<HTMLDivElement>(null);
+  drop(dropRef);
+
   return (
-    <div ref={drop as any} className={`inline-block bg-white rounded-lg shadow-lg p-4 transition-colors ${isOver ? 'ring-2 ring-primary ring-offset-2' : ''}`}>
+    <div ref={dropRef} className={`inline-block bg-white rounded-lg shadow-lg p-4 transition-colors ${isOver ? 'ring-2 ring-primary ring-offset-2' : ''}`}>
       <canvas
         ref={canvasRef}
         width={canvasWidth}

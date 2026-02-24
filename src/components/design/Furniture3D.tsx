@@ -30,26 +30,26 @@ export function Furniture3D({ item }: Furniture3DProps) {
   const [resolvedUrl, setResolvedUrl] = useState<string | null | undefined>(getInitial);
 
   useEffect(() => {
+    let isMounted = true;
+
     if (!modelUrl) {
-      setResolvedUrl(null);
-      return;
+      Promise.resolve().then(() => { if (isMounted) setResolvedUrl(null); });
+      return () => { isMounted = false; };
     }
 
     // Direct URLs that are NOT firebase storage — no async needed
     if ((modelUrl.startsWith('http') || modelUrl.startsWith('/')) && !modelUrl.includes('firebasestorage.googleapis.com')) {
-      setResolvedUrl(modelUrl);
-      return;
+      Promise.resolve().then(() => { if (isMounted) setResolvedUrl(modelUrl); });
+      return () => { isMounted = false; };
     }
 
     // Already cached or pending
     const cached = urlCache.get(modelUrl);
 
     if (typeof cached === 'string' || cached === null) {
-      setResolvedUrl(cached);
-      return;
+      Promise.resolve().then(() => { if (isMounted) setResolvedUrl(cached); });
+      return () => { isMounted = false; };
     }
-
-    let isMounted = true;
 
     if (cached instanceof Promise) {
       THREE.DefaultLoadingManager.itemStart(modelUrl);
@@ -58,7 +58,7 @@ export function Furniture3D({ item }: Furniture3DProps) {
       }).finally(() => {
         THREE.DefaultLoadingManager.itemEnd(modelUrl);
       });
-      return;
+      return () => { isMounted = false; };
     }
 
     THREE.DefaultLoadingManager.itemStart(modelUrl);
