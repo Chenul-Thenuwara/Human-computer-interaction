@@ -31,6 +31,10 @@ declare module 'lucide-react' {
   export const Ruler: React.FC<LucideProps>;
   export const Palette: React.FC<LucideProps>;
   export const FileText: React.FC<LucideProps>;
+  export const ArrowRight: React.FC<LucideProps>;
+  export const Mail: React.FC<LucideProps>;
+  export const Phone: React.FC<LucideProps>;
+  export const MapPin: React.FC<LucideProps>;
 
   const icons: { [key: string]: React.FC<LucideProps> };
   export default icons;

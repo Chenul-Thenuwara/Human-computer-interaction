@@ -6,8 +6,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { motion, Variants } from "framer-motion"
-// Bypass lucide-react TypeScript export limits which randomly drops types
-const { ArrowRight, Mail, Phone, MapPin } = require("lucide-react") as any;
+import { ArrowRight, Mail, Phone, MapPin } from "lucide-react";
 
 export default function ContactPage() {
     const router = useRouter()
@@ -128,10 +127,10 @@ export default function ContactPage() {
                     >
                         <div>
                             <motion.h1 variants={fadeUp} className="text-5xl md:text-7xl font-medium tracking-tight mb-4" style={{ fontFamily: "var(--font-italiana)" }}>
-                                Let's create <br/><span className="text-[#f3b5a1] italic" style={{ fontFamily: "var(--font-italianno)", fontSize: "1.2em", lineHeight: "0.8" }}>together</span>
+                                Let&apos;s create <br/><span className="text-[#f3b5a1] italic" style={{ fontFamily: "var(--font-italianno)", fontSize: "1.2em", lineHeight: "0.8" }}>together</span>
                             </motion.h1>
                             <motion.p variants={fadeUp} className="text-lg text-white/50 font-light max-w-md">
-                                Have a vision in mind? Reach out to our design concierge team and let's craft your perfect space.
+                                Have a vision in mind? Reach out to our design concierge team and let&apos;s craft your perfect space.
                             </motion.p>
                         </div>
 
