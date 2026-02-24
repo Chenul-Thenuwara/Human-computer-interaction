@@ -20,7 +20,7 @@ export function Furniture3D({ item }: Furniture3DProps) {
   // Determine initial state from cache so there's no flicker on re-renders
   const getInitial = () => {
     if (!modelUrl) return null;
-    if (modelUrl.startsWith('http') || modelUrl.startsWith('/')) return modelUrl;
+    if ((modelUrl.startsWith('http') || modelUrl.startsWith('/')) && !modelUrl.includes('firebasestorage.googleapis.com')) return modelUrl;
     return urlCache.has(modelUrl) ? urlCache.get(modelUrl)! : undefined; // undefined = still resolving
   };
 
@@ -33,8 +33,8 @@ export function Furniture3D({ item }: Furniture3DProps) {
       return;
     }
 
-    // Direct URLs — no async needed
-    if (modelUrl.startsWith('http') || modelUrl.startsWith('/')) {
+    // Direct URLs that are NOT firebase storage — no async needed
+    if ((modelUrl.startsWith('http') || modelUrl.startsWith('/')) && !modelUrl.includes('firebasestorage.googleapis.com')) {
       setResolvedUrl(modelUrl);
       return;
     }
@@ -50,8 +50,14 @@ export function Furniture3D({ item }: Furniture3DProps) {
 
     (async () => {
       try {
-        const storageRef = ref(storage, modelUrl);
-        const url = await getDownloadURL(storageRef);
+        let url = modelUrl;
+        
+        // If it's a relative path, get the download URL from Firebase SDK
+        if (!modelUrl.startsWith('http') && !modelUrl.startsWith('/')) {
+            const storageRef = ref(storage, modelUrl);
+            url = await getDownloadURL(storageRef);
+        }
+
         const proxyUrl = `/api/model-proxy?url=${encodeURIComponent(url)}`;
         urlCache.set(modelUrl, proxyUrl);
         if (isMounted) setResolvedUrl(proxyUrl);

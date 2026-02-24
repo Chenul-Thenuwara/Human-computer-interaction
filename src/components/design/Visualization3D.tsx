@@ -134,7 +134,7 @@ function SceneSetup() {
 }
 
 export function CustomLoader() {
-  const { active, progress, errors, item, loaded, total } = useProgress();
+  const { active, progress, item, loaded, total } = useProgress();
 
   if (!active) return null;
 

@@ -7,6 +7,12 @@ service cloud.firestore {
       return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
+    // Allow anyone to read furniture data
+    match /furniture/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     // Allow users to read their own profile (for role checking)
     // Allow admins to read all profiles
     match /users/{userId} {

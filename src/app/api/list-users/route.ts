@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Get all users from Firestore using Admin SDK
     const usersSnapshot = await adminDb.collection("users").get();
