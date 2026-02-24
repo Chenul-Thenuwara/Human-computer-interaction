@@ -1,3 +1,4 @@
+// User Management Page
 "use client";
 
 import { useState, useEffect } from "react";
@@ -106,6 +107,12 @@ export default function AdminPage() {
   }
 
   const navLinks = [
+    {
+      href: "/",
+      label: "Home",
+      icon: Home,
+      active: false,
+    },
     {
       href: "/admin/users",
       label: "Users",
@@ -269,25 +276,16 @@ export default function AdminPage() {
           className="hidden md:flex flex-col w-64 flex-shrink-0 h-screen backdrop-blur-xl bg-black/20 border-r border-white/10 overflow-y-auto"
         >
           {/* Logo */}
-          <div className="px-6 py-6 border-b border-white/10 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
-                <ShieldCheck className="w-4 h-4 text-[#f3b5a1]" />
-              </div>
-              <span
-                className="text-lg font-medium tracking-wide text-white"
-                style={{ fontFamily: "var(--font-italiana)" }}
-              >
-                Prism Admin
-              </span>
+          <div className="px-6 py-6 border-b border-white/10 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
+              <ShieldCheck className="w-4 h-4 text-[#f3b5a1]" />
             </div>
-            <Link
-              href="/"
-              className="p-2 rounded-xl border border-white/10 bg-white/5 text-[#a8b5b1] hover:text-white hover:bg-white/10 transition-all"
-              aria-label="Go to home"
+            <span
+              className="text-lg font-medium tracking-wide text-white"
+              style={{ fontFamily: "var(--font-italiana)" }}
             >
-              <Home className="w-4 h-4" />
-            </Link>
+              Prism Admin
+            </span>
           </div>
 
           {/* Nav */}
@@ -328,15 +326,13 @@ export default function AdminPage() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={logout}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs text-[#a8b5b1] hover:text-white hover:bg-white/5 transition-all"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                Sign Out
-              </button>
-            </div>
+            <button
+              onClick={logout}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-[#a8b5b1] hover:text-white hover:bg-white/5 transition-all"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              Sign Out
+            </button>
           </div>
         </motion.aside>
 

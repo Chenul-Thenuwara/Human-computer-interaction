@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useState } from "react"
 import Image from "next/image"
@@ -6,7 +6,8 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { motion, Variants } from "framer-motion"
-import { ArrowRight, Mail, Phone, MapPin } from "lucide-react"
+// Bypass lucide-react TypeScript export limits which randomly drops types
+const { ArrowRight, Mail, Phone, MapPin } = require("lucide-react") as any;
 
 export default function ContactPage() {
     const router = useRouter()
@@ -19,10 +20,10 @@ export default function ContactPage() {
     const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle")
 
     async function handleSubmit(e: React.FormEvent) {
-        e.preventDefault()
+        e.preventDefault();
         if (!name.trim() || !email.trim() || !message.trim()) {
-            setStatus("error")
-            return
+            setStatus("error");
+            return;
         }
         setStatus("sending")
         

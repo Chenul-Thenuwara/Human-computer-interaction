@@ -2,7 +2,7 @@
 
 import { Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, PerspectiveCamera, Environment, Loader } from "@react-three/drei";
+import { OrbitControls, PerspectiveCamera, Environment, useProgress } from "@react-three/drei";
 import { useDesign } from "@/lib/design-context";
 import * as THREE from "three";
 
@@ -133,6 +133,52 @@ function SceneSetup() {
   );
 }
 
+export function CustomLoader() {
+  const { active, progress, item, loaded, total } = useProgress();
+
+  if (!active) return null;
+
+  return (
+    <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#0a0f0d]/80 backdrop-blur-xl transition-opacity duration-300">
+      <div className="relative flex flex-col items-center max-w-sm w-full p-8 rounded-3xl bg-white/5 border border-white/10 shadow-2xl overflow-hidden">
+        {/* Animated geometric background elements */}
+        <div className="absolute top-0 right-0 w-48 h-48 bg-[#f3b5a1]/20 rounded-full blur-3xl animate-pulse translate-x-1/4 -translate-y-1/4" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#8ea37e]/20 rounded-full blur-3xl animate-pulse -translate-x-1/4 translate-y-1/4" style={{ animationDelay: "1s" }} />
+
+        {/* 3D App Icon or Logo Placeholder */}
+        <div className="relative z-10 w-20 h-20 mb-8 rounded-2xl bg-gradient-to-br from-[#233529] to-[#8ea37e] border border-white/10 flex items-center justify-center shadow-[0_0_30px_rgba(142,163,126,0.3)] animate-bounce">
+          <svg className="w-10 h-10 text-[#f3b5a1]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
+          </svg>
+        </div>
+
+        {/* Text Details */}
+        <div className="relative z-10 w-full text-center">
+          <h3 className="text-2xl font-medium text-white mb-2 tracking-wide" style={{ fontFamily: "var(--font-italiana)" }}>
+            Constructing Room
+          </h3>
+          <p className="text-xs font-light text-white/50 mb-6 h-4 truncate">
+            {item ? `Loading ${item.split('/').pop()}` : 'Preparing environment...'}
+          </p>
+
+          {/* Progress Bar Container */}
+          <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden mb-3">
+            <div 
+              className="h-full bg-gradient-to-r from-[#8ea37e] via-[#f3b5a1] to-[#8ea37e] transition-all duration-300 ease-out"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+
+          <div className="flex justify-between items-center text-[11px] font-medium tracking-wider uppercase">
+            <span className="text-[#f3b5a1]">{Math.round(progress)}%</span>
+            <span className="text-white/40">{loaded} / {total || 1} models</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function Visualization3D() {
   return (
     <div className="absolute inset-0 w-full h-full bg-gradient-to-b from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800">
@@ -142,9 +188,9 @@ export function Visualization3D() {
           <Room />
         </Suspense>
       </Canvas>
-      <Loader />
+      <CustomLoader />
       
-      <div className="absolute bottom-4 right-4 backdrop-blur-md bg-card/50 p-3 rounded-lg border border-white/20 shadow-lg text-xs text-muted-foreground pointer-events-none">
+      <div className="absolute bottom-4 right-4 backdrop-blur-md bg-card/50 p-3 rounded-lg border border-white/20 shadow-lg text-xs text-muted-foreground pointer-events-none z-10">
         <p>Left Click: Rotate • Right Click: Pan • Scroll: Zoom</p>
       </div>
     </div>
