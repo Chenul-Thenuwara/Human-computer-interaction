@@ -1,26 +1,120 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  --font-sans: var(--font-abhaya-libre), serif;
+  --font-serif: var(--font-italiana), serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-display: var(--font-italiana), serif;
+  --font-body: var(--font-abhaya-libre), serif;
+  --font-heading: var(--font-jacques-francois), serif;
+  --font-hand: var(--font-italianno), cursive;
 
-@theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  /* Base colors - Dark Mode Default */
+  --background: #10251f;
+  /* deep green */
+  --foreground: #e6efe8;
+
+  --card: rgba(18, 39, 34, 0.6);
+  --card-foreground: #e6efe8;
+
+  --popover: #0b211b;
+  --popover-foreground: #e6efe8;
+
+  --primary: #9fbda9;
+  /* soft sage */
+  --primary-foreground: #071611;
+
+  --secondary: rgba(255, 255, 255, 0.1);
+  --secondary-foreground: #e6efe8;
+
+  --muted: rgba(255, 255, 255, 0.1);
+  --muted-foreground: rgba(255, 255, 255, 0.55);
+
+  --accent: #9fbda9;
+  --accent-foreground: #071611;
+
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+
+  --border: rgba(255, 255, 255, 0.15);
+  --input: rgba(255, 255, 255, 0.15);
+  /* fixed input border visibility */
+  --ring: #9fbda9;
+
+  --radius: 0.5rem;
+
+  /* Legacy custom vars mapping */
+  --bg-dark-1: #10251f;
+  --bg-dark-2: #0b211b;
+  --card-bg: var(--card);
+  --card-border: var(--border);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-abhaya-libre), system-ui, sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography Hierarchy */
+h1 {
+  font-family: var(--font-italiana), serif;
+}
+
+h2,
+h3 {
+  font-family: var(--font-jacques-francois), serif;
+}
+
+/* Custom Utilities */
+.login-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.18));
+  background-color: var(--card);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 8px 30px rgba(2, 6, 2, 0.6);
+}
+
+/* Ensure inputs have background */
+.bg-input-background {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.input-ghost {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.btn-accent {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.small-muted {
+  color: var(--muted-foreground);
 }
