@@ -16,14 +16,11 @@ service cloud.firestore {
     // Allow users to read their own profile (for role checking)
     // Allow admins to read all profiles
     match /users/{userId} {
-      // Allow read to own profile (for role checking)
-      allow read: if request.auth != null && request.auth.uid == userId;
+      // Allow read to own profile or others (needed to list designers and view client names)
+      allow read: if request.auth != null;
       
-      // Allow admins to read all user profiles
-      allow read: if isAdmin();
-      
-      // Allow list (query) for admins
-      allow list: if isAdmin();
+      // Allow list (query) for authenticated users
+      allow list: if request.auth != null;
 
       // Allow create own profile (triggered on signup / first login)
       allow create: if request.auth != null && request.auth.uid == userId;
@@ -57,6 +54,32 @@ service cloud.firestore {
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
+    // Allow users and assigned designers to access design requests
+    match /design_requests/{requestId} {
+      // Users can create their own request
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+
+      // Owners, assigned designers, or admins can read
+      allow read: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.designerId == request.auth.uid ||
+        isAdmin()
+      );
+
+      // Owners can update their own request fields they send; designers/admins can update too
+      allow update: if request.auth != null && (
+        (resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid) ||
+        resource.data.designerId == request.auth.uid ||
+        isAdmin()
+      );
+
+      // Owners or admins can delete
+      allow delete: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
     }
   }
 }

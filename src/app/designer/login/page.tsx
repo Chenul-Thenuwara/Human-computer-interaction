@@ -2,36 +2,29 @@
 
 import Image from "next/image";
 import { useState, FormEvent, useEffect } from "react";
-import { signIn, getUserRole, signOut, signInWithGoogle, createUserProfile } from "../../lib/firebase";
+import { signIn, getUserRole, signOut, signInWithGoogle, createUserProfile } from "../../../lib/firebase";
 import Link from "next/link";
 import { motion, Variants } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Layout } from "lucide-react";
 
-export default function Login() {
+export default function DesignerLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
-  const { user, loading: authLoading, isAdmin, isDesigner } = useAuth();
+  const { user, loading: authLoading, isDesigner } = useAuth();
 
   useEffect(() => {
-    // Only auto-redirect if the user was already logged in before visiting this page
-    if (!authLoading && user && !submitting) {
-      if (isAdmin) {
-        router.replace("/admin/dashboard");
-      } else if (isDesigner) {
-        router.replace("/dashboard");
-      } else {
-        router.replace("/dashboard");
-      }
+    if (!authLoading && user && !submitting && isDesigner) {
+      router.replace("/dashboard");
     }
-  }, [user, authLoading, router, submitting, isAdmin, isDesigner]);
+  }, [user, authLoading, router, submitting, isDesigner]);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -46,32 +39,20 @@ export default function Login() {
       try {
         role = await getUserRole(credential.user.uid);
       } catch {
-        // Firestore permission error — treat as no role
+        // null
       }
 
-      // If no role exists, create a user profile
-      if (role === null) {
-        try {
-          await createUserProfile(
-            credential.user.uid,
-            credential.user.email ?? "",
-            "user",
-            credential.user.displayName ?? undefined,
-          );
-          role = "user";
-        } catch {
-          role = null;
-        }
+      if (role !== "designer") {
+        await signOut();
+        localStorage.removeItem("loginTime");
+        setError("Access denied. Designers only.");
+        setLoading(false);
+        setSubmitting(false);
+        return;
       }
 
       localStorage.setItem("loginTime", Date.now().toString());
-
-      // Redirect based on role
-      if (role === "admin") {
-        router.replace("/admin/dashboard");
-      } else {
-        router.replace("/dashboard");
-      }
+      router.replace("/dashboard");
     } catch (err: unknown) {
       const error = err as { message?: string };
       setError(error?.message ?? "Login failed");
@@ -89,21 +70,18 @@ export default function Login() {
       const credential = await signInWithGoogle();
 
       let role = await getUserRole(credential.user.uid);
-      if (role === null) {
-        try {
-          await createUserProfile(credential.user.uid, credential.user.email ?? "", "user", credential.user.displayName ?? undefined);
-        } catch { /* rules may not be deployed yet */ }
-        role = "user";
+      
+      if (role !== "designer") {
+        await signOut();
+        localStorage.removeItem("loginTime");
+        setError("Access denied. Designers only.");
+        setLoading(false);
+        setSubmitting(false);
+        return;
       }
 
       localStorage.setItem("loginTime", Date.now().toString());
-      
-      if (role === "admin") {
-        router.replace("/admin/dashboard");
-      } else {
-        router.replace("/dashboard");
-      }
-
+      router.replace("/dashboard");
     } catch (err: unknown) {
       const error = err as { message?: string };
       setError(error?.message ?? "Google Sign-in failed");
@@ -127,8 +105,7 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-6 relative text-white selection:bg-[#f3b5a1] selection:text-[#233529] overflow-hidden">
-      {/* Background Image */}
+    <div className="flex min-h-screen items-center justify-center px-6 relative text-white selection:bg-[#8ea37e] selection:text-white overflow-hidden">
       <div className="absolute inset-0 z-0">
         <Image
           src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=2000&auto=format&fit=crop"
@@ -137,14 +114,12 @@ export default function Login() {
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-[#0e1713]/70 pointer-events-none" />
+        <div className="absolute inset-0 bg-[#0e1713]/80 pointer-events-none" />
       </div>
 
-      {/* Decorative gradient orbs */}
-      <div className="fixed top-0 left-0 w-[600px] h-[600px] bg-primary/20 rounded-full blur-3xl pointer-events-none z-0" />
-      <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-[#f3b5a1]/15 rounded-full blur-3xl pointer-events-none z-0" />
+      <div className="fixed top-0 left-0 w-[600px] h-[600px] bg-[#8ea37e]/20 rounded-full blur-3xl pointer-events-none z-0" />
+      <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-[#8ea37e]/10 rounded-full blur-3xl pointer-events-none z-0" />
 
-      {/* Back Button */}
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
@@ -168,17 +143,19 @@ export default function Login() {
           animate="visible"
           className="backdrop-blur-xl bg-white/5 border border-white/10 shadow-2xl rounded-2xl p-8 md:p-10 relative overflow-hidden"
         >
-          {/* Subtle highlight inside card */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-white/5 blur-3xl rounded-full pointer-events-none" />
 
           <motion.div variants={fadeUp} className="flex flex-col items-center gap-4 relative z-10">
+            <div className="w-16 h-16 rounded-full bg-[#8ea37e]/10 border border-[#8ea37e]/20 flex items-center justify-center">
+                <Layout className="w-8 h-8 text-[#8ea37e]" />
+            </div>
             <h1
               className="text-4xl font-medium tracking-wide mt-2"
               style={{ fontFamily: "var(--font-italiana)" }}
             >
-              Sign In
+              Designer Portal
             </h1>
-            <p className="text-sm text-white/60 font-light">Prism Portal</p>
+            <p className="text-sm text-white/60 font-light">Login to fulfill client requests</p>
           </motion.div>
 
           <motion.form
@@ -191,8 +168,8 @@ export default function Login() {
                 Email
               </label>
               <Input
-                className="w-full px-4 py-6 bg-white/5 border-white/10 text-white placeholder:text-white/30 rounded-xl backdrop-blur-md focus-visible:ring-1 focus-visible:ring-[#f3b5a1]/50 focus-visible:border-[#f3b5a1]/50 transition-all hover:bg-white/10 text-base"
-                placeholder="email@prism.com"
+                className="w-full px-4 py-6 bg-white/5 border-white/10 text-white placeholder:text-white/30 rounded-xl backdrop-blur-md focus-visible:ring-1 focus-visible:ring-[#8ea37e]/50 focus-visible:border-[#8ea37e]/50 transition-all hover:bg-white/10 text-base"
+                placeholder="designer@prism.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 type="email"
@@ -201,19 +178,11 @@ export default function Login() {
             </div>
 
             <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <label className="text-xs font-medium text-white/80 uppercase tracking-wider">
+               <label className="text-xs font-medium text-white/80 uppercase tracking-wider">
                   Password
                 </label>
-                <Link
-                  href="/forgot-password"
-                  className="text-xs text-[#f3b5a1]/80 hover:text-[#f3b5a1] hover:underline transition-all"
-                >
-                  Forgot Password?
-                </Link>
-              </div>
               <Input
-                className="w-full px-4 py-6 bg-white/5 border-white/10 text-white placeholder:text-white/30 rounded-xl backdrop-blur-md focus-visible:ring-1 focus-visible:ring-[#f3b5a1]/50 focus-visible:border-[#f3b5a1]/50 transition-all hover:bg-white/10 text-base"
+                className="w-full px-4 py-6 bg-white/5 border-white/10 text-white placeholder:text-white/30 rounded-xl backdrop-blur-md focus-visible:ring-1 focus-visible:ring-[#8ea37e]/50 focus-visible:border-[#8ea37e]/50 transition-all hover:bg-white/10 text-base"
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -225,10 +194,10 @@ export default function Login() {
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="mt-4">
               <Button
                 type="submit"
-                className="w-full py-6 rounded-xl bg-white text-[#233529] hover:bg-white/90 transition-all font-medium tracking-wide text-[15px]"
+                className="w-full py-6 rounded-xl bg-[#8ea37e] text-white hover:bg-[#9eb38e] transition-all font-medium tracking-wide text-[15px] shadow-lg"
                 disabled={loading}
               >
-                {loading ? "Signing In..." : "Sign In"}
+                {loading ? "Signing In..." : "Log In"}
               </Button>
             </motion.div>
 
@@ -261,15 +230,8 @@ export default function Login() {
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                 <path d="M1 1h22v22H1z" fill="none" />
               </svg>
-              Continue with Google
+              Google
             </button>
-
-            <p className="mt-2 text-center text-sm text-white/60 font-light">
-              Don&apos;t have an account?{" "}
-              <Link href="/signup" className="text-white hover:text-[#f3b5a1] transition-all font-medium ml-1">
-                Sign up
-              </Link>
-            </p>
           </motion.form>
         </motion.div>
       </div>
