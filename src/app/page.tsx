@@ -3,14 +3,9 @@
 import { motion, Variants } from "framer-motion";
 import { Star } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
-import { useAuth } from "@/lib/auth-context";
-import { useRouter } from "next/navigation";
+import { SiteHeader } from "@/components/SiteHeader";
 
 export default function HomePage() {
-  const router = useRouter();
-  const { user } = useAuth();
-
   // Animation variants
   const fadeUp: Variants = {
     hidden: { opacity: 0, y: 40 },
@@ -41,46 +36,7 @@ export default function HomePage() {
     <div className="relative min-h-screen overflow-hidden">
       <div className="relative z-10 flex flex-col min-h-screen">
         {/* Navigation */}
-        <motion.header
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.2 }}
-          className="flex justify-between items-center px-8 md:px-12 py-6 max-w-[1400px] mx-auto w-full"
-        >
-          <div className="text-3xl font-medium tracking-wide" style={{ fontFamily: "var(--font-italiana)" }}>
-            Prism
-          </div>
-
-          <nav className="hidden md:flex gap-10 text-[15px] font-light tracking-wide font-sans">
-            <Link
-              href="/"
-              className="text-[#f3b5a1] relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1px] auto after:bg-[#f3b5a1]"
-            >
-              Home
-            </Link>
-            <Link href="/gallery" className="hover:text-[#f3b5a1] transition-colors">Gallery</Link>
-            <Link href="/about" className="hover:text-[#f3b5a1] transition-colors">About</Link>
-            <Link href="/contact" className="hover:text-[#f3b5a1] transition-colors">Contact</Link>
-          </nav>
-
-          <div className="flex gap-6 items-center">
-            {user ? (
-              <button
-                onClick={() => router.push('/dashboard')}
-                className="px-6 py-2.5 rounded-full border border-white/30 hover:bg-white hover:text-[#233529] transition-all font-light tracking-wide text-sm flex items-center gap-2"
-              >
-                Dashboard
-              </button>
-            ) : (
-              <button
-                onClick={() => router.push('/login')}
-                className="px-6 py-2.5 rounded-full bg-white text-[#233529] hover:bg-white/90 transition-all font-medium tracking-wide text-sm"
-              >
-                Login
-              </button>
-            )}
-          </div>
-        </motion.header>
+        <SiteHeader delay={0.2} />
 
         {/* Main Content */}
         <main className="flex-1 relative flex items-center justify-center pt-10 pb-20">
@@ -92,17 +48,17 @@ export default function HomePage() {
             animate="visible"
             className="absolute z-30 flex flex-col items-center justify-center w-full pointer-events-none"
           >
-            <motion.h1 variants={fadeUp} className="text-[7rem] md:text-[10rem] leading-[0.85] tracking-tight font-medium" style={{ fontFamily: "var(--font-italiana)" }}>
+            <motion.h1 variants={fadeUp} className="text-[4rem] sm:text-[5rem] md:text-[7rem] lg:text-[10rem] leading-[0.85] tracking-tight font-medium" style={{ fontFamily: "var(--font-italiana)" }}>
               Discover
             </motion.h1>
 
-            <motion.div variants={fadeUp} className="relative w-full flex justify-center -mt-6 md:-mt-10 mr-12 md:mr-24">
-              <span className="text-[6rem] md:text-[9rem] text-[#f3b5a1] font-normal leading-[0.6] -rotate-2" style={{ fontFamily: "var(--font-italianno)" }}>
+            <motion.div variants={fadeUp} className="relative w-full flex justify-center -mt-2 md:-mt-6 lg:-mt-10 mr-4 md:mr-12 lg:mr-24">
+              <span className="text-[3rem] sm:text-[4.5rem] md:text-[6rem] lg:text-[9rem] text-[#f3b5a1] font-normal leading-[0.6] -rotate-2" style={{ fontFamily: "var(--font-italianno)" }}>
                 The best
               </span>
             </motion.div>
 
-            <motion.h1 variants={fadeUp} className="text-[7rem] md:text-[10rem] leading-[0.9] tracking-tight font-medium" style={{ fontFamily: "var(--font-italiana)" }}>
+            <motion.h1 variants={fadeUp} className="text-[4rem] sm:text-[5rem] md:text-[7rem] lg:text-[10rem] leading-[0.9] tracking-tight font-medium" style={{ fontFamily: "var(--font-italiana)" }}>
               Furniture
             </motion.h1>
           </motion.div>
@@ -112,7 +68,7 @@ export default function HomePage() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1.5, delay: 0.5 }}
-            className="absolute z-10 w-[24rem] h-[36rem] md:w-[28rem] md:h-[40rem] border border-[#f3b5a1]/40 rounded-t-full top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 mt-[2rem]"
+            className="absolute z-10 w-[18rem] md:w-[24rem] lg:w-[28rem] h-[24rem] md:h-[36rem] lg:h-[40rem] border border-[#f3b5a1]/40 rounded-t-full top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 mt-[2rem]"
           />
 
           {/* Left Arch Image */}
@@ -120,14 +76,14 @@ export default function HomePage() {
             variants={archImageVariants}
             initial="hidden"
             animate="visible"
-            className="absolute left-[5%] md:left-[10%] top-1/4 w-[14rem] h-[22rem] md:w-[18rem] md:h-[28rem] rounded-t-full overflow-hidden shadow-2xl z-20"
+            className="absolute left-[2%] md:left-[5%] lg:left-[10%] top-[20%] md:top-1/4 w-[7rem] h-[10rem] sm:w-[10rem] sm:h-[15rem] md:w-[14rem] md:h-[22rem] lg:w-[18rem] lg:h-[28rem] rounded-t-full overflow-hidden shadow-2xl z-20"
           >
             <Image
               src="https://images.unsplash.com/photo-1540932239986-30128078f3c5?q=80&w=1200&auto=format&fit=crop"
               alt="Decorative desk area"
               fill
               className="object-cover"
-              sizes="(max-width: 768px) 14rem, 18rem"
+              sizes="(max-width: 640px) 7rem, (max-width: 768px) 10rem, (max-width: 1024px) 14rem, 18rem"
             />
           </motion.div>
 
@@ -136,14 +92,14 @@ export default function HomePage() {
             variants={archImageVariants}
             initial="hidden"
             animate="visible"
-            className="absolute left-1/2 transform -translate-x-1/2 bottom-[5%] w-[18rem] h-[22rem] md:w-[26rem] md:h-[28rem] rounded-t-full overflow-hidden shadow-2xl z-20"
+            className="absolute left-1/2 transform -translate-x-1/2 bottom-[10%] md:bottom-[5%] w-[10rem] h-[13rem] sm:w-[14rem] sm:h-[17rem] md:w-[18rem] md:h-[22rem] lg:w-[26rem] lg:h-[28rem] rounded-t-full overflow-hidden shadow-2xl z-20"
           >
             <Image
               src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=1600&auto=format&fit=crop"
               alt="Green sofa setting"
               fill
               className="object-cover"
-              sizes="(max-width: 768px) 18rem, 26rem"
+              sizes="(max-width: 640px) 10rem, (max-width: 768px) 14rem, (max-width: 1024px) 18rem, 26rem"
             />
           </motion.div>
 
@@ -152,14 +108,14 @@ export default function HomePage() {
             variants={archImageVariants}
             initial="hidden"
             animate="visible"
-            className="absolute right-[5%] md:right-[10%] top-1/4 w-[14rem] h-[22rem] md:w-[18rem] md:h-[28rem] rounded-t-full overflow-hidden shadow-2xl z-20"
+            className="absolute right-[2%] md:right-[5%] lg:right-[10%] top-[35%] md:top-[30%] lg:top-1/4 w-[7rem] h-[10rem] sm:w-[10rem] sm:h-[15rem] md:w-[14rem] md:h-[22rem] lg:w-[18rem] lg:h-[28rem] rounded-t-full overflow-hidden shadow-2xl z-20"
           >
             <Image
               src="https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?q=80&w=1200&auto=format&fit=crop"
               alt="Yellow armchair"
               fill
               className="object-cover"
-              sizes="(max-width: 768px) 14rem, 18rem"
+              sizes="(max-width: 640px) 7rem, (max-width: 768px) 10rem, (max-width: 1024px) 14rem, 18rem"
             />
           </motion.div>
 
@@ -168,9 +124,9 @@ export default function HomePage() {
             initial={{ opacity: 0, scale: 0, rotate: -45 }}
             animate={{ opacity: 1, scale: 1, rotate: 0 }}
             transition={{ duration: 1, delay: 1, type: "spring" }}
-            className="absolute left-[28%] top-[30%] z-20 pointer-events-none"
+            className="absolute left-[15%] md:left-[28%] top-[20%] md:top-[30%] z-20 pointer-events-none"
           >
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="#f3b5a1">
+            <svg className="w-6 h-6 md:w-10 md:h-10" viewBox="0 0 24 24" fill="#f3b5a1">
               <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
             </svg>
           </motion.div>
@@ -180,9 +136,9 @@ export default function HomePage() {
             initial={{ opacity: 0, pathLength: 0 }}
             animate={{ opacity: 1, pathLength: 1 }}
             transition={{ duration: 1, delay: 1.2 }}
-            className="absolute left-[26%] bottom-[45%] z-20 pointer-events-none"
+            className="absolute left-[8%] md:left-[26%] bottom-[40%] md:bottom-[45%] z-20 pointer-events-none"
           >
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#8ea37e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="rotate-[-20deg]">
+            <svg className="w-8 h-8 md:w-12 md:h-12 rotate-[-20deg]" viewBox="0 0 24 24" fill="none" stroke="#8ea37e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 14 L4 9 L9 4" />
               <path d="M4 9 Q 15 9 20 20" />
             </svg>
@@ -193,9 +149,9 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 1.5 }}
-            className="absolute left-[20%] bottom-[15%] z-30"
+            className="absolute left-[5%] md:left-[20%] bottom-[2%] md:bottom-[15%] z-30"
           >
-            <div className="relative w-28 h-28 cursor-pointer group flex items-center justify-center">
+            <div className="relative w-20 h-20 md:w-28 md:h-28 cursor-pointer group flex items-center justify-center">
               <svg className="absolute w-full h-full animate-spin-slow" viewBox="0 0 100 100">
                 <defs>
                   <path id="circlePath" d="M 50, 50 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0" />

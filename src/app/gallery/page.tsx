@@ -5,11 +5,9 @@ import React, { useState } from "react";
 import { motion, Variants, AnimatePresence } from "framer-motion";
 import { ShoppingBag, Search } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { fetchFurnitureFromDB } from "@/lib/furniture";
 import { FurnitureItem } from "@/lib/design-context";
-import { useAuth } from "@/lib/auth-context";
+import { SiteHeader } from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -63,8 +61,6 @@ const getDummyDescription = (type: string) => {
 };
 
 export default function GalleryPage() {
-  const router = useRouter();
-  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [furnitureLibrary, setFurnitureLibrary] = useState<FurnitureItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -116,41 +112,7 @@ export default function GalleryPage() {
       <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-[#f3b5a1]/10 rounded-full blur-3xl pointer-events-none z-0"></div>
 
       {/* Navigation Header */}
-      <motion.header
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="relative z-20 flex justify-between items-center px-8 md:px-12 py-6 max-w-[1400px] mx-auto w-full backdrop-blur-sm"
-      >
-        <div className="text-3xl font-medium tracking-wide cursor-pointer" style={{ fontFamily: "var(--font-italiana)" }} onClick={() => router.push('/')}>
-          Prism
-        </div>
-
-        <nav className="hidden md:flex gap-10 text-[15px] font-light tracking-wide font-sans">
-          <Link href="/" className="hover:text-[#f3b5a1] transition-colors">Home</Link>
-          <Link href="/gallery" className="text-[#f3b5a1] relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1px] auto after:bg-[#f3b5a1]">Gallery</Link>
-          <Link href="/about" className="hover:text-[#f3b5a1] transition-colors">About</Link>
-          <Link href="/contact" className="hover:text-[#f3b5a1] transition-colors">Contact</Link>
-        </nav>
-
-        <div className="flex gap-6 items-center">
-          {user ? (
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="px-6 py-2.5 rounded-full border border-white/30 hover:bg-white hover:text-[#233529] transition-all font-light tracking-wide text-sm flex items-center gap-2"
-            >
-              Dashboard
-            </button>
-          ) : (
-            <button
-              onClick={() => router.push('/login')}
-              className="px-6 py-2.5 rounded-full bg-white text-[#233529] hover:bg-white/90 transition-all font-medium tracking-wide text-sm"
-            >
-              Login
-            </button>
-          )}
-        </div>
-      </motion.header>
+      <SiteHeader className="backdrop-blur-sm" />
 
       {/* Main Gallery Content */}
       <main className="relative z-10 max-w-[1400px] mx-auto px-8 md:px-12 py-12">

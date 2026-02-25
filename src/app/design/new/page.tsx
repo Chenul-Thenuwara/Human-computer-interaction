@@ -13,6 +13,9 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { ArrowLeft, Save, Settings, Layout, Box, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { db } from "@/lib/firebase";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { DesignRequest } from "@/types/design";
 
 export default function DesignStudioPage() {
   const router = useRouter();
@@ -22,28 +25,75 @@ export default function DesignStudioPage() {
   const [activeTab, setActiveTab] = useState("setup");
 
   useEffect(() => {
-    // If no design exists, initialize a new one
-    if (!currentDesign) {
+    const initializeDesign = async () => {
+      if (currentDesign) return;
+
+      const params = new URLSearchParams(window.location.search);
+      const requestId = params.get("requestId");
+
+      let roomConfig = {
+        width: 5,
+        length: 4,
+        height: 2.7,
+        wallColor: "#354840",
+        floorColor: "#D4A574",
+      };
+
+      let customerName = "";
+      let specialNotes = "";
+
+      if (requestId) {
+        try {
+          const docRef = doc(db, "design_requests", requestId);
+          const docSnap = await getDoc(docRef);
+          
+          if (docSnap.exists()) {
+            const requestData = docSnap.data() as DesignRequest;
+            roomConfig = {
+              width: requestData.room.width || roomConfig.width,
+              length: requestData.room.length || roomConfig.length,
+              height: requestData.room.height || roomConfig.height,
+              wallColor: requestData.room.wallColor || roomConfig.wallColor,
+              floorColor: requestData.room.floorColor || roomConfig.floorColor,
+            };
+            
+            customerName = requestData.customerName || "";
+            specialNotes = requestData.specialNotes || "";
+
+            // If it's the first time opening it, update status to in_progress
+            if (requestData.status === "pending") {
+              await updateDoc(docRef, { status: "in_progress" });
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching request:", error);
+          toast.error("Failed to load design request");
+        }
+      }
+
       const newDesign: Design = {
         id: Date.now().toString(),
-        name: "Untitled Design",
-        customerName: "",
-        room: {
-          width: 5,
-          length: 4,
-          height: 2.7,
-          wallColor: "#354840",
-          floorColor: "#D4A574",
-        },
+        name: requestId ? "Client Request" : "Untitled Design",
+        customerName: customerName,
+        specialNotes: specialNotes,
+        isLocked: !!requestId, // Lock dimensions if it came from a request
+        room: roomConfig,
         furniture: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
+      // We could store the requestId in the design object itself or somewhere in context
+      // to link the completed design back to the request.
+        if (requestId) {
+          newDesign.requestId = requestId;
+        }
       setCurrentDesign(newDesign);
-    }
+    };
+
+    initializeDesign();
   }, [currentDesign, setCurrentDesign]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!currentDesign) return;
 
     if (!currentDesign.name || currentDesign.name === "Untitled Design") {
@@ -58,8 +108,26 @@ export default function DesignStudioPage() {
       return;
     }
 
+    // Save the design using context
     saveDesign(currentDesign);
-    toast.success("Design saved successfully!");
+
+    // Link back to request if we have one
+    const reqId = currentDesign.requestId;
+    if (reqId) {
+       try {
+         await updateDoc(doc(db, "design_requests", reqId), {
+            status: "completed",
+            designId: currentDesign.id,
+            updatedAt: new Date().toISOString()
+         });
+         toast.success("Design saved and request marked as completed!");
+       } catch (error) {
+         console.error("Error updating request:", error);
+         toast.error("Design saved, but failed to link request.");
+       }
+    } else {
+       toast.success("Design saved successfully!");
+    }
   };
 
   const handleLogout = async () => {

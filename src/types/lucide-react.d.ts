@@ -40,6 +40,11 @@ declare module 'lucide-react' {
   export const Upload: React.FC<LucideProps>;
   export const PlusCircle: React.FC<LucideProps>;
   export const Pencil: React.FC<LucideProps>;
+  export const Clock: React.FC<LucideProps>;
+  export const Loader2: React.FC<LucideProps>;
+  export const AlignJustify: React.FC<LucideProps>;
+  export const X: React.FC<LucideProps>;
+  export const Menu: React.FC<LucideProps>;
 
   const icons: { [key: string]: React.FC<LucideProps> };
   export default icons;

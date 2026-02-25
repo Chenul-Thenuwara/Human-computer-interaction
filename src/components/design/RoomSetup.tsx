@@ -150,11 +150,22 @@ export function RoomSetup() {
                 <Input
                   id="customerName"
                   value={customerName}
+                  disabled={currentDesign.isLocked}
                   onChange={(e) => handleCustomerNameChange(e.target.value)}
                   placeholder="e.g., John Smith"
-                  className="bg-input-background border-border text-foreground transition-all hover:bg-input-background/80 focus:bg-input-background/80"
+                  className="bg-input-background border-border text-foreground transition-all hover:bg-input-background/80 focus:bg-input-background/80 disabled:opacity-50"
                 />
               </div>
+              {currentDesign.isLocked && currentDesign.specialNotes && (
+                <div className="space-y-2 mt-4">
+                  <Label className="text-accent flex items-center gap-2">
+                    <FileText className="w-4 h-4" /> Client&apos;s Special Notes
+                  </Label>
+                  <div className="p-4 bg-primary/10 border border-accent/20 rounded-xl text-foreground text-sm leading-relaxed overflow-y-auto max-h-40 break-words whitespace-pre-wrap">
+                    {currentDesign.specialNotes}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>
@@ -180,12 +191,13 @@ export function RoomSetup() {
                     <Button
                       key={preset.name}
                       variant="outline"
+                      disabled={currentDesign.isLocked}
                       onClick={() => {
                         setWidth(preset.width);
                         setLength(preset.length);
                         setHeight(preset.height);
                       }}
-                      className="text-sm border-white/20 text-foreground hover:bg-white/10"
+                      className="text-sm border-white/20 text-foreground hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {preset.name}
                     </Button>
@@ -207,6 +219,7 @@ export function RoomSetup() {
                   max={10}
                   step={0.1}
                   value={[width]}
+                  disabled={currentDesign.isLocked}
                   onValueChange={(values) => setWidth(values[0])}
                   className="w-full"
                 />
@@ -224,6 +237,7 @@ export function RoomSetup() {
                   max={10}
                   step={0.1}
                   value={[length]}
+                  disabled={currentDesign.isLocked}
                   onValueChange={(values) => setLength(values[0])}
                   className="w-full"
                 />
@@ -241,6 +255,7 @@ export function RoomSetup() {
                   max={4}
                   step={0.1}
                   value={[height]}
+                  disabled={currentDesign.isLocked}
                   onValueChange={(values) => setHeight(values[0])}
                   className="w-full"
                 />
@@ -270,11 +285,12 @@ export function RoomSetup() {
                     <button
                       key={preset.name}
                       onClick={() => setWallColor(preset.color)}
+                      disabled={currentDesign.isLocked}
                       className={`relative h-12 rounded-lg border-2 transition-all ${
                         wallColor === preset.color
                           ? 'border-accent ring-2 ring-accent/30'
                           : 'border-white/20 hover:border-white/30'
-                      }`}
+                      } disabled:opacity-50 disabled:cursor-not-allowed`}
                       style={{ backgroundColor: preset.color }}
                       title={preset.name}
                     >
@@ -292,14 +308,16 @@ export function RoomSetup() {
                     id="customWallColor"
                     type="color"
                     value={wallColor}
+                    disabled={currentDesign.isLocked}
                     onChange={(e) => setWallColor(e.target.value)}
-                    className="w-20 h-10"
+                    className="w-20 h-10 disabled:opacity-50"
                   />
                   <Input
                     type="text"
                     value={wallColor}
+                    disabled={currentDesign.isLocked}
                     onChange={(e) => setWallColor(e.target.value)}
-                    className="flex-1 font-mono text-sm bg-input-background border-border text-foreground"
+                    className="flex-1 font-mono text-sm bg-input-background border-border text-foreground disabled:opacity-50"
                   />
                 </div>
               </div>
@@ -314,11 +332,12 @@ export function RoomSetup() {
                     <button
                       key={preset.name}
                       onClick={() => setFloorColor(preset.color)}
+                      disabled={currentDesign.isLocked}
                       className={`relative h-12 rounded-lg border-2 transition-all ${
                         floorColor === preset.color
                           ? 'border-accent ring-2 ring-accent/30'
                           : 'border-white/20 hover:border-white/30'
-                      }`}
+                      } disabled:opacity-50 disabled:cursor-not-allowed`}
                       style={{ backgroundColor: preset.color }}
                       title={preset.name}
                     >
@@ -336,14 +355,16 @@ export function RoomSetup() {
                     id="customFloorColor"
                     type="color"
                     value={floorColor}
+                    disabled={currentDesign.isLocked}
                     onChange={(e) => setFloorColor(e.target.value)}
-                    className="w-20 h-10"
+                    className="w-20 h-10 disabled:opacity-50"
                   />
                   <Input
                     type="text"
                     value={floorColor}
+                    disabled={currentDesign.isLocked}
                     onChange={(e) => setFloorColor(e.target.value)}
-                    className="flex-1 font-mono text-sm bg-input-background border-border text-foreground"
+                    className="flex-1 font-mono text-sm bg-input-background border-border text-foreground disabled:opacity-50"
                   />
                 </div>
               </div>
