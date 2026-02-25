@@ -4,12 +4,11 @@ import { motion, Variants } from "framer-motion";
 import { Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useAuth } from "@/lib/auth-context";
+import { SiteHeader } from "@/components/SiteHeader";
 import { useRouter } from "next/navigation";
 
 export default function HomePage() {
   const router = useRouter();
-  const { user } = useAuth();
 
   // Animation variants
   const fadeUp: Variants = {
@@ -41,46 +40,7 @@ export default function HomePage() {
     <div className="relative min-h-screen overflow-hidden">
       <div className="relative z-10 flex flex-col min-h-screen">
         {/* Navigation */}
-        <motion.header
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.2 }}
-          className="flex justify-between items-center px-8 md:px-12 py-6 max-w-[1400px] mx-auto w-full"
-        >
-          <div className="text-3xl font-medium tracking-wide" style={{ fontFamily: "var(--font-italiana)" }}>
-            Prism
-          </div>
-
-          <nav className="hidden md:flex gap-10 text-[15px] font-light tracking-wide font-sans">
-            <Link
-              href="/"
-              className="text-[#f3b5a1] relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1px] auto after:bg-[#f3b5a1]"
-            >
-              Home
-            </Link>
-            <Link href="/gallery" className="hover:text-[#f3b5a1] transition-colors">Gallery</Link>
-            <Link href="/about" className="hover:text-[#f3b5a1] transition-colors">About</Link>
-            <Link href="/contact" className="hover:text-[#f3b5a1] transition-colors">Contact</Link>
-          </nav>
-
-          <div className="flex gap-6 items-center">
-            {user ? (
-              <button
-                onClick={() => router.push('/dashboard')}
-                className="px-6 py-2.5 rounded-full border border-white/30 hover:bg-white hover:text-[#233529] transition-all font-light tracking-wide text-sm flex items-center gap-2"
-              >
-                Dashboard
-              </button>
-            ) : (
-              <button
-                onClick={() => router.push('/login')}
-                className="px-6 py-2.5 rounded-full bg-white text-[#233529] hover:bg-white/90 transition-all font-medium tracking-wide text-sm"
-              >
-                Login
-              </button>
-            )}
-          </div>
-        </motion.header>
+        <SiteHeader delay={0.2} />
 
         {/* Main Content */}
         <main className="flex-1 relative flex items-center justify-center pt-10 pb-20">

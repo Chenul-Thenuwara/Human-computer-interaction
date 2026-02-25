@@ -2,16 +2,12 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useAuth } from "@/lib/auth-context"
+import Link from "next/link";
+import { SiteHeader } from "@/components/SiteHeader";
 import { motion, Variants } from "framer-motion"
 import { ArrowRight, Mail, Phone, MapPin } from "lucide-react";
 
 export default function ContactPage() {
-    const router = useRouter()
-    const { user } = useAuth()
-
     const [name, setName] = useState("")
     const [email, setEmail] = useState("")
     const [subject, setSubject] = useState("")
@@ -78,41 +74,7 @@ export default function ContactPage() {
             <div className="fixed bottom-[-20%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-[#f3b5a1]/5 blur-[150px] pointer-events-none" />
 
             {/* Navigation */}
-            <motion.header
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1, delay: 0.2 }}
-                className="flex justify-between items-center px-8 md:px-12 py-6 max-w-[1400px] mx-auto w-full relative z-20"
-            >
-                <div className="text-3xl font-medium tracking-wide" style={{ fontFamily: "var(--font-italiana)" }}>
-                    <Link href="/">Prism</Link>
-                </div>
-
-                <nav className="hidden md:flex gap-10 text-[15px] font-light tracking-wide font-sans">
-                    <Link href="/" className="hover:text-[#f3b5a1] transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1px] auto after:bg-white after:origin-right after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 hover:after:origin-left">Home</Link>
-                    <Link href="/gallery" className="hover:text-[#f3b5a1] transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1px] auto after:bg-white after:origin-right after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 hover:after:origin-left">Gallery</Link>
-                    <Link href="/about" className="hover:text-[#f3b5a1] transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1px] auto after:bg-white after:origin-right after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 hover:after:origin-left">About</Link>
-                    <Link href="/contact" className="text-[#f3b5a1] relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1px] auto after:bg-[#f3b5a1]">Contact</Link>
-                </nav>
-
-                <div className="flex gap-6 items-center">
-                    {user ? (
-                        <button
-                            onClick={() => router.push('/dashboard')}
-                            className="px-6 py-2.5 rounded-full border border-white/20 hover:bg-white hover:text-[#10251f] transition-all font-light tracking-wide text-sm flex items-center gap-2"
-                        >
-                            Dashboard
-                        </button>
-                    ) : (
-                        <button
-                            onClick={() => router.push('/login')}
-                            className="px-6 py-2.5 rounded-full bg-white text-[#10251f] hover:bg-white/90 transition-all font-medium tracking-wide text-sm"
-                        >
-                            Login
-                        </button>
-                    )}
-                </div>
-            </motion.header>
+            <SiteHeader delay={0.2} />
 
             <main className="max-w-[1400px] mx-auto px-8 md:px-12 py-12 md:py-20 relative z-10 min-h-[calc(100vh-100px)] flex flex-col justify-center">
                 
