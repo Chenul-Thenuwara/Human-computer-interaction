@@ -60,8 +60,15 @@ service cloud.firestore {
       // Allow update/delete if authenticated and userId matches existing doc
       allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
       
-      // Allow read if authenticated and userId matches
-      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      // Allow read if authenticated and userId matches (designer), OR if the user owns the original request, OR is admin
+      allow read: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin() ||
+        (
+          'requestId' in resource.data && 
+          get(/databases/$(database)/documents/design_requests/$(resource.data.requestId)).data.userId == request.auth.uid
+        )
+      );
     }
 
     // Allow users to read and write their own todos
