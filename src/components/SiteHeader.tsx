@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import { Menu, X } from "lucide-react";
+import { AlignJustify, X } from "lucide-react";
 
 interface SiteHeaderProps {
   delay?: number;
@@ -76,7 +76,7 @@ export function SiteHeader({ delay = 0, duration = 0.8, className = "" }: SiteHe
           className="md:hidden p-2 text-white hover:text-[#f3b5a1] transition-colors"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
-          {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+          {isMobileMenuOpen ? <X size={28} /> : <AlignJustify size={28} />}
         </button>
       </motion.header>
 
