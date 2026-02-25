@@ -3,13 +3,9 @@
 import { motion, Variants } from "framer-motion";
 import { Star } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
-import { useRouter } from "next/navigation";
 
 export default function HomePage() {
-  const router = useRouter();
-
   // Animation variants
   const fadeUp: Variants = {
     hidden: { opacity: 0, y: 40 },

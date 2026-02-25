@@ -159,7 +159,7 @@ export function RoomSetup() {
               {currentDesign.isLocked && currentDesign.specialNotes && (
                 <div className="space-y-2 mt-4">
                   <Label className="text-accent flex items-center gap-2">
-                    <FileText className="w-4 h-4" /> Client's Special Notes
+                    <FileText className="w-4 h-4" /> Client&apos;s Special Notes
                   </Label>
                   <div className="p-4 bg-primary/10 border border-accent/20 rounded-xl text-foreground text-sm leading-relaxed overflow-y-auto max-h-40 break-words whitespace-pre-wrap">
                     {currentDesign.specialNotes}

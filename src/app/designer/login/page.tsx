@@ -2,8 +2,7 @@
 
 import Image from "next/image";
 import { useState, FormEvent, useEffect } from "react";
-import { signIn, getUserRole, signOut, signInWithGoogle, createUserProfile } from "../../../lib/firebase";
-import Link from "next/link";
+import { signIn, getUserRole, signOut } from "../../../lib/firebase";
 import { motion, Variants } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
@@ -58,35 +57,6 @@ export default function DesignerLogin() {
       setError(error?.message ?? "Login failed");
     } finally {
       if (!error) setLoading(false);
-      setSubmitting(false);
-    }
-  }
-
-  async function handleGoogleSignIn() {
-    setError(null);
-    setLoading(true);
-    setSubmitting(true);
-    try {
-      const credential = await signInWithGoogle();
-
-      let role = await getUserRole(credential.user.uid);
-      
-      if (role !== "designer") {
-        await signOut();
-        localStorage.removeItem("loginTime");
-        setError("Access denied. Designers only.");
-        setLoading(false);
-        setSubmitting(false);
-        return;
-      }
-
-      localStorage.setItem("loginTime", Date.now().toString());
-      router.replace("/dashboard");
-    } catch (err: unknown) {
-      const error = err as { message?: string };
-      setError(error?.message ?? "Google Sign-in failed");
-    } finally {
-      setLoading(false);
       setSubmitting(false);
     }
   }

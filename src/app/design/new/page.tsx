@@ -84,9 +84,9 @@ export default function DesignStudioPage() {
       };
       // We could store the requestId in the design object itself or somewhere in context
       // to link the completed design back to the request.
-      if (requestId) {
-          (newDesign as any).requestId = requestId;
-      }
+        if (requestId) {
+          newDesign.requestId = requestId;
+        }
       setCurrentDesign(newDesign);
     };
 
@@ -112,7 +112,7 @@ export default function DesignStudioPage() {
     saveDesign(currentDesign);
 
     // Link back to request if we have one
-    const reqId = (currentDesign as any).requestId;
+    const reqId = currentDesign.requestId;
     if (reqId) {
        try {
          await updateDoc(doc(db, "design_requests", reqId), {

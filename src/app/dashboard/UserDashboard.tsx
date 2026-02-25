@@ -12,7 +12,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { DesignRequest } from "@/types/design";
 import { Slider } from "@/components/ui/slider";
-import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 
 interface Designer {
@@ -244,6 +243,7 @@ export default function UserDashboard() {
           <motion.div variants={fadeUp} className="backdrop-blur-xl bg-white/5 border border-white/10 shadow-xl rounded-2xl p-6 relative overflow-hidden">
             <h2 className="text-xs font-medium text-white/50 uppercase tracking-wider mb-2">Total Requests</h2>
             <p className="text-4xl font-light text-white" style={{ fontFamily: "var(--font-italiana)" }}>{requests.length}</p>
+            <p className="text-sm text-white/60 mt-2">Completed: {completedCount}</p>
           </motion.div>
           
           <motion.div variants={fadeUp} className="backdrop-blur-xl bg-white/5 border border-white/10 shadow-xl rounded-2xl p-6 relative overflow-hidden">
@@ -275,7 +275,7 @@ export default function UserDashboard() {
           ) : requests.length === 0 ? (
             <div className="w-full min-h-75 flex flex-col items-center justify-center backdrop-blur-md bg-white/2 border border-white/10 border-dashed rounded-2xl">
               <span className="text-4xl opacity-50 mb-4">✨</span>
-              <p className="text-white/50 mb-6">You haven't requested any designs yet.</p>
+              <p className="text-white/50 mb-6">You haven&apos;t requested any designs yet.</p>
               <Button onClick={() => setShowNewRequest(true)} className="bg-white text-black hover:bg-white/90">
                 Request a Design
               </Button>

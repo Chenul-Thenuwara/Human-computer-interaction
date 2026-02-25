@@ -5,8 +5,6 @@ import React, { useState } from "react";
 import { motion, Variants, AnimatePresence } from "framer-motion";
 import { ShoppingBag, Search } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { fetchFurnitureFromDB } from "@/lib/furniture";
 import { FurnitureItem } from "@/lib/design-context";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -63,7 +61,6 @@ const getDummyDescription = (type: string) => {
 };
 
 export default function GalleryPage() {
-  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [furnitureLibrary, setFurnitureLibrary] = useState<FurnitureItem[]>([]);
   const [loading, setLoading] = useState(true);

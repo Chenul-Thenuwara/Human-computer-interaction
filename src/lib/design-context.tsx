@@ -35,6 +35,7 @@ export interface Design {
   customerName: string;
   specialNotes?: string;
   isLocked?: boolean;
+  requestId?: string;
   room: Room;
   furniture: FurnitureItem[];
   createdAt: string;

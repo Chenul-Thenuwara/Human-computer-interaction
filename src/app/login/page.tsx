@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState, FormEvent, useEffect } from "react";
-import { signIn, getUserRole, signOut, signInWithGoogle, createUserProfile } from "../../lib/firebase";
+import { signIn, getUserRole, signInWithGoogle, createUserProfile } from "../../lib/firebase";
 import Link from "next/link";
 import { motion, Variants } from "framer-motion";
 import { useRouter } from "next/navigation";

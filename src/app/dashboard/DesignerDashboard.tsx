@@ -24,7 +24,7 @@ export interface Todo {
 
 export default function DesignerDashboard() {
   const router = useRouter();
-  const { user, logout, isAdmin, loading } = useAuth();
+  const { user, logout, loading } = useAuth();
   const { setCurrentDesign } = useDesign();
   const [designs, setDesigns] = useState<Design[]>([]);
   const [loadingDesigns, setLoadingDesigns] = useState(true);
