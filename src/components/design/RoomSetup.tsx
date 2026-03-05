@@ -12,40 +12,40 @@ import { Ruler, Palette, FileText } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
 
 export function RoomSetup() {
-  const { currentDesign, updateDesignRoom, setCurrentDesign } = useDesign();
+  const { currentDesign, currentRoom, updateDesignRoom, setCurrentDesign } = useDesign();
   
   const [designName, setDesignName] = useState(currentDesign?.name || '');
   const [customerName, setCustomerName] = useState(currentDesign?.customerName || '');
-  const [width, setWidth] = useState(currentDesign?.room.width || 5);
-  const [length, setLength] = useState(currentDesign?.room.length || 4);
-  const [height, setHeight] = useState(currentDesign?.room.height || 2.7);
-  const [wallColor, setWallColor] = useState(currentDesign?.room.wallColor || '#F5F5F5');
-  const [floorColor, setFloorColor] = useState(currentDesign?.room.floorColor || '#D4A574');
+  const [width, setWidth] = useState(currentRoom?.room.width || 5);
+  const [length, setLength] = useState(currentRoom?.room.length || 4);
+  const [height, setHeight] = useState(currentRoom?.room.height || 2.7);
+  const [wallColor, setWallColor] = useState(currentRoom?.room.wallColor || '#F5F5F5');
+  const [floorColor, setFloorColor] = useState(currentRoom?.room.floorColor || '#D4A574');
 
-  // Update local state when currentDesign changes (e.g. initial load)
+  // Update local state when currentRoom changes (e.g. initial load or room switch)
   useEffect(() => {
-    if (currentDesign) {
+    if (currentDesign && currentRoom) {
       setDesignName(currentDesign.name || '');
       setCustomerName(currentDesign.customerName || '');
-      setWidth(currentDesign.room.width);
-      setLength(currentDesign.room.length);
-      setHeight(currentDesign.room.height);
-      setWallColor(currentDesign.room.wallColor);
-      setFloorColor(currentDesign.room.floorColor);
+      setWidth(currentRoom.room.width);
+      setLength(currentRoom.room.length);
+      setHeight(currentRoom.room.height);
+      setWallColor(currentRoom.room.wallColor);
+      setFloorColor(currentRoom.room.floorColor);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentDesign?.id]);
+  }, [currentDesign?.id, currentRoom?.id]);
 
   // Sync room changes to context
   useEffect(() => {
-    if (currentDesign) {
+    if (currentRoom) {
       // Avoid infinite loops by checking if values actually changed
       if (
-        currentDesign.room.width !== width ||
-        currentDesign.room.length !== length ||
-        currentDesign.room.height !== height ||
-        currentDesign.room.wallColor !== wallColor ||
-        currentDesign.room.floorColor !== floorColor
+        currentRoom.room.width !== width ||
+        currentRoom.room.length !== length ||
+        currentRoom.room.height !== height ||
+        currentRoom.room.wallColor !== wallColor ||
+        currentRoom.room.floorColor !== floorColor
       ) {
         updateDesignRoom({
           width,
@@ -56,7 +56,7 @@ export function RoomSetup() {
         });
       }
     }
-  }, [width, length, height, wallColor, floorColor, updateDesignRoom, currentDesign]);
+  }, [width, length, height, wallColor, floorColor, updateDesignRoom, currentRoom]);
 
   const handleDesignNameChange = (value: string) => {
     setDesignName(value);
@@ -109,7 +109,7 @@ export function RoomSetup() {
     visible: { opacity: 1, transition: { staggerChildren: 0.15 } }
   };
 
-  if (!currentDesign) {
+  if (!currentDesign || !currentRoom) {
     return <div>Loading design...</div>;
   }
 

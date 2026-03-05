@@ -500,20 +500,26 @@ export default function DesignerDashboard() {
                      </span>
                    </div>
                    
-                   <div className="grid grid-cols-3 gap-2 mb-6 relative z-20">
-                     <div className="bg-black/20 p-2 rounded-lg text-center">
-                       <span className="block text-xs text-white/40 mb-1">Width</span>
-                       <span className="text-sm text-white">{request.room.width}m</span>
-                     </div>
-                     <div className="bg-black/20 p-2 rounded-lg text-center">
-                       <span className="block text-xs text-white/40 mb-1">Length</span>
-                       <span className="text-sm text-white">{request.room.length}m</span>
-                     </div>
-                     <div className="bg-black/20 p-2 rounded-lg text-center">
-                       <span className="block text-xs text-white/40 mb-1">Height</span>
-                       <span className="text-sm text-white">{request.room.height}m</span>
-                     </div>
-                   </div>
+                   {(() => {
+                     const reqRoom = request.rooms && request.rooms.length > 0 ? request.rooms[0].room : request.room;
+                     if (!reqRoom) return null;
+                     return (
+                       <div className="grid grid-cols-3 gap-2 mb-6 relative z-20">
+                         <div className="bg-black/20 p-2 rounded-lg text-center">
+                           <span className="block text-xs text-white/40 mb-1">Width</span>
+                           <span className="text-sm text-white">{reqRoom.width}m</span>
+                         </div>
+                         <div className="bg-black/20 p-2 rounded-lg text-center">
+                           <span className="block text-xs text-white/40 mb-1">Length</span>
+                           <span className="text-sm text-white">{reqRoom.length}m</span>
+                         </div>
+                         <div className="bg-black/20 p-2 rounded-lg text-center">
+                           <span className="block text-xs text-white/40 mb-1">Height</span>
+                           <span className="text-sm text-white">{reqRoom.height}m</span>
+                         </div>
+                       </div>
+                     );
+                   })()}
 
                      <div className="relative z-20">
                      {request.status !== 'completed' ? (

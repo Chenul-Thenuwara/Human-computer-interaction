@@ -8,125 +8,180 @@ import * as THREE from "three";
 
 import { Furniture3D } from "./Furniture3D";
 
-function Room() {
+function House() {
   const { currentDesign } = useDesign();
   
-  if (!currentDesign) return null;
-  
-  const { width, length, height, wallColor, floorColor } = currentDesign.room;
-  
-  // Create materials
-  const floorMaterial = new THREE.MeshStandardMaterial({ 
-    color: floorColor,
-    roughness: 0.8,
-    metalness: 0.1
-  });
-  
-  const wallMaterial = new THREE.MeshStandardMaterial({ 
-    color: wallColor,
-    roughness: 0.9,
-    metalness: 0.05,
-    side: THREE.DoubleSide
-  });
+  if (!currentDesign || !currentDesign.rooms) return null;
+
+  const buildWallShape = (wallWidth: number, wallHeight: number, features: any[], wallName: string, reversePosition: boolean) => {
+    const shape = new THREE.Shape();
+    shape.moveTo(-wallWidth / 2, -wallHeight / 2);
+    shape.lineTo(wallWidth / 2, -wallHeight / 2);
+    shape.lineTo(wallWidth / 2, wallHeight / 2);
+    shape.lineTo(-wallWidth / 2, wallHeight / 2);
+    shape.lineTo(-wallWidth / 2, -wallHeight / 2);
+
+    if (features && features.length > 0) {
+      features.filter(f => f.wall === wallName).forEach(f => {
+        const hole = new THREE.Path();
+        const localX = reversePosition ? (wallWidth / 2 - f.position) : (-wallWidth / 2 + f.position);
+        const bottom = -wallHeight / 2 + (f.elevation || 0);
+        const hw = f.width / 2;
+
+        hole.moveTo(localX - hw, bottom);
+        hole.lineTo(localX + hw, bottom);
+        hole.lineTo(localX + hw, bottom + f.height);
+        hole.lineTo(localX - hw, bottom + f.height);
+        hole.lineTo(localX - hw, bottom);
+
+        shape.holes.push(hole);
+      });
+    }
+    return shape;
+  };
 
   return (
     <group>
-      {/* Floor */}
-      <mesh 
-        rotation={[-Math.PI / 2, 0, 0]} 
-        position={[0, 0, 0]} 
-        receiveShadow
-      >
-        <planeGeometry args={[width, length]} />
-        <primitive object={floorMaterial} attach="material" />
-      </mesh>
+      {currentDesign.rooms.map(roomData => {
+        const { width, length, height, wallColor, floorColor, position } = roomData.room;
+        
+        // Convert the 2D position (top-left of the room in 2D space) to 3D position
+        // In 2D, coordinates grow right (X) and down (Z)
+        // Let's center the whole house around 0,0, but for now just map local positions
+        // x is center of the room in X: position.x + width / 2
+        // z is center of the room in Z: position.z + length / 2
+        const roomX = (position?.x || 0) + width / 2;
+        const roomZ = (position?.z || 0) + length / 2;
+        
+        // Materials specific to this room
+        const floorMaterial = new THREE.MeshStandardMaterial({ 
+          color: floorColor,
+          roughness: 0.8,
+          metalness: 0.1
+        });
+        
+        const wallMaterial = new THREE.MeshStandardMaterial({ 
+          color: wallColor,
+          roughness: 0.9,
+          metalness: 0.05,
+          side: THREE.DoubleSide
+        });
 
-      {/* Furniture */}
-      {currentDesign.furniture.map((item) => {
-        if (!item.position) return null;
-        // Calculate 3D position centering
-        // item.position.x is from top-left (0,0) to right.
-        // item.position.y is from top-left (0,0) to down.
-        // Room center is (0,0) in 3D.
-        // 2D X range: [0, width] -> 3D X range: [-width/2, width/2]
-        // 2D Y range: [0, length] -> 3D Z range: [-length/2, length/2]
-        
-        const x = item.position.x - width / 2;
-        const z = item.position.y - length / 2;
-        
         return (
-          <group key={item.id} position={[x, 0, z]}>
-            <Furniture3D item={item} />
+          <group key={roomData.id} position={[roomX, 0, roomZ]}>
+            {/* Floor */}
+            <mesh 
+              rotation={[-Math.PI / 2, 0, 0]} 
+              position={[0, 0, 0]} 
+              receiveShadow
+            >
+              <planeGeometry args={[width, length]} />
+              <primitive object={floorMaterial} attach="material" />
+            </mesh>
+
+            {/* Furniture */}
+            {roomData.furniture.map((item) => {
+              if (!item.position) return null;
+              // 2D position is relative to this room's top-left corner
+              const localX = item.position.x - width / 2;
+              const localZ = item.position.y - length / 2;
+              
+              return (
+                <group key={item.id} position={[localX, 0, localZ]}>
+                  <Furniture3D item={item} />
+                </group>
+              );
+            })}
+
+            {/* Back Wall (along Width) */}
+            <mesh 
+              position={[0, height / 2, -length / 2]} 
+              receiveShadow 
+              castShadow
+            >
+              <shapeGeometry args={[buildWallShape(width, height, roomData.room.features || [], 'back', false)]} />
+              <primitive object={wallMaterial} attach="material" />
+            </mesh>
+
+            {/* Front Wall (along Width) */}
+            <mesh 
+              position={[0, height / 2, length / 2]} 
+              rotation={[0, Math.PI, 0]}
+              receiveShadow 
+              castShadow
+            >
+              <shapeGeometry args={[buildWallShape(width, height, roomData.room.features || [], 'front', true)]} />
+              <primitive object={wallMaterial} attach="material" />
+            </mesh>
+
+            {/* Left Wall (along Length) */}
+            <mesh 
+              position={[-width / 2, height / 2, 0]} 
+              rotation={[0, Math.PI / 2, 0]}
+              receiveShadow 
+              castShadow
+            >
+              <shapeGeometry args={[buildWallShape(length, height, roomData.room.features || [], 'left', false)]} />
+              <primitive object={wallMaterial} attach="material" />
+            </mesh>
+
+            {/* Right Wall (along Length) */}
+            <mesh 
+              position={[width / 2, height / 2, 0]} 
+              rotation={[0, -Math.PI / 2, 0]}
+              receiveShadow 
+              castShadow
+            >
+              <shapeGeometry args={[buildWallShape(length, height, roomData.room.features || [], 'right', true)]} />
+              <primitive object={wallMaterial} attach="material" />
+            </mesh>
           </group>
         );
       })}
-
-      {/* Back Wall (along Width) */}
-      <mesh 
-        position={[0, height / 2, -length / 2]} 
-        receiveShadow 
-        castShadow
-      >
-        <planeGeometry args={[width, height]} />
-        <primitive object={wallMaterial} attach="material" />
-      </mesh>
-
-      {/* Front Wall (along Width) */}
-      <mesh 
-        position={[0, height / 2, length / 2]} 
-        rotation={[0, Math.PI, 0]}
-        receiveShadow 
-        castShadow
-      >
-        <planeGeometry args={[width, height]} />
-        <primitive object={wallMaterial} attach="material" />
-      </mesh>
-
-      {/* Left Wall (along Length) */}
-      <mesh 
-        position={[-width / 2, height / 2, 0]} 
-        rotation={[0, Math.PI / 2, 0]}
-        receiveShadow 
-        castShadow
-      >
-        <planeGeometry args={[length, height]} />
-        <primitive object={wallMaterial} attach="material" />
-      </mesh>
-
-      {/* Right Wall (along Length) */}
-      <mesh 
-        position={[width / 2, height / 2, 0]} 
-        rotation={[0, -Math.PI / 2, 0]}
-        receiveShadow 
-        castShadow
-      >
-        <planeGeometry args={[length, height]} />
-        <primitive object={wallMaterial} attach="material" />
-      </mesh>
-
-      {/* Grid Helper for scale reference */}
-      <gridHelper args={[Math.max(width, length) + 4, Math.max(width, length) + 4, 0x000000, 0xcccccc]} position={[0, 0.01, 0]} />
+      
+      {/* Grid Helper covering roughly a 50x50m area */}
+      <gridHelper args={[50, 50, 0x000000, 0xcccccc]} position={[20, 0.01, 20]} />
     </group>
   );
 }
 
 function SceneSetup() {
   const { currentDesign } = useDesign();
-  // Adjust camera based on room size
-  const size = Math.max(currentDesign?.room.width || 5, currentDesign?.room.length || 5);
+  // Calculate bounding box center
+  let minX = 0, minY = 0, maxX = 10, maxY = 10;
+  if (currentDesign && currentDesign.rooms) {
+    currentDesign.rooms.forEach(r => {
+      const rx = r.room.position?.x || 0;
+      const rz = r.room.position?.z || 0;
+      minX = Math.min(minX, rx);
+      minY = Math.min(minY, rz);
+      maxX = Math.max(maxX, rx + r.room.width);
+      maxY = Math.max(maxY, rz + r.room.length);
+    });
+  }
+  
+  const width = maxX - minX;
+  const length = maxY - minY;
+  const size = Math.max(width, length, 15);
+  const centerX = minX + width / 2;
+  const centerZ = minY + length / 2;
   
   return (
     <>
-      <PerspectiveCamera makeDefault position={[size * 0.75, size * 0.75, size * 0.75]} fov={50} />
-      <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2.1} />
+      <PerspectiveCamera makeDefault position={[centerX + size * 0.75, size * 0.75, centerZ + size * 0.75]} fov={50} />
+      <OrbitControls makeDefault target={[centerX, 0, centerZ]} minPolarAngle={0} maxPolarAngle={Math.PI / 2.1} />
       
       <ambientLight intensity={0.5} />
       <directionalLight 
-        position={[5, 10, 5]} 
+        position={[centerX + 5, 20, centerZ + 5]} 
         intensity={1} 
         castShadow 
-        shadow-mapSize-width={1024} 
-        shadow-mapSize-height={1024} 
+        shadow-mapSize-width={2048} 
+        shadow-mapSize-height={2048} 
+        shadow-camera-left={-size}
+        shadow-camera-right={size}
+        shadow-camera-top={size}
+        shadow-camera-bottom={-size}
       />
       <Environment preset="apartment" />
     </>
@@ -185,7 +240,7 @@ export function Visualization3D() {
       <Canvas shadows dpr={[1, 2]}>
         <Suspense fallback={null}>
           <SceneSetup />
-          <Room />
+          <House />
         </Suspense>
       </Canvas>
       <CustomLoader />

@@ -124,6 +124,18 @@ export default function UserDashboard() {
           designerId: selectedDesigner,
           customerName: customerName,
           specialNotes: specialNotes,
+          rooms: [{
+            id: 'default',
+            name: 'Main Room',
+            room: {
+              width: Number(width),
+              length: Number(length),
+              height: Number(height),
+              wallColor: wallColor,
+              floorColor: floorColor
+            },
+            furniture: []
+          }],
           room: {
             width: Number(width),
             length: Number(length),
@@ -292,9 +304,15 @@ export default function UserDashboard() {
                          <h3 className="text-lg font-medium tracking-wide capitalize" style={{ fontFamily: "var(--font-italiana)" }}>
                            {request.status.replace("_", " ")} Design
                          </h3>
-                         <p className="text-sm text-white/50 font-light mt-1">
-                           Room: {request.room.width}x{request.room.length}x{request.room.height}m
-                         </p>
+                       {(() => {
+                         const reqRoom = request.rooms && request.rooms.length > 0 ? request.rooms[0].room : request.room;
+                         if (!reqRoom) return null;
+                         return (
+                           <p className="text-sm text-white/50 font-light mt-1">
+                             Room: {reqRoom.width}x{reqRoom.length}x{reqRoom.height}m
+                           </p>
+                         );
+                       })()}
                       </div>
                     </div>
 
