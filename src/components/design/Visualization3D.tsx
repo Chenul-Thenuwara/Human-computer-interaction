@@ -93,46 +93,46 @@ function House() {
               );
             })}
 
-            {/* Back Wall (along Width) */}
+            {/* Front Wall (Top in 2D, mapped to -Z) */}
             <mesh 
               position={[0, height / 2, -length / 2]} 
               receiveShadow 
               castShadow
             >
-              <shapeGeometry args={[buildWallShape(width, height, roomData.room.features || [], 'back', false)]} />
+              <shapeGeometry args={[buildWallShape(width, height, roomData.room.features || [], 'front', false)]} />
               <primitive object={wallMaterial} attach="material" />
             </mesh>
 
-            {/* Front Wall (along Width) */}
+            {/* Back Wall (Bottom in 2D, mapped to +Z) */}
             <mesh 
               position={[0, height / 2, length / 2]} 
               rotation={[0, Math.PI, 0]}
               receiveShadow 
               castShadow
             >
-              <shapeGeometry args={[buildWallShape(width, height, roomData.room.features || [], 'front', true)]} />
+              <shapeGeometry args={[buildWallShape(width, height, roomData.room.features || [], 'back', true)]} />
               <primitive object={wallMaterial} attach="material" />
             </mesh>
 
-            {/* Left Wall (along Length) */}
+            {/* Left Wall */}
             <mesh 
               position={[-width / 2, height / 2, 0]} 
               rotation={[0, Math.PI / 2, 0]}
               receiveShadow 
               castShadow
             >
-              <shapeGeometry args={[buildWallShape(length, height, roomData.room.features || [], 'left', false)]} />
+              <shapeGeometry args={[buildWallShape(length, height, roomData.room.features || [], 'left', true)]} />
               <primitive object={wallMaterial} attach="material" />
             </mesh>
 
-            {/* Right Wall (along Length) */}
+            {/* Right Wall */}
             <mesh 
               position={[width / 2, height / 2, 0]} 
               rotation={[0, -Math.PI / 2, 0]}
               receiveShadow 
               castShadow
             >
-              <shapeGeometry args={[buildWallShape(length, height, roomData.room.features || [], 'right', true)]} />
+              <shapeGeometry args={[buildWallShape(length, height, roomData.room.features || [], 'right', false)]} />
               <primitive object={wallMaterial} attach="material" />
             </mesh>
           </group>

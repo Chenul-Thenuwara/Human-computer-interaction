@@ -22,6 +22,9 @@ export default function DesignStudioPage() {
   const { currentDesign, currentRoom, activeRoomId, setActiveRoomId, addRoom, deleteRoom, setCurrentDesign, saveDesign } = useDesign();
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState("2d");
+  const [isNewRoomDialogOpen, setIsNewRoomDialogOpen] = useState(false);
+  const [newRoomName, setNewRoomName] = useState("New Room");
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     const initializeDesign = async () => {
@@ -249,8 +252,8 @@ export default function DesignStudioPage() {
                     variant="default"
                     title="Add Room"
                     onClick={() => {
-                      const name = prompt("Enter new room name:", "New Room");
-                      if (name) addRoom(name);
+                      setNewRoomName("New Room");
+                      setIsNewRoomDialogOpen(true);
                     }}
                     className="h-8 w-8 rounded-full shadow-lg hover:scale-105 transition-transform"
                   >
@@ -262,8 +265,8 @@ export default function DesignStudioPage() {
                       variant="destructive"
                       title="Delete Room"
                       onClick={() => {
-                        if (activeRoomId && confirm("Delete this room?")) {
-                          deleteRoom(activeRoomId);
+                        if (activeRoomId) {
+                          setIsDeleteDialogOpen(true);
                         }
                       }}
                       className="h-8 w-8 rounded-full opacity-80 hover:opacity-100 hover:scale-105 transition-all"
@@ -301,6 +304,113 @@ export default function DesignStudioPage() {
               </TabsContent>
             </div>
           </Tabs>
+
+          {/* New Room Dialog */}
+          {isNewRoomDialogOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                className="bg-card w-full max-w-sm rounded-xl border border-white/20 shadow-2xl p-6"
+              >
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                    <Plus className="w-5 h-5" />
+                    Add New Room
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Enter a name for the new room in your floor plan.
+                  </p>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label htmlFor="room-name" className="text-sm font-medium text-foreground">
+                      Room Name
+                    </label>
+                    <input
+                      id="room-name"
+                      type="text"
+                      autoFocus
+                      value={newRoomName}
+                      onChange={(e) => setNewRoomName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && newRoomName.trim()) {
+                          addRoom(newRoomName.trim());
+                          setIsNewRoomDialogOpen(false);
+                        }
+                      }}
+                      className="flex h-10 w-full rounded-md border border-white/20 bg-background/50 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-foreground"
+                    />
+                  </div>
+                  
+                  <div className="flex justify-end gap-3 pt-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsNewRoomDialogOpen(false)}
+                      className="border-white/20 hover:bg-white/10 text-foreground"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        if (newRoomName.trim()) {
+                          addRoom(newRoomName.trim());
+                          setIsNewRoomDialogOpen(false);
+                        }
+                      }}
+                    >
+                      Add Room
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          )}
+
+          {/* Delete Room Confirmation Dialog */}
+          {isDeleteDialogOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                className="bg-card w-full max-w-sm rounded-xl border border-white/20 shadow-2xl p-6"
+              >
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                    <Trash2 className="w-5 h-5 text-destructive" />
+                    Delete Room
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Are you sure you want to delete this room? This action cannot be undone.
+                  </p>
+                </div>
+                
+                <div className="flex justify-end gap-3 pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsDeleteDialogOpen(false)}
+                    className="border-white/20 hover:bg-white/10 text-foreground"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      if (activeRoomId) {
+                        deleteRoom(activeRoomId);
+                      }
+                      setIsDeleteDialogOpen(false);
+                    }}
+                  >
+                    Delete Room
+                  </Button>
+                </div>
+              </motion.div>
+            </div>
+          )}
         </motion.div>
       </div>
     </ProtectedRoute>

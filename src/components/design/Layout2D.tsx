@@ -231,6 +231,7 @@ export function Layout2D() {
               onUpdateItemRotation={handleUpdateRotation}
               onDropItem={handleDropFurniture}
               onUpdateRoomPosition={updateRoomPosition}
+              onRemoveItem={handleRemoveItem}
             />
           </div>
 
@@ -479,47 +480,6 @@ export function Layout2D() {
             </Button>
           )}
 
-          {/* Bottom Panel - Selected Item Controls */}
-          {selectedFurniture && (
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 animate-in slide-in-from-bottom-5">
-              <Card className="backdrop-blur-xl bg-card/95 border-primary/40 shadow-xl w-auto min-w-[350px]">
-                <CardHeader className="pb-3 pt-4">
-                  <CardTitle className="text-base flex items-center justify-between text-foreground">
-                    <span>Selected: {selectedFurniture.name}</span>
-                    <Badge variant="secondary" className="bg-secondary/20 text-secondary border-secondary/30">
-                      {selectedFurniture.width}m × {selectedFurniture.depth}m
-                    </Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pb-4">
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleRotateItem(selectedFurniture.id)}
-                      className="border-white/20 text-foreground hover:bg-white/10"
-                    >
-                      <RotateCw className="w-4 h-4 mr-2" />
-                      Rotate 90°
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleRemoveItem(selectedFurniture.id)}
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Remove
-                    </Button>
-                    <div className="ml-auto text-sm text-muted-foreground">
-                      Position: {selectedFurniture.position?.x.toFixed(2)}m, {selectedFurniture.position?.y.toFixed(2)}m
-                      {selectedFurniture.rotation ? ` | Rotation: ${selectedFurniture.rotation}°` : ''}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
         </motion.div>
       </div>
     </DndProvider>

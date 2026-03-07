@@ -1,6 +1,10 @@
 import { useRef, useEffect, useState } from 'react';
 import { useDrop } from 'react-dnd';
 import { RoomData, FurnitureItem } from '../../lib/design-context';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
+import { RotateCw, Trash2 } from 'lucide-react';
 
 interface FloorPlanProps {
   rooms: RoomData[];
@@ -12,9 +16,10 @@ interface FloorPlanProps {
   onUpdateItemRotation?: (id: string, rotation: number) => void;
   onDropItem?: (item: Omit<FurnitureItem, 'id' | 'position' | 'rotation'>, position: { x: number; y: number }) => void;
   onUpdateRoomPosition: (id: string, position: { x: number; z: number }) => void;
+  onRemoveItem?: (id: string) => void;
 }
 
-export function FloorPlan({ rooms, activeRoomId, onSelectRoom, selectedItem, onSelectItem, onUpdateItemPosition, onUpdateItemRotation, onDropItem, onUpdateRoomPosition }: FloorPlanProps) {
+export function FloorPlan({ rooms, activeRoomId, onSelectRoom, selectedItem, onSelectItem, onUpdateItemPosition, onUpdateItemRotation, onDropItem, onUpdateRoomPosition, onRemoveItem }: FloorPlanProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const scale = 60; // pixels per meter
 
@@ -27,8 +32,11 @@ export function FloorPlan({ rooms, activeRoomId, onSelectRoom, selectedItem, onS
       const clientOffset = monitor.getClientOffset();
       if (!clientOffset) return;
 
-      const x = clientOffset.x - rect.left;
-      const y = clientOffset.y - rect.top;
+      const scaleX = canvasRef.current.width / rect.width;
+      const scaleY = canvasRef.current.height / rect.height;
+
+      const x = (clientOffset.x - rect.left) * scaleX;
+      const y = (clientOffset.y - rect.top) * scaleY;
 
       const activeRoom = rooms.find(r => r.id === activeRoomId) || rooms[0];
       if (!activeRoom) return;
@@ -315,8 +323,10 @@ export function FloorPlan({ rooms, activeRoomId, onSelectRoom, selectedItem, onS
     if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
 
     if (selectedItem) {
       const activeRoom = rooms.find(r => r.id === activeRoomId) || rooms[0];
@@ -339,8 +349,8 @@ export function FloorPlan({ rooms, activeRoomId, onSelectRoom, selectedItem, onS
         const height = item.depth * scale;
         const handleY = -height / 2 - 25;
 
-        // Hit test for rotation handle (radius 6, test 12 for easier clicking)
-        if (Math.abs(localX - 0) <= 12 && Math.abs(localY - handleY) <= 12) {
+        // Hit test for rotation handle (radius 6, test 20 for easier clicking)
+        if (Math.abs(localX - 0) <= 20 && Math.abs(localY - handleY) <= 20) {
           setRotatingItem(selectedItem);
           return;
         }
@@ -392,8 +402,10 @@ export function FloorPlan({ rooms, activeRoomId, onSelectRoom, selectedItem, onS
     if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
 
     const activeRoom = rooms.find(r => r.id === activeRoomId) || rooms[0];
     if (rotatingItem && onUpdateItemRotation) {
@@ -476,8 +488,32 @@ export function FloorPlan({ rooms, activeRoomId, onSelectRoom, selectedItem, onS
     setDraggingRoom(null);
   };
 
+  // Find selected furniture and its screen coordinates
+  let selectedFurnitureObj = null;
+  let selectedFurnitureX = 0;
+  let selectedFurnitureY = 0;
+
+  if (selectedItem) {
+    const activeRoom = rooms.find(r => r.id === activeRoomId) || rooms[0];
+    if (activeRoom) {
+      const item = activeRoom.furniture.find(f => f.id === selectedItem);
+      if (item && item.position) {
+        selectedFurnitureObj = item;
+        const roomX = 200 + (activeRoom.room.position?.x || 0) * scale;
+        const roomY = 200 + (activeRoom.room.position?.z || 0) * scale;
+        selectedFurnitureX = roomX + item.position.x * scale;
+        
+        const isRotated = (item.rotation || 0) % 180 === 90;
+        const visualHeight = isRotated ? item.width : item.depth;
+        const labelHeight = 20;
+        const padding = 15; 
+        selectedFurnitureY = roomY + item.position.y * scale + (visualHeight * scale) / 2 + labelHeight + padding;
+      }
+    }
+  }
+
   return (
-    <div ref={(node) => { drop(node); }} className={`inline-block bg-white rounded-lg shadow-lg p-4 transition-colors ${isOver ? 'ring-2 ring-primary ring-offset-2' : ''}`}>
+    <div ref={(node) => { drop(node); }} className={`relative inline-block bg-white rounded-lg shadow-lg p-4 transition-colors ${isOver ? 'ring-2 ring-primary ring-offset-2' : ''}`}>
       <canvas
         ref={canvasRef}
         width={canvasWidth}
@@ -492,6 +528,61 @@ export function FloorPlan({ rooms, activeRoomId, onSelectRoom, selectedItem, onS
       <div className="mt-3 text-center text-sm text-slate-500">
         Click and drag furniture to reposition • Click empty space to deselect
       </div>
+
+      {selectedFurnitureObj && (
+        <div 
+          className="absolute z-10 animate-in fade-in zoom-in-95 duration-200"
+          style={{ 
+            left: `${selectedFurnitureX + 16}px`,
+            top: `${selectedFurnitureY + 16}px`,
+            transform: 'translateX(-50%)'
+          }}
+        >
+          <Card className="backdrop-blur-xl bg-card/95 border-primary/40 shadow-xl w-auto min-w-[350px]">
+            <CardHeader className="pb-3 pt-4">
+              <CardTitle className="text-base flex items-center justify-between text-foreground">
+                <span>Selected: {selectedFurnitureObj.name}</span>
+                <Badge variant="secondary" className="bg-secondary/20 text-secondary border-secondary/30">
+                  {selectedFurnitureObj.width}m × {selectedFurnitureObj.depth}m
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pb-4">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onUpdateItemRotation) {
+                      onUpdateItemRotation(selectedFurnitureObj.id, ((selectedFurnitureObj.rotation || 0) + 90) % 360);
+                    }
+                  }}
+                  className="border-white/20 text-foreground hover:bg-white/10"
+                >
+                  <RotateCw className="w-4 h-4 mr-2" />
+                  Rotate 90°
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onRemoveItem) onRemoveItem(selectedFurnitureObj.id);
+                  }}
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Remove
+                </Button>
+                <div className="ml-auto text-sm text-muted-foreground whitespace-nowrap">
+                  Position: {selectedFurnitureObj.position?.x.toFixed(2)}m, {selectedFurnitureObj.position?.y.toFixed(2)}m
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
