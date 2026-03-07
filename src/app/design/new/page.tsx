@@ -2,15 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useDesign, Design } from "@/lib/design-context";
+import { useDesign, Design, RoomData } from "@/lib/design-context";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RoomSetup } from "@/components/design/RoomSetup";
 import { Layout2D } from "@/components/design/Layout2D";
 import { Visualization3D } from "@/components/design/Visualization3D";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ArrowLeft, Save, Settings, Layout, Box, LogOut } from "lucide-react";
+import { ArrowLeft, Save, Layout, Box, LogOut, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { db } from "@/lib/firebase";
@@ -20,9 +19,12 @@ import { DesignRequest } from "@/types/design";
 export default function DesignStudioPage() {
   const router = useRouter();
   // Always work with 'new' for now, or existing context
-  const { currentDesign, setCurrentDesign, saveDesign } = useDesign();
+  const { currentDesign, activeRoomId, setActiveRoomId, addRoom, deleteRoom, setCurrentDesign, saveDesign } = useDesign();
   const { user, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState("setup");
+  const [activeTab, setActiveTab] = useState("2d");
+  const [isNewRoomDialogOpen, setIsNewRoomDialogOpen] = useState(false);
+  const [newRoomName, setNewRoomName] = useState("New Room");
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     const initializeDesign = async () => {
@@ -31,14 +33,18 @@ export default function DesignStudioPage() {
       const params = new URLSearchParams(window.location.search);
       const requestId = params.get("requestId");
 
-      let roomConfig = {
-        width: 5,
-        length: 4,
-        height: 2.7,
-        wallColor: "#354840",
-        floorColor: "#D4A574",
-      };
-
+      let finalRooms: RoomData[] = [{
+        id: 'default',
+        name: 'Main Room',
+        room: {
+          width: 5,
+          length: 4,
+          height: 2.7,
+          wallColor: "#354840",
+          floorColor: "#D4A574",
+        },
+        furniture: [],
+      }];
       let customerName = "";
       let specialNotes = "";
 
@@ -49,20 +55,32 @@ export default function DesignStudioPage() {
           
           if (docSnap.exists()) {
             const requestData = docSnap.data() as DesignRequest;
-            roomConfig = {
-              width: requestData.room.width || roomConfig.width,
-              length: requestData.room.length || roomConfig.length,
-              height: requestData.room.height || roomConfig.height,
-              wallColor: requestData.room.wallColor || roomConfig.wallColor,
-              floorColor: requestData.room.floorColor || roomConfig.floorColor,
-            };
+            
+            // Prefer the multi-room format containing our drawn floor plan
+            if (requestData.rooms && requestData.rooms.length > 0) {
+               finalRooms = requestData.rooms;
+            } else if (requestData.room) {
+               // Fallback to legacy single-room if for some reason it's an old request
+               finalRooms = [{
+                  id: 'default',
+                  name: 'Main Room',
+                  room: {
+                    width: requestData.room.width || 5,
+                    length: requestData.room.length || 4,
+                    height: requestData.room.height || 2.7,
+                    wallColor: requestData.room.wallColor || "#354840",
+                    floorColor: requestData.room.floorColor || "#D4A574",
+                  },
+                  furniture: []
+               }];
+            }
             
             customerName = requestData.customerName || "";
             specialNotes = requestData.specialNotes || "";
 
             // If it's the first time opening it, update status to in_progress
             if (requestData.status === "pending") {
-              await updateDoc(docRef, { status: "in_progress" });
+               await updateDoc(docRef, { status: "in_progress" });
             }
           }
         } catch (error) {
@@ -77,16 +95,16 @@ export default function DesignStudioPage() {
         customerName: customerName,
         specialNotes: specialNotes,
         isLocked: !!requestId, // Lock dimensions if it came from a request
-        room: roomConfig,
-        furniture: [],
+        rooms: finalRooms,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      // We could store the requestId in the design object itself or somewhere in context
+      
+      // Store the requestId in the design object itself 
       // to link the completed design back to the request.
-        if (requestId) {
-          newDesign.requestId = requestId;
-        }
+      if (requestId) {
+        newDesign.requestId = requestId;
+      }
       setCurrentDesign(newDesign);
     };
 
@@ -98,13 +116,13 @@ export default function DesignStudioPage() {
 
     if (!currentDesign.name || currentDesign.name === "Untitled Design") {
       toast.error("Please enter a design name");
-      setActiveTab("setup");
+      setActiveTab("2d");
       return;
     }
 
     if (!currentDesign.customerName) {
       toast.error("Please enter a customer name");
-      setActiveTab("setup");
+      setActiveTab("2d");
       return;
     }
 
@@ -216,15 +234,59 @@ export default function DesignStudioPage() {
             onValueChange={setActiveTab}
             className="h-full flex flex-col flex-1"
           >
-            <div className="backdrop-blur-xl bg-card/50 border-b border-white/20 px-4 sm:px-6 lg:px-8">
+            <div className="backdrop-blur-xl bg-card/50 border-b border-white/20 px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-start md:items-center justify-between py-2 md:py-0 gap-3 md:gap-0">
+              {activeTab === "2d" ? (
+                <div className="flex items-center gap-2 w-full md:w-auto z-10 mr-4 mt-2 md:mt-0">
+                  <div className="flex items-center p-1 bg-black/20 backdrop-blur-md border border-white/10 rounded-full max-w-[60vw] overflow-x-auto hide-scrollbar">
+                    {currentDesign.rooms?.map((room) => (
+                      <button
+                        key={room.id}
+                        onClick={() => setActiveRoomId(room.id)}
+                        className={`px-4 py-1.5 text-sm font-medium transition-all whitespace-nowrap rounded-full ${
+                          activeRoomId === room.id
+                            ? "bg-primary text-primary-foreground shadow-md"
+                            : "text-muted-foreground hover:text-foreground hover:bg-white/10"
+                        }`}
+                      >
+                        {room.name}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      size="icon"
+                      variant="default"
+                      title="Add Room"
+                      onClick={() => {
+                        setNewRoomName("New Room");
+                        setIsNewRoomDialogOpen(true);
+                      }}
+                      className="h-8 w-8 rounded-full shadow-lg hover:scale-105 transition-transform"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                    {currentDesign.rooms && currentDesign.rooms.length > 1 && (
+                      <Button
+                        size="icon"
+                        variant="destructive"
+                        title="Delete Room"
+                        onClick={() => {
+                          if (activeRoomId) {
+                            setIsDeleteDialogOpen(true);
+                          }
+                        }}
+                        className="h-8 w-8 rounded-full opacity-80 hover:opacity-100 hover:scale-105 transition-all"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 w-full md:w-auto z-10 mr-4 mt-2 md:mt-0"></div>
+              )}
+
               <TabsList className="w-full justify-start md:justify-center border-b-0 bg-transparent p-0 h-12 gap-2">
-                <TabsTrigger
-                  value="setup"
-                  className="gap-2 h-10 rounded-full data-[state=active]:bg-primary/20 data-[state=active]:text-primary-foreground text-muted-foreground px-8 min-w-40 transition-all"
-                >
-                  <Settings className="w-4 h-4" />
-                  Room Setup
-                </TabsTrigger>
                 <TabsTrigger
                   value="2d"
                   className="gap-2 h-10 rounded-full data-[state=active]:bg-primary/20 data-[state=active]:text-primary-foreground text-muted-foreground px-8 min-w-40 transition-all"
@@ -243,9 +305,6 @@ export default function DesignStudioPage() {
             </div>
 
             <div className="flex-1 min-h-0 bg-transparent flex flex-col relative">
-              <TabsContent value="setup" className="h-full m-0 p-0 mt-0 overflow-auto">
-                <RoomSetup />
-              </TabsContent>
               <TabsContent value="2d" className="h-full m-0 p-0 mt-0 overflow-hidden">
                 <Layout2D />
               </TabsContent>
@@ -254,6 +313,113 @@ export default function DesignStudioPage() {
               </TabsContent>
             </div>
           </Tabs>
+
+          {/* New Room Dialog */}
+          {isNewRoomDialogOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                className="bg-card w-full max-w-sm rounded-xl border border-white/20 shadow-2xl p-6"
+              >
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                    <Plus className="w-5 h-5" />
+                    Add New Room
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Enter a name for the new room in your floor plan.
+                  </p>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label htmlFor="room-name" className="text-sm font-medium text-foreground">
+                      Room Name
+                    </label>
+                    <input
+                      id="room-name"
+                      type="text"
+                      autoFocus
+                      value={newRoomName}
+                      onChange={(e) => setNewRoomName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && newRoomName.trim()) {
+                          addRoom(newRoomName.trim());
+                          setIsNewRoomDialogOpen(false);
+                        }
+                      }}
+                      className="flex h-10 w-full rounded-md border border-white/20 bg-background/50 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-foreground"
+                    />
+                  </div>
+                  
+                  <div className="flex justify-end gap-3 pt-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsNewRoomDialogOpen(false)}
+                      className="border-white/20 hover:bg-white/10 text-foreground"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        if (newRoomName.trim()) {
+                          addRoom(newRoomName.trim());
+                          setIsNewRoomDialogOpen(false);
+                        }
+                      }}
+                    >
+                      Add Room
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          )}
+
+          {/* Delete Room Confirmation Dialog */}
+          {isDeleteDialogOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                className="bg-card w-full max-w-sm rounded-xl border border-white/20 shadow-2xl p-6"
+              >
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                    <Trash2 className="w-5 h-5 text-destructive" />
+                    Delete Room
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Are you sure you want to delete this room? This action cannot be undone.
+                  </p>
+                </div>
+                
+                <div className="flex justify-end gap-3 pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsDeleteDialogOpen(false)}
+                    className="border-white/20 hover:bg-white/10 text-foreground"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      if (activeRoomId) {
+                        deleteRoom(activeRoomId);
+                      }
+                      setIsDeleteDialogOpen(false);
+                    }}
+                  >
+                    Delete Room
+                  </Button>
+                </div>
+              </motion.div>
+            </div>
+          )}
         </motion.div>
       </div>
     </ProtectedRoute>

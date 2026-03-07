@@ -10,7 +10,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { useDesign, Design } from "@/lib/design-context";
+import { useDesign, Design, RoomData } from "@/lib/design-context";
 import { DesignRequest } from "@/types/design";
 
 export interface Todo {
@@ -31,6 +31,7 @@ export default function DesignerDashboard() {
   
   const [incomingRequests, setIncomingRequests] = useState<DesignRequest[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(true);
+  const [requestRoomIndices, setRequestRoomIndices] = useState<Record<string, number>>({});
 
   // Calendar & Todo State
   const [currentMonth, setCurrentMonth] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
@@ -500,20 +501,57 @@ export default function DesignerDashboard() {
                      </span>
                    </div>
                    
-                   <div className="grid grid-cols-3 gap-2 mb-6 relative z-20">
-                     <div className="bg-black/20 p-2 rounded-lg text-center">
-                       <span className="block text-xs text-white/40 mb-1">Width</span>
-                       <span className="text-sm text-white">{request.room.width}m</span>
-                     </div>
-                     <div className="bg-black/20 p-2 rounded-lg text-center">
-                       <span className="block text-xs text-white/40 mb-1">Length</span>
-                       <span className="text-sm text-white">{request.room.length}m</span>
-                     </div>
-                     <div className="bg-black/20 p-2 rounded-lg text-center">
-                       <span className="block text-xs text-white/40 mb-1">Height</span>
-                       <span className="text-sm text-white">{request.room.height}m</span>
-                     </div>
-                   </div>
+                   {(() => {
+                     const roomsList = request.rooms && request.rooms.length > 0 
+                        ? request.rooms 
+                        : (request.room ? [{ id: 'default', name: 'Main Room', room: request.room, furniture: [] } as RoomData] : []);
+                     
+                     if (roomsList.length === 0) return null;
+                     
+                     const roomIndex = requestRoomIndices[request.id] || 0;
+                     const currentRoomData = roomsList[roomIndex];
+                     const reqRoom = currentRoomData?.room;
+                     
+                     if (!reqRoom) return null;
+
+                     return (
+                       <div className="mb-6 relative z-20">
+                         {roomsList.length > 1 && (
+                           <div className="flex items-center justify-between mb-3 bg-black/10 rounded-lg p-1.5 px-3">
+                             <button 
+                               onClick={() => setRequestRoomIndices(prev => ({ ...prev, [request.id]: Math.max(0, roomIndex - 1) }))}
+                               disabled={roomIndex === 0}
+                               className="p-1 rounded-full hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                             >
+                               <ChevronLeft className="w-4 h-4 text-white/70" />
+                             </button>
+                             <span className="text-sm font-medium text-white/80">{currentRoomData.name || `Room ${roomIndex + 1}`}</span>
+                             <button 
+                               onClick={() => setRequestRoomIndices(prev => ({ ...prev, [request.id]: Math.min(roomsList.length - 1, roomIndex + 1) }))}
+                               disabled={roomIndex === roomsList.length - 1}
+                               className="p-1 rounded-full hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                             >
+                               <ChevronRight className="w-4 h-4 text-white/70" />
+                             </button>
+                           </div>
+                         )}
+                         <div className="grid grid-cols-3 gap-2">
+                           <div className="bg-black/20 p-2 rounded-lg text-center">
+                             <span className="block text-xs text-white/40 mb-1">Width</span>
+                             <span className="text-sm text-white">{reqRoom.width}m</span>
+                           </div>
+                           <div className="bg-black/20 p-2 rounded-lg text-center">
+                             <span className="block text-xs text-white/40 mb-1">Length</span>
+                             <span className="text-sm text-white">{reqRoom.length}m</span>
+                           </div>
+                           <div className="bg-black/20 p-2 rounded-lg text-center">
+                             <span className="block text-xs text-white/40 mb-1">Height</span>
+                             <span className="text-sm text-white">{reqRoom.height}m</span>
+                           </div>
+                         </div>
+                       </div>
+                     );
+                   })()}
 
                      <div className="relative z-20">
                      {request.status !== 'completed' ? (

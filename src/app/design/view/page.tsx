@@ -14,7 +14,7 @@ import { toast } from "sonner";
 
 export default function ViewDesignPage() {
   const router = useRouter();
-  const { currentDesign, setCurrentDesign } = useDesign();
+  const { currentDesign, activeRoomId, setActiveRoomId, setCurrentDesign } = useDesign();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
 
@@ -91,12 +91,28 @@ export default function ViewDesignPage() {
                 )}
               </div>
             </div>
-            {user && (
-              <div className="hidden sm:flex flex-col items-end gap-0.5">
-                <span className="text-sm font-medium text-white">{user.displayName || user.email?.split('@')[0]}</span>
-                <span className="text-xs text-[#f3b5a1]">Client Viewer</span>
-              </div>
-            )}
+            
+            <div className="flex items-center gap-4">
+              {currentDesign.rooms && currentDesign.rooms.length > 1 && (
+                <select
+                  value={activeRoomId || ""}
+                  onChange={(e) => setActiveRoomId(e.target.value)}
+                  className="bg-black/20 border border-white/20 text-white text-sm rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary min-w-[150px]"
+                >
+                  {currentDesign.rooms.map((room) => (
+                    <option key={room.id} value={room.id} className="bg-gray-800 text-white">
+                      {room.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {user && (
+                <div className="hidden sm:flex flex-col items-end gap-0.5">
+                  <span className="text-sm font-medium text-white">{user.displayName || user.email?.split('@')[0]}</span>
+                  <span className="text-xs text-[#f3b5a1]">Client Viewer</span>
+                </div>
+              )}
+            </div>
           </div>
         </motion.header>
 

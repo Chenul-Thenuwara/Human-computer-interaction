@@ -4,6 +4,16 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { db, auth } from "@/lib/firebase";
 import { doc, setDoc } from "firebase/firestore";
 
+export interface WallFeature {
+  id: string;
+  type: 'door' | 'window' | 'opening';
+  wall: 'front' | 'back' | 'left' | 'right';
+  position: number; // Center position along the wall
+  width: number;
+  height: number;
+  elevation: number; // Distance from floor (0 for doors)
+}
+
 export interface FurnitureItem {
   id: string;
   type: 'chair' | 'dining-table' | 'side-table' | 'sofa' | 'cabinet' | 'clock' | 'picture-frame' | 'fireplace';
@@ -27,6 +37,15 @@ export interface Room {
   height: number;
   wallColor: string;
   floorColor: string;
+  position?: { x: number; z: number };
+  features?: WallFeature[];
+}
+
+export interface RoomData {
+  id: string;
+  name: string;
+  room: Room;
+  furniture: FurnitureItem[];
 }
 
 export interface Design {
@@ -36,10 +55,12 @@ export interface Design {
   specialNotes?: string;
   isLocked?: boolean;
   requestId?: string;
-  room: Room;
-  furniture: FurnitureItem[];
+  rooms: RoomData[];
   createdAt: string;
   updatedAt: string;
+  // Legacy fields for backward compatibility
+  room?: Room;
+  furniture?: FurnitureItem[];
 }
 
 interface DesignContextType {
@@ -48,15 +69,83 @@ interface DesignContextType {
   setCurrentDesign: (design: Design | null) => void;
   saveDesign: (design: Design) => void;
   deleteDesign: (id: string) => void;
+  
+  // Multi-room extensions
+  activeRoomId: string | null;
+  setActiveRoomId: (id: string) => void;
+  currentRoom: RoomData | null;
+  addRoom: (name: string) => void; // Updated signature
+  deleteRoom: (roomId: string) => void;
   updateDesignFurniture: (furniture: FurnitureItem[]) => void;
-  updateDesignRoom: (room: Room) => void;
+  updateDesignRoom: (roomData: Partial<Room>) => void;
+  updateRoomPosition: (roomId: string, position: { x: number, z: number }) => void;
+  addWallFeature: (feature: Omit<WallFeature, 'id'>) => void;
+  updateWallFeature: (id: string, featureData: Partial<WallFeature>) => void;
+  removeWallFeature: (id: string) => void;
 }
 
 const DesignContext = createContext<DesignContextType | undefined>(undefined);
 
 export function DesignProvider({ children }: { children: React.ReactNode }) {
   const [designs, setDesigns] = useState<Design[]>([]);
-  const [currentDesign, setCurrentDesign] = useState<Design | null>(null);
+  const [currentDesign, setCurrentDesignRaw] = useState<Design | null>(null);
+  const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
+
+  // Wrapper for setCurrentDesign to handle migration
+  const setCurrentDesign = useCallback((designOrUpdater: Design | null | ((prev: Design | null) => Design | null)) => {
+    setCurrentDesignRaw(prev => {
+      let designToSet: Design | null;
+      if (typeof designOrUpdater === 'function') {
+        designToSet = designOrUpdater(prev);
+      } else {
+        designToSet = designOrUpdater;
+      }
+
+      if (!designToSet) {
+        setActiveRoomId(null);
+        return null;
+      }
+
+      // Migrate from single room to multiple rooms if needed
+      if (!designToSet.rooms || designToSet.rooms.length === 0) {
+        const roomData: RoomData = {
+          id: 'default',
+          name: 'Main Room',
+          room: designToSet.room || { width: 5, length: 4, height: 2.7, wallColor: '#354840', floorColor: '#D4A574' },
+          furniture: designToSet.furniture || [],
+        };
+        
+        designToSet = { ...designToSet, rooms: [roomData] };
+        
+        // Remove legacy fields to clean up
+        delete designToSet.room;
+        delete designToSet.furniture;
+      }
+      
+      // Ensure all rooms have a default position if they don't
+      designToSet.rooms = designToSet.rooms.map((r, index) => ({
+          ...r,
+          room: {
+              ...r.room,
+              position: r.room.position || { 
+                  x: index * 6, // Offset default positions so they don't all stack perfectly
+                  z: 0 
+              }
+          }
+      }));
+
+      // Auto-select first room if none is selected or if current one not found
+      if (!activeRoomId || !designToSet.rooms.find(r => r.id === activeRoomId)) {
+        setActiveRoomId(designToSet.rooms[0].id);
+      }
+      return designToSet;
+    });
+  }, [activeRoomId]);
+
+  const currentRoom = useMemo(() => {
+    if (!currentDesign || !currentDesign.rooms) return null;
+    return currentDesign.rooms.find(r => r.id === activeRoomId) || currentDesign.rooms[0] || null;
+  }, [currentDesign, activeRoomId]);
 
   useEffect(() => {
     // Load designs from localStorage
@@ -83,7 +172,7 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
     
     setDesigns(updatedDesigns);
     localStorage.setItem('furnitureapp_designs', JSON.stringify(updatedDesigns));
-    setCurrentDesign(designToSave);
+    setCurrentDesignRaw(designToSave); // We use raw here because the structure is already guaranteed migrated
 
     // Save to Firestore if user is logged in
     const user = auth.currentUser;
@@ -105,24 +194,156 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
     setDesigns(updatedDesigns);
     localStorage.setItem('furnitureapp_designs', JSON.stringify(updatedDesigns));
     if (currentDesign?.id === id) {
-      setCurrentDesign(null);
+      setCurrentDesignRaw(null);
+      setActiveRoomId(null);
     }
     // TODO: Delete from Firestore if needed
   }, [designs, currentDesign]);
 
   const updateDesignFurniture = useCallback((furniture: FurnitureItem[]) => {
-    if (currentDesign) {
-      const updated = { ...currentDesign, furniture };
-      setCurrentDesign(updated);
-    }
-  }, [currentDesign]);
+    setCurrentDesign(prev => {
+      if (!prev || !activeRoomId) return prev;
+      const updatedRooms = prev.rooms.map(r => 
+        r.id === activeRoomId ? { ...r, furniture } : r
+      );
+      return { ...prev, rooms: updatedRooms, updatedAt: new Date().toISOString() };
+    });
+  }, [activeRoomId, setCurrentDesign]);
 
-  const updateDesignRoom = useCallback((room: Room) => {
-    if (currentDesign) {
-      const updated = { ...currentDesign, room };
-      setCurrentDesign(updated);
-    }
-  }, [currentDesign]);
+  const updateDesignRoom = useCallback((roomData: Partial<Room>) => {
+    setCurrentDesign(prev => {
+      if (!prev || !activeRoomId) return prev;
+      const updatedRooms = prev.rooms.map(r => 
+        r.id === activeRoomId ? { ...r, room: { ...r.room, ...roomData } } : r
+      );
+      return { ...prev, rooms: updatedRooms, updatedAt: new Date().toISOString() };
+    });
+  }, [activeRoomId, setCurrentDesign]);
+
+  const addRoom = useCallback((name: string) => {
+    setCurrentDesign(prev => {
+      if (!prev) return prev;
+      
+      // Calculate a default position slightly offset from the last room, or 0,0
+      let nextX = 0;
+      let nextZ = 0;
+      if (prev.rooms && prev.rooms.length > 0) {
+          const lastRoom = prev.rooms[prev.rooms.length - 1];
+          nextX = (lastRoom.room.position?.x || 0) + (lastRoom.room.width || 5) + 1; // 1 meter gap
+          nextZ = lastRoom.room.position?.z || 0;
+      }
+
+      const newRoom: RoomData = {
+          id: crypto.randomUUID(),
+          name,
+          room: { width: 5, length: 4, height: 2.7, wallColor: '#354840', floorColor: '#D4A574', position: { x: nextX, z: nextZ } },
+          furniture: []
+      };
+
+      const updatedRooms = [...(prev.rooms || []), newRoom];
+      setActiveRoomId(newRoom.id); // Set active room immediately
+      return { ...prev, rooms: updatedRooms, updatedAt: new Date().toISOString() };
+    });
+  }, [setCurrentDesign]);
+
+  const deleteRoom = useCallback((roomId: string) => {
+    setCurrentDesign(prev => {
+      if (!prev || !prev.rooms) return prev;
+      if (prev.rooms.length <= 1) return prev; // Don't delete last room
+      
+      const updatedRooms = prev.rooms.filter(r => r.id !== roomId);
+      
+      if (activeRoomId === roomId) {
+          setActiveRoomId(updatedRooms[0].id);
+      }
+      return { ...prev, rooms: updatedRooms, updatedAt: new Date().toISOString() };
+    });
+  }, [activeRoomId, setCurrentDesign]);
+
+  const updateRoomPosition = useCallback((roomId: string, position: { x: number, z: number }) => {
+    setCurrentDesign(prev => {
+      if (!prev || !prev.rooms) return prev;
+      return {
+        ...prev,
+        rooms: prev.rooms.map(r => 
+          r.id === roomId 
+            ? { ...r, room: { ...r.room, position } }
+            : r
+        ),
+        updatedAt: new Date().toISOString()
+      };
+    });
+  }, [setCurrentDesign]);
+
+  const addWallFeature = useCallback((featureData: Omit<WallFeature, 'id'>) => {
+    if (!activeRoomId) return;
+    const newFeature: WallFeature = { ...featureData, id: Date.now().toString() };
+    setCurrentDesign(prev => {
+      if (!prev || !prev.rooms) return prev;
+      return {
+        ...prev,
+        rooms: prev.rooms.map(r => {
+          if (r.id === activeRoomId) {
+            const existingFeatures = r.room.features || [];
+            return {
+              ...r,
+              room: { ...r.room, features: [...existingFeatures, newFeature] }
+            };
+          }
+          return r;
+        }),
+        updatedAt: new Date().toISOString()
+      };
+    });
+  }, [activeRoomId, setCurrentDesign]);
+
+  const updateWallFeature = useCallback((id: string, featureData: Partial<WallFeature>) => {
+    if (!activeRoomId) return;
+    setCurrentDesign(prev => {
+      if (!prev || !prev.rooms) return prev;
+      return {
+        ...prev,
+        rooms: prev.rooms.map(r => {
+          if (r.id === activeRoomId) {
+            const features = r.room.features || [];
+            return {
+              ...r,
+              room: {
+                ...r.room,
+                features: features.map(f => f.id === id ? { ...f, ...featureData } : f)
+              }
+            };
+          }
+          return r;
+        }),
+        updatedAt: new Date().toISOString()
+      };
+    });
+  }, [activeRoomId, setCurrentDesign]);
+
+  const removeWallFeature = useCallback((id: string) => {
+    if (!activeRoomId) return;
+    setCurrentDesign(prev => {
+      if (!prev || !prev.rooms) return prev;
+      return {
+        ...prev,
+        rooms: prev.rooms.map(r => {
+          if (r.id === activeRoomId) {
+            const features = r.room.features || [];
+            return {
+              ...r,
+              room: {
+                ...r.room,
+                features: features.filter(f => f.id !== id)
+              }
+            };
+          }
+          return r;
+        }),
+        updatedAt: new Date().toISOString()
+      };
+    });
+  }, [activeRoomId, setCurrentDesign]);
 
   const value = useMemo(() => ({
     designs,
@@ -130,9 +351,34 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
     setCurrentDesign,
     saveDesign,
     deleteDesign,
+    activeRoomId,
+    setActiveRoomId,
+    currentRoom,
+    addRoom,
+    deleteRoom,
     updateDesignFurniture,
     updateDesignRoom,
-  }), [designs, currentDesign, saveDesign, deleteDesign, updateDesignFurniture, updateDesignRoom]);
+    updateRoomPosition,
+    addWallFeature,
+    updateWallFeature,
+    removeWallFeature,
+  }), [
+    designs,
+    currentDesign,
+    setCurrentDesign,
+    saveDesign,
+    deleteDesign,
+    activeRoomId,
+    currentRoom,
+    addRoom,
+    deleteRoom,
+    updateDesignFurniture,
+    updateDesignRoom,
+    updateRoomPosition,
+    addWallFeature,
+    updateWallFeature,
+    removeWallFeature
+  ]);
 
   return (
     <DesignContext.Provider value={value}>
