@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { User } from "firebase/auth";
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, addDoc, onSnapshot } from "firebase/firestore";
-import { useDesign, DesignProvider, Design } from "@/lib/design-context";
+import { useDesign, DesignProvider, RoomData } from "@/lib/design-context";
 import { Layout2D } from "@/components/design/Layout2D";
 import { motion, Variants } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,7 @@ import { LogOut, Plus, CheckCircle, ChevronRight, ChevronLeft, Armchair, Clock }
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { DesignRequest } from "@/types/design";
-import { Slider } from "@/components/ui/slider";
+
 import { Label } from "@/components/ui/label";
 import { Trash2 } from "lucide-react";
 
@@ -35,40 +36,9 @@ export default function UserDashboard() {
   const [showNewRequest, setShowNewRequest] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [specialNotes, setSpecialNotes] = useState("");
-  const [width, setWidth] = useState(5);
-  const [length, setLength] = useState(4);
-  const [height, setHeight] = useState(2.7);
-  const [wallColor, setWallColor] = useState('#F5F5F5');
-  const [floorColor, setFloorColor] = useState('#D4A574');
-  const [selectedDesigner, setSelectedDesigner] = useState<string>("");
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
-  const presetRooms = [
-    { name: 'Small Living Room', width: 4, length: 3.5, height: 2.7 },
-    { name: 'Medium Living Room', width: 5, length: 4, height: 2.7 },
-    { name: 'Large Living Room', width: 6, length: 5, height: 3 },
-    { name: 'Dining Room', width: 4, length: 4, height: 2.7 },
-    { name: 'Bedroom', width: 4, length: 3.5, height: 2.5 },
-  ];
 
-  const colorPresets = {
-    walls: [
-      { name: 'White', color: '#FFFFFF' },
-      { name: 'Sage Green', color: '#354840' },
-      { name: 'Light Gray', color: '#E5E7EB' },
-      { name: 'Beige', color: '#F5F5DC' },
-      { name: 'Muted Green', color: '#758C7B' },
-      { name: 'Dark Green', color: '#26312D' },
-    ],
-    floors: [
-      { name: 'Light Oak', color: '#D4A574' },
-      { name: 'Dark Oak', color: '#8B4513' },
-      { name: 'Walnut', color: '#6B4423' },
-      { name: 'Maple', color: '#E8D4B0' },
-      { name: 'Gray Tile', color: '#9CA3AF' },
-      { name: 'White Tile', color: '#F3F4F6' },
-    ],
-  };
+
 
   useEffect(() => {
     // Fetch available designers
@@ -85,7 +55,7 @@ export default function UserDashboard() {
         });
         setDesigners(fetchedDesigners);
         if (fetchedDesigners.length > 0) {
-          setSelectedDesigner(fetchedDesigners[0].id);
+          // Default selection managed in modal
         }
       } catch (error) {
         console.error("Error fetching designers:", error);
@@ -114,57 +84,7 @@ export default function UserDashboard() {
     return () => unsubscribe();
   }, [user]);
 
-  const handleCreateRequest = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user || !selectedDesigner) return;
 
-    setIsProcessingPayment(true);
-
-    // Mock Payment Delay
-    setTimeout(async () => {
-      try {
-        const newRequest: Omit<DesignRequest, "id"> = {
-          userId: user.uid,
-          designerId: selectedDesigner,
-          customerName: customerName,
-          specialNotes: specialNotes,
-          rooms: [{
-            id: 'default',
-            name: 'Main Room',
-            room: {
-              width: Number(width),
-              length: Number(length),
-              height: Number(height),
-              wallColor: wallColor,
-              floorColor: floorColor
-            },
-            furniture: []
-          }],
-          room: {
-            width: Number(width),
-            length: Number(length),
-            height: Number(height),
-            wallColor: wallColor,
-            floorColor: floorColor
-          },
-          status: "pending",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
-
-        await addDoc(collection(db, "design_requests"), newRequest);
-        setShowNewRequest(false);
-        // Reset form state optionally
-        setCustomerName("");
-        setSpecialNotes("");
-      } catch (error) {
-        console.error("Error creating request:", error);
-        alert("Failed to submit request.");
-      } finally {
-        setIsProcessingPayment(false);
-      }
-    }, 2000); // 2 seconds mock payment
-  };
 
   const handleLogout = async () => {
     try {
@@ -311,7 +231,7 @@ export default function UserDashboard() {
                        {(() => {
                          const roomsList = request.rooms && request.rooms.length > 0 
                             ? request.rooms 
-                            : (request.room ? [{ id: 'default', name: 'Main Room', room: request.room, furniture: [] } as any] : []);
+                            : (request.room ? [{ id: 'default', name: 'Main Room', room: request.room, furniture: [] } as RoomData] : []);
                          
                          if (roomsList.length === 0) return null;
                          
@@ -393,7 +313,7 @@ export default function UserDashboard() {
 }
 
 // Extract modal into separate component to easily wrap with DesignProvider
-function NewRequestModal({ onClose, designers, user }: { onClose: () => void, designers: Designer[], user: any }) {
+function NewRequestModal({ onClose, designers, user }: { onClose: () => void, designers: Designer[], user: User | null }) {
   const [customerName, setCustomerName] = useState("");
   const [specialNotes, setSpecialNotes] = useState("");
   const [selectedDesigner, setSelectedDesigner] = useState<string>(designers[0]?.id || "");
@@ -425,7 +345,19 @@ function NewRequestModalContent({
   specialNotes, setSpecialNotes,
   selectedDesigner, setSelectedDesigner,
   isProcessingPayment, setIsProcessingPayment
-}: any) {
+}: {
+  onClose: () => void;
+  designers: Designer[];
+  user: User | null;
+  customerName: string;
+  setCustomerName: (val: string) => void;
+  specialNotes: string;
+  setSpecialNotes: (val: string) => void;
+  selectedDesigner: string;
+  setSelectedDesigner: (val: string) => void;
+  isProcessingPayment: boolean;
+  setIsProcessingPayment: (val: boolean) => void;
+}) {
   const { currentDesign, setCurrentDesign, activeRoomId, setActiveRoomId, addRoom, deleteRoom } = useDesign();
   const [isNewRoomDialogOpen, setIsNewRoomDialogOpen] = useState(false);
   const [newRoomName, setNewRoomName] = useState("New Room");
@@ -554,7 +486,7 @@ function NewRequestModalContent({
                       required
                     >
                       <option value="" disabled className="bg-black text-white">Choose a designer...</option>
-                      {designers.map((d: any) => (
+                      {designers.map((d: Designer) => (
                         <option key={d.id} value={d.id} className="bg-black text-white">{d.name}</option>
                       ))}
                     </select>

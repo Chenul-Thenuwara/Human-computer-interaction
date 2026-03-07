@@ -3,15 +3,15 @@
 import { useState, useEffect } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { useDesign, FurnitureItem } from '../../lib/design-context';
+import { useDesign, FurnitureItem, WallFeature } from '../../lib/design-context';
 import { fetchFurnitureFromDB } from '../../lib/furniture';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+
 import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
+
 import { ScrollArea } from '../ui/scroll-area';
 import { FurnitureLibraryItem } from './FurnitureLibraryItem';
 import { FloorPlan } from './FloorPlan';
-import { Sofa, Trash2, RotateCw, Info, Ruler, Palette, ChevronRight, Settings, Plus, Box } from 'lucide-react';
+import { Sofa, Trash2, Info, Ruler, Palette, ChevronRight, Settings, Plus, Box } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, Variants, AnimatePresence } from 'framer-motion';
 import { Label } from '../ui/label';
@@ -81,14 +81,6 @@ export function Layout2D({ mode = 'full' }: { mode?: 'full' | 'builder' }) {
     toast.success('Item removed');
   };
 
-  const handleRotateItem = (id: string) => {
-    const updated = currentRoom.furniture.map(item =>
-      item.id === id
-        ? { ...item, rotation: ((item.rotation || 0) + 90) % 360 }
-        : item
-    );
-    updateDesignFurniture(updated);
-  };
 
   const handleUpdatePosition = (id: string, position: { x: number; y: number }) => {
     const updated = currentRoom.furniture.map(item =>
@@ -104,7 +96,7 @@ export function Layout2D({ mode = 'full' }: { mode?: 'full' | 'builder' }) {
     updateDesignFurniture(updated);
   };
 
-  const selectedFurniture = currentRoom.furniture.find(item => item.id === selectedItem);
+
 
   // Group furniture by type
   const groupedFurniture = furnitureLibrary.reduce((acc, item) => {
@@ -126,12 +118,7 @@ export function Layout2D({ mode = 'full' }: { mode?: 'full' | 'builder' }) {
     'fireplace': 'Fireplaces',
   };
 
-  const presetRooms = [
-    { name: 'Small Living', width: 4, length: 3.5, height: 2.7 },
-    { name: 'Medium Living', width: 5, length: 4, height: 2.7 },
-    { name: 'Large Living', width: 6, length: 5, height: 3 },
-    { name: 'Dining Room', width: 4, length: 4, height: 2.7 },
-  ];
+
 
   const colorPresets = {
     walls: [
@@ -393,7 +380,7 @@ export function Layout2D({ mode = 'full' }: { mode?: 'full' | 'builder' }) {
                               <div className="flex items-center justify-between">
                                 <select 
                                   value={feature.type}
-                                  onChange={(e) => updateWallFeature(feature.id, { type: e.target.value as any })}
+                                  onChange={(e) => updateWallFeature(feature.id, { type: e.target.value as WallFeature['type'] })}
                                   disabled={currentDesign.isLocked}
                                   className="bg-transparent text-sm text-foreground focus:outline-none"
                                 >
@@ -416,7 +403,7 @@ export function Layout2D({ mode = 'full' }: { mode?: 'full' | 'builder' }) {
                                 <Label className="text-xs text-muted-foreground">Wall</Label>
                                 <select 
                                   value={feature.wall}
-                                  onChange={(e) => updateWallFeature(feature.id, { wall: e.target.value as any, position: 1 })}
+                                  onChange={(e) => updateWallFeature(feature.id, { wall: e.target.value as WallFeature['wall'], position: 1 })}
                                   disabled={currentDesign.isLocked}
                                   className="w-full bg-black/40 border border-white/10 rounded p-1 text-xs text-foreground focus:outline-none"
                                 >

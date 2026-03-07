@@ -10,7 +10,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { useDesign, Design } from "@/lib/design-context";
+import { useDesign, Design, RoomData } from "@/lib/design-context";
 import { DesignRequest } from "@/types/design";
 
 export interface Todo {
@@ -504,7 +504,7 @@ export default function DesignerDashboard() {
                    {(() => {
                      const roomsList = request.rooms && request.rooms.length > 0 
                         ? request.rooms 
-                        : (request.room ? [{ id: 'default', name: 'Main Room', room: request.room, furniture: [] } as any] : []);
+                        : (request.room ? [{ id: 'default', name: 'Main Room', room: request.room, furniture: [] } as RoomData] : []);
                      
                      if (roomsList.length === 0) return null;
                      

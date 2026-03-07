@@ -3,7 +3,7 @@
 import { Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera, Environment, useProgress } from "@react-three/drei";
-import { useDesign } from "@/lib/design-context";
+import { useDesign, WallFeature } from "@/lib/design-context";
 import * as THREE from "three";
 
 import { Furniture3D } from "./Furniture3D";
@@ -13,7 +13,7 @@ function House() {
   
   if (!currentDesign || !currentDesign.rooms) return null;
 
-  const buildWallShape = (wallWidth: number, wallHeight: number, features: any[], wallName: string, reversePosition: boolean) => {
+  const buildWallShape = (wallWidth: number, wallHeight: number, features: WallFeature[], wallName: string, reversePosition: boolean) => {
     const shape = new THREE.Shape();
     shape.moveTo(-wallWidth / 2, -wallHeight / 2);
     shape.lineTo(wallWidth / 2, -wallHeight / 2);

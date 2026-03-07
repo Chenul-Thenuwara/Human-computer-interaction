@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Layout2D } from "@/components/design/Layout2D";
 import { Visualization3D } from "@/components/design/Visualization3D";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ArrowLeft, Save, Settings, Layout, Box, LogOut, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Save, Layout, Box, LogOut, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { db } from "@/lib/firebase";
@@ -19,7 +19,7 @@ import { DesignRequest } from "@/types/design";
 export default function DesignStudioPage() {
   const router = useRouter();
   // Always work with 'new' for now, or existing context
-  const { currentDesign, currentRoom, activeRoomId, setActiveRoomId, addRoom, deleteRoom, setCurrentDesign, saveDesign } = useDesign();
+  const { currentDesign, activeRoomId, setActiveRoomId, addRoom, deleteRoom, setCurrentDesign, saveDesign } = useDesign();
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState("2d");
   const [isNewRoomDialogOpen, setIsNewRoomDialogOpen] = useState(false);
