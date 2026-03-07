@@ -19,7 +19,7 @@ import { Input } from '../ui/input';
 import { Slider } from '../ui/slider';
 import { Separator } from '../ui/separator';
 
-export function Layout2D() {
+export function Layout2D({ mode = 'full' }: { mode?: 'full' | 'builder' }) {
   const { currentDesign, activeRoomId, setActiveRoomId, updateDesignFurniture, updateRoomPosition, updateDesignRoom } = useDesign();
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
   const [furnitureLibrary, setFurnitureLibrary] = useState<FurnitureItem[]>([]);
@@ -161,57 +161,59 @@ export function Layout2D() {
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="h-full flex overflow-hidden">
-        {/* Furniture Library Sidebar */}
-        <motion.div
-          variants={slideRight}
-          initial="hidden"
-          animate="visible"
-          className="backdrop-blur-xl bg-card/70 border-r border-white/20 flex flex-col w-80 shadow-lg h-full z-10"
-        >
-          <div className="p-4 border-b border-white/20">
-            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2" style={{ fontFamily: 'Jacques Francois, serif' }}>
-              <Sofa className="w-5 h-5" />
-              Furniture Library
-            </h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Click items to add them to your room
-            </p>
-          </div>
-
-          <ScrollArea className="flex-1">
-            <div className="p-4 space-y-6">
-              {loading ? (
-                <div className="text-sm text-white/50 animate-pulse">Loading furniture library...</div>
-              ) : (
-                Object.entries(groupedFurniture).map(([type, items]) => (
-                  <div key={type}>
-                    <h3 className="text-sm font-medium text-accent mb-3">
-                      {typeLabels[type as keyof typeof typeLabels]}
-                    </h3>
-                    <div className="space-y-2">
-                      {items.map((item, index) => (
-                        <FurnitureLibraryItem
-                          key={`${type}-${index}`}
-                          item={item}
-                          onAdd={() => handleAddFurniture(item)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )))}
-            </div>
-          </ScrollArea>
-
-          <div className="p-4 border-t border-white/10 bg-white/5">
-            <div className="flex items-start gap-2 text-xs text-muted-foreground">
-              <Info className="w-4 h-4 mt-0.5 flex-shrink-0 text-accent" />
-              <p>
-                Click furniture images to add them to your floor plan.
-                Drag items to reposition, and use controls below to rotate or remove.
+        {/* Furniture Library Sidebar - Only show in full mode */}
+        {mode === 'full' && (
+          <motion.div
+            variants={slideRight}
+            initial="hidden"
+            animate="visible"
+            className="backdrop-blur-xl bg-card/70 border-r border-white/20 flex flex-col w-80 shadow-lg h-full z-10"
+          >
+            <div className="p-4 border-b border-white/20">
+              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2" style={{ fontFamily: 'Jacques Francois, serif' }}>
+                <Sofa className="w-5 h-5" />
+                Furniture Library
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Click items to add them to your room
               </p>
             </div>
-          </div>
-        </motion.div>
+
+            <ScrollArea className="flex-1">
+              <div className="p-4 space-y-6">
+                {loading ? (
+                  <div className="text-sm text-white/50 animate-pulse">Loading furniture library...</div>
+                ) : (
+                  Object.entries(groupedFurniture).map(([type, items]) => (
+                    <div key={type}>
+                      <h3 className="text-sm font-medium text-accent mb-3">
+                        {typeLabels[type as keyof typeof typeLabels]}
+                      </h3>
+                      <div className="space-y-2">
+                        {items.map((item, index) => (
+                          <FurnitureLibraryItem
+                            key={`${type}-${index}`}
+                            item={item}
+                            onAdd={() => handleAddFurniture(item)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )))}
+              </div>
+            </ScrollArea>
+
+            <div className="p-4 border-t border-white/10 bg-white/5">
+              <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                <Info className="w-4 h-4 mt-0.5 flex-shrink-0 text-accent" />
+                <p>
+                  Click furniture images to add them to your floor plan.
+                  Drag items to reposition, and use controls below to rotate or remove.
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* Main Canvas */}
         <motion.div

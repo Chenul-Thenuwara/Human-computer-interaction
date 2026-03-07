@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useDesign, Design } from "@/lib/design-context";
+import { useDesign, Design, RoomData } from "@/lib/design-context";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -33,14 +33,18 @@ export default function DesignStudioPage() {
       const params = new URLSearchParams(window.location.search);
       const requestId = params.get("requestId");
 
-      let roomConfig = {
-        width: 5,
-        length: 4,
-        height: 2.7,
-        wallColor: "#354840",
-        floorColor: "#D4A574",
-      };
-
+      let finalRooms: RoomData[] = [{
+        id: 'default',
+        name: 'Main Room',
+        room: {
+          width: 5,
+          length: 4,
+          height: 2.7,
+          wallColor: "#354840",
+          floorColor: "#D4A574",
+        },
+        furniture: [],
+      }];
       let customerName = "";
       let specialNotes = "";
 
@@ -51,19 +55,24 @@ export default function DesignStudioPage() {
           
           if (docSnap.exists()) {
             const requestData = docSnap.data() as DesignRequest;
-            // Handle legacy request format or new mult-room format
-            const requestRoom = requestData.rooms && requestData.rooms.length > 0 
-                ? requestData.rooms[0].room 
-                : requestData.room;
-                
-            if (requestRoom) {
-              roomConfig = {
-                width: requestRoom.width || roomConfig.width,
-                length: requestRoom.length || roomConfig.length,
-                height: requestRoom.height || roomConfig.height,
-                wallColor: requestRoom.wallColor || roomConfig.wallColor,
-                floorColor: requestRoom.floorColor || roomConfig.floorColor,
-              };
+            
+            // Prefer the multi-room format containing our drawn floor plan
+            if (requestData.rooms && requestData.rooms.length > 0) {
+               finalRooms = requestData.rooms;
+            } else if (requestData.room) {
+               // Fallback to legacy single-room if for some reason it's an old request
+               finalRooms = [{
+                  id: 'default',
+                  name: 'Main Room',
+                  room: {
+                    width: requestData.room.width || 5,
+                    length: requestData.room.length || 4,
+                    height: requestData.room.height || 2.7,
+                    wallColor: requestData.room.wallColor || "#354840",
+                    floorColor: requestData.room.floorColor || "#D4A574",
+                  },
+                  furniture: []
+               }];
             }
             
             customerName = requestData.customerName || "";
@@ -71,7 +80,7 @@ export default function DesignStudioPage() {
 
             // If it's the first time opening it, update status to in_progress
             if (requestData.status === "pending") {
-              await updateDoc(docRef, { status: "in_progress" });
+               await updateDoc(docRef, { status: "in_progress" });
             }
           }
         } catch (error) {
@@ -86,20 +95,16 @@ export default function DesignStudioPage() {
         customerName: customerName,
         specialNotes: specialNotes,
         isLocked: !!requestId, // Lock dimensions if it came from a request
-        rooms: [{
-          id: 'default',
-          name: 'Main Room',
-          room: roomConfig,
-          furniture: [],
-        }],
+        rooms: finalRooms,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      // We could store the requestId in the design object itself or somewhere in context
+      
+      // Store the requestId in the design object itself 
       // to link the completed design back to the request.
-        if (requestId) {
-          newDesign.requestId = requestId;
-        }
+      if (requestId) {
+        newDesign.requestId = requestId;
+      }
       setCurrentDesign(newDesign);
     };
 
@@ -230,52 +235,56 @@ export default function DesignStudioPage() {
             className="h-full flex flex-col flex-1"
           >
             <div className="backdrop-blur-xl bg-card/50 border-b border-white/20 px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-start md:items-center justify-between py-2 md:py-0 gap-3 md:gap-0">
-              <div className="flex items-center gap-2 w-full md:w-auto z-10 mr-4 mt-2 md:mt-0">
-                <div className="flex items-center p-1 bg-black/20 backdrop-blur-md border border-white/10 rounded-full max-w-[60vw] overflow-x-auto hide-scrollbar">
-                  {currentDesign.rooms?.map((room) => (
-                    <button
-                      key={room.id}
-                      onClick={() => setActiveRoomId(room.id)}
-                      className={`px-4 py-1.5 text-sm font-medium transition-all whitespace-nowrap rounded-full ${
-                        activeRoomId === room.id
-                          ? "bg-primary text-primary-foreground shadow-md"
-                          : "text-muted-foreground hover:text-foreground hover:bg-white/10"
-                      }`}
-                    >
-                      {room.name}
-                    </button>
-                  ))}
-                </div>
-                <div className="flex items-center gap-1">
-                  <Button
-                    size="icon"
-                    variant="default"
-                    title="Add Room"
-                    onClick={() => {
-                      setNewRoomName("New Room");
-                      setIsNewRoomDialogOpen(true);
-                    }}
-                    className="h-8 w-8 rounded-full shadow-lg hover:scale-105 transition-transform"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                  {currentDesign.rooms && currentDesign.rooms.length > 1 && (
+              {activeTab === "2d" ? (
+                <div className="flex items-center gap-2 w-full md:w-auto z-10 mr-4 mt-2 md:mt-0">
+                  <div className="flex items-center p-1 bg-black/20 backdrop-blur-md border border-white/10 rounded-full max-w-[60vw] overflow-x-auto hide-scrollbar">
+                    {currentDesign.rooms?.map((room) => (
+                      <button
+                        key={room.id}
+                        onClick={() => setActiveRoomId(room.id)}
+                        className={`px-4 py-1.5 text-sm font-medium transition-all whitespace-nowrap rounded-full ${
+                          activeRoomId === room.id
+                            ? "bg-primary text-primary-foreground shadow-md"
+                            : "text-muted-foreground hover:text-foreground hover:bg-white/10"
+                        }`}
+                      >
+                        {room.name}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-1">
                     <Button
                       size="icon"
-                      variant="destructive"
-                      title="Delete Room"
+                      variant="default"
+                      title="Add Room"
                       onClick={() => {
-                        if (activeRoomId) {
-                          setIsDeleteDialogOpen(true);
-                        }
+                        setNewRoomName("New Room");
+                        setIsNewRoomDialogOpen(true);
                       }}
-                      className="h-8 w-8 rounded-full opacity-80 hover:opacity-100 hover:scale-105 transition-all"
+                      className="h-8 w-8 rounded-full shadow-lg hover:scale-105 transition-transform"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Plus className="w-4 h-4" />
                     </Button>
-                  )}
+                    {currentDesign.rooms && currentDesign.rooms.length > 1 && (
+                      <Button
+                        size="icon"
+                        variant="destructive"
+                        title="Delete Room"
+                        onClick={() => {
+                          if (activeRoomId) {
+                            setIsDeleteDialogOpen(true);
+                          }
+                        }}
+                        className="h-8 w-8 rounded-full opacity-80 hover:opacity-100 hover:scale-105 transition-all"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="flex items-center gap-2 w-full md:w-auto z-10 mr-4 mt-2 md:mt-0"></div>
+              )}
 
               <TabsList className="w-full justify-start md:justify-center border-b-0 bg-transparent p-0 h-12 gap-2">
                 <TabsTrigger

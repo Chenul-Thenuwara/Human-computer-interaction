@@ -4,15 +4,18 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, addDoc, onSnapshot } from "firebase/firestore";
+import { useDesign, DesignProvider, Design } from "@/lib/design-context";
+import { Layout2D } from "@/components/design/Layout2D";
 import { motion, Variants } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { LogOut, Plus, CheckCircle, ChevronRight, Armchair, Clock } from "lucide-react";
+import { LogOut, Plus, CheckCircle, ChevronRight, ChevronLeft, Armchair, Clock } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { DesignRequest } from "@/types/design";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
+import { Trash2 } from "lucide-react";
 
 interface Designer {
   id: string;
@@ -26,6 +29,7 @@ export default function UserDashboard() {
   const [requests, setRequests] = useState<DesignRequest[]>([]);
   const [designers, setDesigners] = useState<Designer[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(true);
+  const [requestRoomIndices, setRequestRoomIndices] = useState<Record<string, number>>({});
 
   // New Request Form State
   const [showNewRequest, setShowNewRequest] = useState(false);
@@ -305,12 +309,42 @@ export default function UserDashboard() {
                            {request.status.replace("_", " ")} Design
                          </h3>
                        {(() => {
-                         const reqRoom = request.rooms && request.rooms.length > 0 ? request.rooms[0].room : request.room;
+                         const roomsList = request.rooms && request.rooms.length > 0 
+                            ? request.rooms 
+                            : (request.room ? [{ id: 'default', name: 'Main Room', room: request.room, furniture: [] } as any] : []);
+                         
+                         if (roomsList.length === 0) return null;
+                         
+                         const roomIndex = requestRoomIndices[request.id] || 0;
+                         const currentRoomData = roomsList[roomIndex];
+                         const reqRoom = currentRoomData?.room;
                          if (!reqRoom) return null;
+
                          return (
-                           <p className="text-sm text-white/50 font-light mt-1">
-                             Room: {reqRoom.width}x{reqRoom.length}x{reqRoom.height}m
-                           </p>
+                           <div className="mt-2">
+                             {roomsList.length > 1 && (
+                               <div className="flex items-center gap-2 mb-1">
+                                 <button 
+                                   onClick={() => setRequestRoomIndices(prev => ({ ...prev, [request.id]: Math.max(0, roomIndex - 1) }))}
+                                   disabled={roomIndex === 0}
+                                   className="p-0.5 rounded-full hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                                 >
+                                   <ChevronLeft className="w-3 h-3 text-white/70" />
+                                 </button>
+                                 <span className="text-xs font-medium text-white/70">{currentRoomData.name || `Room ${roomIndex + 1}`}</span>
+                                 <button 
+                                   onClick={() => setRequestRoomIndices(prev => ({ ...prev, [request.id]: Math.min(roomsList.length - 1, roomIndex + 1) }))}
+                                   disabled={roomIndex === roomsList.length - 1}
+                                   className="p-0.5 rounded-full hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                                 >
+                                   <ChevronRight className="w-3 h-3 text-white/70" />
+                                 </button>
+                               </div>
+                             )}
+                             <p className="text-sm text-white/50 font-light">
+                               Dimensions: {reqRoom.width}x{reqRoom.length}x{reqRoom.height}m
+                             </p>
+                           </div>
                          );
                        })()}
                       </div>
@@ -348,225 +382,374 @@ export default function UserDashboard() {
 
       {/* New Request Modal */}
       {showNewRequest && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto">
-           <motion.div 
-             initial={{ opacity: 0, scale: 0.95, y: 20 }}
-             animate={{ opacity: 1, scale: 1, y: 0 }}
-             className="bg-[#121c17] border border-white/10 rounded-2xl w-full max-w-2xl p-6 md:p-8 shadow-2xl relative overflow-hidden my-8"
-           >
-             {isProcessingPayment && (
-               <div className="absolute inset-0 z-50 bg-[#121c17]/90 backdrop-blur-md flex flex-col items-center justify-center">
-                  <div className="w-12 h-12 border-4 border-[#f3b5a1]/30 border-t-[#f3b5a1] rounded-full animate-spin mb-4"></div>
-                  <p className="text-lg font-medium text-white tracking-wide" style={{ fontFamily: "var(--font-italiana)" }}>Processing Payment...</p>
-                  <p className="text-sm text-white/50 mt-2">Mocking transaction ($99.00)</p>
-               </div>
-             )}
-
-             <div className="flex justify-between items-start mb-2">
-                 <h2 className="text-3xl font-bold text-white" style={{ fontFamily: "var(--font-italiana)" }}>Request New Design</h2>
-                 <button onClick={() => setShowNewRequest(false)} className="text-white/50 hover:text-white p-2">✕</button>
-             </div>
-             
-             <p className="text-white/50 text-sm mb-6 pb-4 border-b border-white/10">Configure your room details and select a designer. Price: $99.00</p>
-
-             <form onSubmit={handleCreateRequest} className="space-y-8 relative z-0 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-               
-               {/* 1. Project Details */}
-               <div className="space-y-4">
-                 <div className="flex items-center gap-2">
-                     <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/10 text-xs text-white font-medium">1</span>
-                     <h3 className="text-lg font-medium text-white">Project Details</h3>
-                 </div>
-                 <div className="pl-8 space-y-4">
-                     <div className="space-y-2">
-                        <Label className="text-white/80">Customer Name *</Label>
-                        <Input 
-                          type="text" 
-                          required 
-                          placeholder="e.g. John Doe"
-                          value={customerName}
-                          onChange={(e) => setCustomerName(e.target.value)}
-                          className="bg-white/5 border-white/10 text-white rounded-xl h-11"
-                        />
-                     </div>
-                     <div className="space-y-2">
-                        <Label className="text-white/80">Special Notes / Requirements</Label>
-                        <textarea 
-                          placeholder="Any specific instructions for the designer? (e.g. Needs to be pet friendly)"
-                          value={specialNotes}
-                          onChange={(e) => setSpecialNotes(e.target.value)}
-                          className="w-full bg-white/5 border border-white/10 text-white rounded-xl min-h-[80px] p-3 outline-none focus:border-[#f3b5a1]/50 focus:ring-1 focus:ring-[#f3b5a1]/50"
-                        />
-                     </div>
-                 </div>
-               </div>
-
-               {/* 2. Designer Selection */}
-               <div className="space-y-3">
-                 <div className="flex items-center gap-2">
-                     <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/10 text-xs text-white font-medium">2</span>
-                     <h3 className="text-lg font-medium text-white">Select Designer</h3>
-                 </div>
-                 <div className="pl-8">
-                     <select 
-                       className="w-full bg-white/5 border border-white/10 text-white rounded-xl h-12 px-4 py-2 outline-none focus:border-[#f3b5a1]/50 focus:ring-1 focus:ring-[#f3b5a1]/50 appearance-none"
-                       value={selectedDesigner}
-                       onChange={(e) => setSelectedDesigner(e.target.value)}
-                       required
-                     >
-                       <option value="" disabled className="bg-black text-white">Choose a designer...</option>
-                       {designers.map(d => (
-                         <option key={d.id} value={d.id} className="bg-black text-white">{d.name}</option>
-                       ))}
-                     </select>
-                 </div>
-               </div>
-
-               {/* 3. Room Dimensions */}
-               <div className="space-y-4">
-                 <div className="flex items-center gap-2">
-                     <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/10 text-xs text-white font-medium">3</span>
-                     <h3 className="text-lg font-medium text-white">Room Dimensions</h3>
-                 </div>
-                 
-                 <div className="pl-8 space-y-6">
-                     {/* Presets */}
-                     <div>
-                       <Label className="mb-3 block text-white/70">Quick Presets</Label>
-                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                         {presetRooms.map((preset) => (
-                           <Button
-                             type="button"
-                             key={preset.name}
-                             variant="outline"
-                             onClick={() => {
-                               setWidth(preset.width);
-                               setLength(preset.length);
-                               setHeight(preset.height);
-                             }}
-                             className="text-xs bg-white/5 border-white/10 text-white hover:bg-white/20 hover:text-white"
-                           >
-                             {preset.name}
-                           </Button>
-                         ))}
-                       </div>
-                     </div>
-
-                     {/* Sliders */}
-                     <div className="space-y-5">
-                       <div className="space-y-3">
-                         <div className="flex items-center justify-between">
-                           <Label className="text-white/80">Width</Label>
-                           <span className="text-sm font-medium text-[#f3b5a1]">{width.toFixed(1)}m</span>
-                         </div>
-                         <Slider min={2} max={10} step={0.1} value={[width]} onValueChange={(v) => setWidth(v[0])} className="w-full" />
-                       </div>
-
-                       <div className="space-y-3">
-                         <div className="flex items-center justify-between">
-                           <Label className="text-white/80">Length</Label>
-                           <span className="text-sm font-medium text-[#f3b5a1]">{length.toFixed(1)}m</span>
-                         </div>
-                         <Slider min={2} max={10} step={0.1} value={[length]} onValueChange={(v) => setLength(v[0])} className="w-full" />
-                       </div>
-
-                       <div className="space-y-3">
-                         <div className="flex items-center justify-between">
-                           <Label className="text-white/80">Height</Label>
-                           <span className="text-sm font-medium text-[#f3b5a1]">{height.toFixed(1)}m</span>
-                         </div>
-                         <Slider min={2} max={4} step={0.1} value={[height]} onValueChange={(v) => setHeight(v[0])} className="w-full" />
-                       </div>
-                     </div>
-                 </div>
-               </div>
-
-               {/* 4. Color Scheme */}
-               <div className="space-y-4">
-                 <div className="flex items-center gap-2">
-                     <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/10 text-xs text-white font-medium">4</span>
-                     <h3 className="text-lg font-medium text-white">Color Preferences</h3>
-                 </div>
-                 
-                 <div className="pl-8 space-y-6">
-                     {/* Wall Color */}
-                     <div className="space-y-3">
-                       <Label className="text-white/80">Wall Color</Label>
-                       <div className="grid grid-cols-4 md:grid-cols-6 gap-2 mb-3">
-                         {colorPresets.walls.map((preset) => (
-                           <button
-                             type="button"
-                             key={preset.name}
-                             onClick={() => setWallColor(preset.color)}
-                             className={`relative h-10 rounded-lg border transition-all ${
-                               wallColor === preset.color
-                                 ? 'border-white ring-2 ring-white/30 scale-105'
-                                 : 'border-white/20 hover:border-white/40'
-                             }`}
-                             style={{ backgroundColor: preset.color }}
-                             title={preset.name}
-                           >
-                             {wallColor === preset.color && (
-                               <div className="absolute inset-0 flex items-center justify-center">
-                                 <div className="w-3 h-3 bg-white/90 rounded-full shadow-sm" />
-                               </div>
-                             )}
-                           </button>
-                         ))}
-                       </div>
-                       <div className="flex items-center gap-3">
-                         <Label className="text-xs text-white/60">Custom:</Label>
-                         <Input type="color" value={wallColor} onChange={(e) => setWallColor(e.target.value)} className="w-12 h-8 p-0 border-0 rounded" />
-                         <span className="text-xs text-white/50 font-mono">{wallColor}</span>
-                       </div>
-                     </div>
-
-                     {/* Floor Color */}
-                     <div className="space-y-3">
-                       <Label className="text-white/80">Floor Finish / Color</Label>
-                       <div className="grid grid-cols-4 md:grid-cols-6 gap-2 mb-3">
-                         {colorPresets.floors.map((preset) => (
-                           <button
-                             type="button"
-                             key={preset.name}
-                             onClick={() => setFloorColor(preset.color)}
-                             className={`relative h-10 rounded-lg border transition-all ${
-                               floorColor === preset.color
-                                 ? 'border-white ring-2 ring-white/30 scale-105'
-                                 : 'border-white/20 hover:border-white/40'
-                             }`}
-                             style={{ backgroundColor: preset.color }}
-                             title={preset.name}
-                           >
-                             {floorColor === preset.color && (
-                               <div className="absolute inset-0 flex items-center justify-center">
-                                 <div className="w-3 h-3 bg-white/90 rounded-full shadow-sm" />
-                               </div>
-                             )}
-                           </button>
-                         ))}
-                       </div>
-                       <div className="flex items-center gap-3">
-                         <Label className="text-xs text-white/60">Custom:</Label>
-                         <Input type="color" value={floorColor} onChange={(e) => setFloorColor(e.target.value)} className="w-12 h-8 p-0 border-0 rounded" />
-                         <span className="text-xs text-white/50 font-mono">{floorColor}</span>
-                       </div>
-                     </div>
-                 </div>
-               </div>
-
-               <div className="pt-6 mt-4 border-t border-white/10 flex gap-4 sticky bottom-0 bg-[#121c17] pb-2 z-10">
-                 <Button type="button" onClick={() => setShowNewRequest(false)} variant="outline" className="flex-1 border-white/20 text-white hover:bg-white/10 rounded-xl h-12">
-                    Cancel
-                 </Button>
-                 <Button type="submit" disabled={isProcessingPayment} className="flex-2 bg-[#f3b5a1] text-[#233529] hover:bg-[#f3b5a1]/90 rounded-xl font-medium shadow-[0_0_15px_rgba(243,181,161,0.3)] w-full h-12 text-base">
-                    Pay $99 & Request Design
-                 </Button>
-               </div>
-             </form>
-           </motion.div>
-        </div>
+        <NewRequestModal 
+          onClose={() => setShowNewRequest(false)} 
+          designers={designers} 
+          user={user} 
+        />
       )}
+    </div>
+  );
+}
+
+// Extract modal into separate component to easily wrap with DesignProvider
+function NewRequestModal({ onClose, designers, user }: { onClose: () => void, designers: Designer[], user: any }) {
+  const [customerName, setCustomerName] = useState("");
+  const [specialNotes, setSpecialNotes] = useState("");
+  const [selectedDesigner, setSelectedDesigner] = useState<string>(designers[0]?.id || "");
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+
+  // We capture the Design context data via a child component that reads it on submit
+  return (
+    <DesignProvider>
+      <NewRequestModalContent 
+        onClose={onClose}
+        designers={designers}
+        user={user}
+        customerName={customerName}
+        setCustomerName={setCustomerName}
+        specialNotes={specialNotes}
+        setSpecialNotes={setSpecialNotes}
+        selectedDesigner={selectedDesigner}
+        setSelectedDesigner={setSelectedDesigner}
+        isProcessingPayment={isProcessingPayment}
+        setIsProcessingPayment={setIsProcessingPayment}
+      />
+    </DesignProvider>
+  );
+}
+
+function NewRequestModalContent({ 
+  onClose, designers, user,
+  customerName, setCustomerName,
+  specialNotes, setSpecialNotes,
+  selectedDesigner, setSelectedDesigner,
+  isProcessingPayment, setIsProcessingPayment
+}: any) {
+  const { currentDesign, setCurrentDesign, activeRoomId, setActiveRoomId, addRoom, deleteRoom } = useDesign();
+  const [isNewRoomDialogOpen, setIsNewRoomDialogOpen] = useState(false);
+  const [newRoomName, setNewRoomName] = useState("New Room");
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (!currentDesign) {
+      setCurrentDesign({
+        id: "new-request-temp",
+        name: "New Request Outline",
+        customerName: "",
+        rooms: [{
+          id: 'default',
+          name: 'Main Room',
+          room: { width: 5, length: 4, height: 2.7, wallColor: '#FFFFFF', floorColor: '#D4A574', position: { x: 0, z: 0 } },
+          furniture: []
+        }],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+    }
+  }, [currentDesign, setCurrentDesign]);
+
+  const handleCreateRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !selectedDesigner) return;
+
+    setIsProcessingPayment(true);
+
+    // Mock Payment Delay
+    setTimeout(async () => {
+      try {
+        const newRequest: Omit<DesignRequest, "id"> = {
+          userId: user.uid,
+          designerId: selectedDesigner,
+          customerName: customerName,
+          specialNotes: specialNotes,
+          rooms: currentDesign?.rooms || [],
+          room: currentDesign?.rooms?.[0]?.room || {
+             width: 5, length: 4, height: 2.7, wallColor: '#FFFFFF', floorColor: '#D4A574'
+          },
+          status: "pending",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+
+        await addDoc(collection(db, "design_requests"), newRequest);
+        onClose();
+      } catch (error) {
+        console.error("Error creating request:", error);
+        alert("Failed to submit request.");
+      } finally {
+        setIsProcessingPayment(false);
+      }
+    }, 2000); // 2 seconds mock payment
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xl flex items-center justify-center p-4 py-8 overflow-y-auto w-full h-full">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        className="bg-[#121c17] border border-white/10 rounded-2xl w-full max-w-5xl h-[90vh] flex flex-col shadow-2xl relative overflow-hidden"
+      >
+        {isProcessingPayment && (
+          <div className="absolute inset-0 z-50 bg-[#121c17]/90 backdrop-blur-md flex flex-col items-center justify-center">
+            <div className="w-12 h-12 border-4 border-[#f3b5a1]/30 border-t-[#f3b5a1] rounded-full animate-spin mb-4"></div>
+            <p className="text-lg font-medium text-white tracking-wide" style={{ fontFamily: "var(--font-italiana)" }}>Processing Payment...</p>
+            <p className="text-sm text-white/50 mt-2">Mocking transaction ($99.00)</p>
+          </div>
+        )}
+
+        <div className="p-6 md:p-8 flex-shrink-0 border-b border-white/10">
+          <div className="flex justify-between items-start mb-2">
+            <h2 className="text-3xl font-bold text-white" style={{ fontFamily: "var(--font-italiana)" }}>Request New Design</h2>
+            <button type="button" onClick={onClose} className="text-white/50 hover:text-white p-2">✕</button>
+          </div>
+          <p className="text-white/50 text-sm">Configure your room details and select a designer. Price: $99.00</p>
+        </div>
+
+        <form onSubmit={handleCreateRequest} className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto px-6 md:px-8 py-6 space-y-10 custom-scrollbar">
+            
+            {/* 1. Project Details & Designer (Grid Layout) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/10 text-xs text-white font-medium">1</span>
+                    <h3 className="text-lg font-medium text-white">Project Details</h3>
+                </div>
+                <div className="pl-8 space-y-4">
+                    <div className="space-y-2">
+                       <Label className="text-white/80">Customer Name *</Label>
+                       <Input 
+                         type="text" 
+                         required 
+                         placeholder="e.g. John Doe"
+                         value={customerName}
+                         onChange={(e) => setCustomerName(e.target.value)}
+                         className="bg-white/5 border-white/10 text-white rounded-xl h-11"
+                       />
+                    </div>
+                    <div className="space-y-2">
+                       <Label className="text-white/80">Special Notes / Requirements</Label>
+                       <textarea 
+                         placeholder="Any specific instructions for the designer? (e.g. Needs to be pet friendly)"
+                         value={specialNotes}
+                         onChange={(e) => setSpecialNotes(e.target.value)}
+                         className="w-full bg-white/5 border border-white/10 text-white rounded-xl min-h-[80px] p-3 outline-none focus:border-[#f3b5a1]/50 focus:ring-1 focus:ring-[#f3b5a1]/50"
+                       />
+                    </div>
+                </div>
+              </div>
+
+              {/* 2. Designer Selection */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/10 text-xs text-white font-medium">2</span>
+                    <h3 className="text-lg font-medium text-white">Select Designer</h3>
+                </div>
+                <div className="pl-8">
+                    <select 
+                      className="w-full bg-white/5 border border-white/10 text-white rounded-xl h-12 px-4 py-2 outline-none focus:border-[#f3b5a1]/50 focus:ring-1 focus:ring-[#f3b5a1]/50 appearance-none"
+                      value={selectedDesigner}
+                      onChange={(e) => setSelectedDesigner(e.target.value)}
+                      required
+                    >
+                      <option value="" disabled className="bg-black text-white">Choose a designer...</option>
+                      {designers.map((d: any) => (
+                        <option key={d.id} value={d.id} className="bg-black text-white">{d.name}</option>
+                      ))}
+                    </select>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Floor Plan Builder */}
+            <div className="space-y-4 h-[600px] flex flex-col">
+              <div className="flex items-center gap-2">
+                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/10 text-xs text-white font-medium">3</span>
+                  <div className="flex-1 flex justify-between items-center">
+                    <h3 className="text-lg font-medium text-white">Build Your Floor Plan</h3>
+                    
+                    {/* Room Tabs */}
+                    {currentDesign && currentDesign.rooms && (
+                      <div className="flex items-center gap-2 z-10">
+                        <div className="flex items-center p-1 bg-black/40 backdrop-blur-md border border-white/10 rounded-full max-w-[40vw] overflow-x-auto hide-scrollbar">
+                          {currentDesign.rooms.map((room) => (
+                            <button
+                              type="button"
+                              key={room.id}
+                              onClick={() => setActiveRoomId(room.id)}
+                              className={`px-3 py-1 text-xs font-medium transition-all whitespace-nowrap rounded-full ${
+                                activeRoomId === room.id
+                                  ? "bg-[#f3b5a1] text-[#233529] shadow-md"
+                                  : "text-white/60 hover:text-white hover:bg-white/10"
+                              }`}
+                            >
+                              {room.name}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            type="button"
+                            size="icon"
+                            variant="default"
+                            onClick={() => {
+                              setNewRoomName("New Room");
+                              setIsNewRoomDialogOpen(true);
+                            }}
+                            className="h-7 w-7 rounded-full shadow-lg bg-white/10 hover:bg-white/20 text-white border border-white/10 hover:scale-105 transition-transform"
+                          >
+                            <Plus className="w-3 h-3" />
+                          </Button>
+                          {currentDesign.rooms.length > 1 && (
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="destructive"
+                              onClick={() => {
+                                if (activeRoomId) {
+                                  setIsDeleteDialogOpen(true);
+                                }
+                              }}
+                              className="h-7 w-7 rounded-full opacity-80 hover:opacity-100 bg-red-500/20 text-red-400 hover:scale-105 transition-all"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+              </div>
+              <div className="pl-8 flex-1 w-full rounded-2xl overflow-hidden border border-white/10 shadow-inner bg-black/20 relative">
+                 <Layout2D mode="builder" />
+              </div>
+            </div>
+
+          </div>
+
+          <div className="p-6 md:p-8 flex-shrink-0 border-t border-white/10 flex gap-4 bg-[#121c17] z-10 w-full relative">
+            <Button type="button" onClick={onClose} variant="outline" className="flex-1 max-w-[200px] border-white/20 text-white hover:bg-white/10 rounded-xl h-12">
+               Cancel
+            </Button>
+            <Button type="submit" disabled={isProcessingPayment} className="flex-1 bg-[#f3b5a1] text-[#233529] hover:bg-[#f3b5a1]/90 rounded-xl font-medium shadow-[0_0_15px_rgba(243,181,161,0.3)] h-12 text-base">
+               Pay $99 & Request Design
+            </Button>
+          </div>
+        </form>
+
+        {/* New Room Dialog */}
+        {isNewRoomDialogOpen && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="bg-card w-full max-w-sm rounded-xl border border-white/20 shadow-2xl p-6"
+            >
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                  <Plus className="w-5 h-5" />
+                  Add New Room
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Enter a name for the new room.
+                </p>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label htmlFor="room-name" className="text-sm font-medium text-foreground">
+                    Room Name
+                  </label>
+                  <input
+                    id="room-name"
+                    type="text"
+                    autoFocus
+                    value={newRoomName}
+                    onChange={(e) => setNewRoomName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && newRoomName.trim()) {
+                        e.preventDefault();
+                        addRoom(newRoomName.trim());
+                        setIsNewRoomDialogOpen(false);
+                      }
+                    }}
+                    className="flex h-10 w-full rounded-md border border-white/20 bg-background/50 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-foreground"
+                  />
+                </div>
+                
+                <div className="flex justify-end gap-3 pt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsNewRoomDialogOpen(false)}
+                    className="border-white/20 hover:bg-white/10 text-foreground"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      if (newRoomName.trim()) {
+                        addRoom(newRoomName.trim());
+                        setIsNewRoomDialogOpen(false);
+                      }
+                    }}
+                  >
+                    Add Room
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Delete Room Confirmation Dialog */}
+        {isDeleteDialogOpen && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="bg-card w-full max-w-sm rounded-xl border border-white/20 shadow-2xl p-6"
+            >
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                  <Trash2 className="w-5 h-5 text-destructive" />
+                  Delete Room
+                </h3>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Are you sure you want to delete this room? This action cannot be undone.
+                </p>
+              </div>
+              
+              <div className="flex justify-end gap-3 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsDeleteDialogOpen(false)}
+                  className="border-white/20 hover:bg-white/10 text-foreground"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() => {
+                    if (activeRoomId) {
+                      deleteRoom(activeRoomId);
+                    }
+                    setIsDeleteDialogOpen(false);
+                  }}
+                >
+                  Delete Room
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </motion.div>
     </div>
   );
 }
