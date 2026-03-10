@@ -354,6 +354,7 @@ export function Layout2D({ mode = 'full' }: { mode?: 'full' | 'builder' }) {
                         <Box className="w-4 h-4" /> Wall Features
                       </h3>
                       <Button
+                        type="button"
                         size="sm"
                         variant="ghost"
                         onClick={() => addWallFeature({ type: 'door', wall: 'front', position: 2, width: 0.9, height: 2.1, elevation: 0 })}
@@ -389,6 +390,7 @@ export function Layout2D({ mode = 'full' }: { mode?: 'full' | 'builder' }) {
                                   <option value="window" className="bg-gray-800">Window</option>
                                 </select>
                                 <Button
+                                  type="button"
                                   size="icon"
                                   variant="ghost"
                                   onClick={() => removeWallFeature(feature.id)}
