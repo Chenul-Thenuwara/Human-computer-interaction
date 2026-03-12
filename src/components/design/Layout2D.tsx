@@ -3,23 +3,32 @@
 import { useState, useEffect } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { useDesign, FurnitureItem } from '../../lib/design-context';
+import { useDesign, FurnitureItem, WallFeature } from '../../lib/design-context';
 import { fetchFurnitureFromDB } from '../../lib/furniture';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+
 import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
+
 import { ScrollArea } from '../ui/scroll-area';
 import { FurnitureLibraryItem } from './FurnitureLibraryItem';
 import { FloorPlan } from './FloorPlan';
-import { Sofa, Trash2, RotateCw, Info } from 'lucide-react';
+import { Sofa, Trash2, Info, Ruler, Palette, ChevronRight, Settings, Plus, Box } from 'lucide-react';
 import { toast } from 'sonner';
-import { motion, Variants } from 'framer-motion';
+import { motion, Variants, AnimatePresence } from 'framer-motion';
+import { Label } from '../ui/label';
+import { Input } from '../ui/input';
+import { Slider } from '../ui/slider';
+import { Separator } from '../ui/separator';
 
-export function Layout2D() {
-  const { currentDesign, updateDesignFurniture } = useDesign();
+export function Layout2D({ mode = 'full' }: { mode?: 'full' | 'builder' }) {
+  const { currentDesign, activeRoomId, setActiveRoomId, updateDesignFurniture, updateRoomPosition, updateDesignRoom, updateFurnitureColor, updateWallColor } = useDesign();
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
   const [furnitureLibrary, setFurnitureLibrary] = useState<FurnitureItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isPropertiesPanelOpen, setIsPropertiesPanelOpen] = useState(true);
+  const [isPerWallOpen, setIsPerWallOpen] = useState(false);
+
+  // New state from context for Wall Features
+  const { addWallFeature, updateWallFeature, removeWallFeature } = useDesign();
 
   useEffect(() => {
     const loadData = async () => {
@@ -35,7 +44,9 @@ export function Layout2D() {
     loadData();
   }, []);
 
-  if (!currentDesign) return null;
+  if (!currentDesign || !currentDesign.rooms) return null;
+
+  const currentRoom = currentDesign.rooms.find(r => r.id === activeRoomId) || currentDesign.rooms[0];
 
   const handleAddFurniture = (furnitureType: Omit<FurnitureItem, 'id' | 'position' | 'rotation'>) => {
     const newItem: FurnitureItem = {
@@ -45,12 +56,25 @@ export function Layout2D() {
       rotation: 0,
     };
 
-    updateDesignFurniture([...currentDesign.furniture, newItem]);
+    updateDesignFurniture([...currentRoom.furniture, newItem]);
     toast.success(`${furnitureType.name} added to room`);
   };
 
+  const handleDropFurniture = (furnitureType: Omit<FurnitureItem, 'id' | 'position' | 'rotation'>, position: { x: number; y: number }) => {
+    const newItem: FurnitureItem = {
+      ...furnitureType,
+      id: `${furnitureType.type}-${Date.now()}`,
+      position,
+      rotation: 0,
+    };
+
+    updateDesignFurniture([...currentRoom.furniture, newItem]);
+    setSelectedItem(newItem.id);
+    toast.success(`${furnitureType.name} placed in room`);
+  };
+
   const handleRemoveItem = (id: string) => {
-    const updated = currentDesign.furniture.filter(item => item.id !== id);
+    const updated = currentRoom.furniture.filter(item => item.id !== id);
     updateDesignFurniture(updated);
     if (selectedItem === id) {
       setSelectedItem(null);
@@ -58,23 +82,22 @@ export function Layout2D() {
     toast.success('Item removed');
   };
 
-  const handleRotateItem = (id: string) => {
-    const updated = currentDesign.furniture.map(item =>
-      item.id === id
-        ? { ...item, rotation: ((item.rotation || 0) + 90) % 360 }
-        : item
-    );
-    updateDesignFurniture(updated);
-  };
 
   const handleUpdatePosition = (id: string, position: { x: number; y: number }) => {
-    const updated = currentDesign.furniture.map(item =>
+    const updated = currentRoom.furniture.map(item =>
       item.id === id ? { ...item, position } : item
     );
     updateDesignFurniture(updated);
   };
 
-  const selectedFurniture = currentDesign.furniture.find(item => item.id === selectedItem);
+  const handleUpdateRotation = (id: string, rotation: number) => {
+    const updated = currentRoom.furniture.map(item =>
+      item.id === id ? { ...item, rotation } : item
+    );
+    updateDesignFurniture(updated);
+  };
+
+
 
   // Group furniture by type
   const groupedFurniture = furnitureLibrary.reduce((acc, item) => {
@@ -96,6 +119,23 @@ export function Layout2D() {
     'fireplace': 'Fireplaces',
   };
 
+
+
+  const colorPresets = {
+    walls: [
+      { name: 'White', color: '#FFFFFF' },
+      { name: 'Sage Green', color: '#354840' },
+      { name: 'Light Gray', color: '#E5E7EB' },
+      { name: 'Beige', color: '#F5F5DC' },
+    ],
+    floors: [
+      { name: 'Light Oak', color: '#D4A574' },
+      { name: 'Dark Oak', color: '#8B4513' },
+      { name: 'Gray Tile', color: '#9CA3AF' },
+      { name: 'White Tile', color: '#F3F4F6' },
+    ],
+  };
+
   const slideRight: Variants = {
     hidden: { opacity: 0, x: -30 },
     visible: { opacity: 1, x: 0, transition: { duration: 0.5, ease: "easeOut" } }
@@ -109,60 +149,62 @@ export function Layout2D() {
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="h-full flex overflow-hidden">
-        {/* Furniture Library Sidebar */}
-        <motion.div 
-          variants={slideRight}
-          initial="hidden"
-          animate="visible"
-          className="backdrop-blur-xl bg-card/70 border-r border-white/20 flex flex-col w-80 shadow-lg h-full z-10"
-        >
-          <div className="p-4 border-b border-white/20">
-            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2" style={{ fontFamily: 'Jacques Francois, serif' }}>
-              <Sofa className="w-5 h-5" />
-              Furniture Library
-            </h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Click items to add them to your room
-            </p>
-          </div>
-          
-          <ScrollArea className="flex-1">
-            <div className="p-4 space-y-6">
-              {loading ? (
-                <div className="text-sm text-white/50 animate-pulse">Loading furniture library...</div>
-              ) : (
-                Object.entries(groupedFurniture).map(([type, items]) => (
-                  <div key={type}>
-                  <h3 className="text-sm font-medium text-accent mb-3">
-                    {typeLabels[type as keyof typeof typeLabels]}
-                  </h3>
-                  <div className="space-y-2">
-                    {items.map((item, index) => (
-                      <FurnitureLibraryItem
-                        key={`${type}-${index}`}
-                        item={item}
-                        onAdd={() => handleAddFurniture(item)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )))}
-            </div>
-          </ScrollArea>
-
-          <div className="p-4 border-t border-white/10 bg-white/5">
-            <div className="flex items-start gap-2 text-xs text-muted-foreground">
-              <Info className="w-4 h-4 mt-0.5 flex-shrink-0 text-accent" />
-              <p>
-                Click furniture images to add them to your floor plan. 
-                Drag items to reposition, and use controls below to rotate or remove.
+        {/* Furniture Library Sidebar - Only show in full mode */}
+        {mode === 'full' && (
+          <motion.div
+            variants={slideRight}
+            initial="hidden"
+            animate="visible"
+            className="backdrop-blur-xl bg-card/70 border-r border-white/20 flex flex-col w-80 shadow-lg h-full z-10"
+          >
+            <div className="p-4 border-b border-white/20">
+              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2" style={{ fontFamily: 'Jacques Francois, serif' }}>
+                <Sofa className="w-5 h-5" />
+                Furniture Library
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Click items to add them to your room
               </p>
             </div>
-          </div>
-        </motion.div>
+
+            <ScrollArea className="flex-1">
+              <div className="p-4 space-y-6">
+                {loading ? (
+                  <div className="text-sm text-white/50 animate-pulse">Loading furniture library...</div>
+                ) : (
+                  Object.entries(groupedFurniture).map(([type, items]) => (
+                    <div key={type}>
+                      <h3 className="text-sm font-medium text-accent mb-3">
+                        {typeLabels[type as keyof typeof typeLabels]}
+                      </h3>
+                      <div className="space-y-2">
+                        {items.map((item, index) => (
+                          <FurnitureLibraryItem
+                            key={`${type}-${index}`}
+                            item={item}
+                            onAdd={() => handleAddFurniture(item)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )))}
+              </div>
+            </ScrollArea>
+
+            <div className="p-4 border-t border-white/10 bg-white/5">
+              <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                <Info className="w-4 h-4 mt-0.5 flex-shrink-0 text-accent" />
+                <p>
+                  Click furniture images to add them to your floor plan.
+                  Drag items to reposition, and use controls below to rotate or remove.
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* Main Canvas */}
-        <motion.div 
+        <motion.div
           variants={fadeUp}
           initial="hidden"
           animate="visible"
@@ -170,55 +212,373 @@ export function Layout2D() {
         >
           <div className="flex-1 p-6 overflow-auto flex items-center justify-center pb-32">
             <FloorPlan
-              room={currentDesign.room}
-              furniture={currentDesign.furniture}
+              rooms={currentDesign.rooms}
+              activeRoomId={activeRoomId}
+              onSelectRoom={setActiveRoomId}
               selectedItem={selectedItem}
               onSelectItem={setSelectedItem}
-              onUpdatePosition={handleUpdatePosition}
+              onUpdateItemPosition={handleUpdatePosition}
+              onUpdateItemRotation={handleUpdateRotation}
+              onDropItem={handleDropFurniture}
+              onUpdateRoomPosition={updateRoomPosition}
+              onRemoveItem={handleRemoveItem}
+              onUpdateItemColor={(id, color) => updateFurnitureColor(id, color)}
             />
           </div>
 
-          {/* Bottom Panel - Selected Item Controls */}
-          {selectedFurniture && (
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 animate-in slide-in-from-bottom-5">
-              <Card className="backdrop-blur-xl bg-card/95 border-primary/40 shadow-xl w-auto min-w-[350px]">
-                <CardHeader className="pb-3 pt-4">
-                  <CardTitle className="text-base flex items-center justify-between text-foreground">
-                    <span>Selected: {selectedFurniture.name}</span>
-                    <Badge variant="secondary" className="bg-secondary/20 text-secondary border-secondary/30">
-                      {selectedFurniture.width}m × {selectedFurniture.depth}m
-                    </Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pb-4">
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleRotateItem(selectedFurniture.id)}
-                      className="border-white/20 text-foreground hover:bg-white/10"
-                    >
-                      <RotateCw className="w-4 h-4 mr-2" />
-                      Rotate 90°
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleRemoveItem(selectedFurniture.id)}
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Remove
-                    </Button>
-                    <div className="ml-auto text-sm text-muted-foreground">
-                      Position: {selectedFurniture.position?.x.toFixed(2)}m, {selectedFurniture.position?.y.toFixed(2)}m
-                      {selectedFurniture.rotation ? ` | Rotation: ${selectedFurniture.rotation}°` : ''}
+          {/* Right Panel - Room Properties */}
+          <AnimatePresence>
+            {isPropertiesPanelOpen && (
+              <motion.div
+                initial={{ x: 320, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: 320, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                className="absolute right-0 top-0 bottom-0 w-80 bg-card/90 backdrop-blur-xl border-l border-white/20 shadow-2xl z-20 overflow-y-auto"
+              >
+                <div className="p-4 border-b border-white/20 flex items-center justify-between sticky top-0 bg-card/95 z-10">
+                  <h2 className="text-lg font-semibold text-foreground flex items-center gap-2" style={{ fontFamily: 'Jacques Francois, serif' }}>
+                    <Settings className="w-5 h-5" />
+                    Room Properties
+                  </h2>
+                  <Button variant="ghost" size="icon" onClick={() => setIsPropertiesPanelOpen(false)} className="h-8 w-8 hover:bg-white/10">
+                    <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                  </Button>
+                </div>
+
+                <div className="p-5 space-y-8 pb-32">
+                  {/* Dimensions Section */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-medium text-accent flex items-center gap-2">
+                      <Ruler className="w-4 h-4" /> Dimensions
+                    </h3>
+                    
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs text-muted-foreground">Width</Label>
+                          <span className="text-xs font-medium text-foreground">{currentRoom.room.width.toFixed(1)}m</span>
+                        </div>
+                        <Slider
+                          min={2} max={10} step={0.1}
+                          value={[currentRoom.room.width]}
+                          onValueChange={(vals) => updateDesignRoom({ ...currentRoom.room, width: vals[0] })}
+                          className="w-full"
+                          disabled={currentDesign.isLocked}
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs text-muted-foreground">Length</Label>
+                          <span className="text-xs font-medium text-foreground">{currentRoom.room.length.toFixed(1)}m</span>
+                        </div>
+                        <Slider
+                          min={2} max={10} step={0.1}
+                          value={[currentRoom.room.length]}
+                          onValueChange={(vals) => updateDesignRoom({ ...currentRoom.room, length: vals[0] })}
+                          className="w-full"
+                          disabled={currentDesign.isLocked}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs text-muted-foreground">Height</Label>
+                          <span className="text-xs font-medium text-foreground">{currentRoom.room.height.toFixed(1)}m</span>
+                        </div>
+                        <Slider
+                          min={2} max={4} step={0.1}
+                          value={[currentRoom.room.height]}
+                          onValueChange={(vals) => updateDesignRoom({ ...currentRoom.room, height: vals[0] })}
+                          className="w-full"
+                          disabled={currentDesign.isLocked}
+                        />
+                      </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+
+                  <Separator className="bg-white/10" />
+
+                  {/* Colors Section */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-medium text-accent flex items-center gap-2">
+                      <Palette className="w-4 h-4" /> Colors
+                    </h3>
+                    
+                    {/* === All Walls Quick-Set === */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs text-muted-foreground">All Walls</Label>
+                        <span className="text-xs text-muted-foreground/60 italic">sets all 4 at once</span>
+                      </div>
+                      <div className="grid grid-cols-4 gap-2">
+                        {colorPresets.walls.map((preset) => (
+                          <button
+                            key={preset.name}
+                            onClick={() => updateWallColor('all', preset.color)}
+                            disabled={currentDesign.isLocked}
+                            className={`h-8 rounded border transition-all ${!currentRoom.room.wallColors && currentRoom.room.wallColor === preset.color ? 'border-accent ring-1 ring-accent' : 'border-white/20 hover:border-white/40'}`}
+                            style={{ backgroundColor: preset.color }}
+                            title={preset.name}
+                          />
+                        ))}
+                      </div>
+                      <div className="flex gap-2">
+                        <Input type="color" value={currentRoom.room.wallColor} onChange={(e) => updateWallColor('all', e.target.value)} disabled={currentDesign.isLocked} className="w-12 h-8 p-1" />
+                        <Input type="text" value={currentRoom.room.wallColor} onChange={(e) => updateWallColor('all', e.target.value)} disabled={currentDesign.isLocked} className="h-8 text-xs font-mono" />
+                      </div>
+                    </div>
+
+                    {/* === Per-wall pickers (collapsible) === */}
+                    <div className="border border-white/10 rounded-lg overflow-hidden">
+                      {/* Toggle header */}
+                      <button
+                        type="button"
+                        onClick={() => setIsPerWallOpen(o => !o)}
+                        className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors"
+                      >
+                        <span className="flex items-center gap-2">
+                          Individual Walls
+                          {/* Preview dots */}
+                          <span className="flex gap-1">
+                            {(['front', 'back', 'left', 'right'] as const).map(w => (
+                              <span
+                                key={w}
+                                className="w-3 h-3 rounded-full border border-white/20 inline-block"
+                                style={{ backgroundColor: currentRoom.room.wallColors?.[w] ?? currentRoom.room.wallColor }}
+                              />
+                            ))}
+                          </span>
+                        </span>
+                        <ChevronRight
+                          className={`w-3.5 h-3.5 transition-transform duration-200 ${isPerWallOpen ? 'rotate-90' : ''}`}
+                        />
+                      </button>
+
+                      {/* Collapsible content */}
+                      <AnimatePresence initial={false}>
+                        {isPerWallOpen && (
+                          <motion.div
+                            key="per-wall"
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.22, ease: 'easeInOut' }}
+                            style={{ overflow: 'hidden' }}
+                          >
+                            <div className="px-3 pb-3 space-y-2">
+                              {(['front', 'back', 'left', 'right'] as const).map((wall) => {
+                                const wallLabels = { front: 'Front Wall', back: 'Back Wall', left: 'Left Wall', right: 'Right Wall' };
+                                const wallIcons  = { front: '▲', back: '▼', left: '◀', right: '▶' };
+                                const effectiveColor = currentRoom.room.wallColors?.[wall] ?? currentRoom.room.wallColor;
+                                const hasOverride = !!currentRoom.room.wallColors?.[wall];
+                                return (
+                                  <div key={wall} className="space-y-2 pt-2 border-t border-white/5 first:border-0 first:pt-0">
+                                    <div className="flex items-center justify-between">
+                                      <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                                        <span>{wallIcons[wall]}</span> {wallLabels[wall]}
+                                      </Label>
+                                      {hasOverride && (
+                                        <button
+                                          className="text-xs text-muted-foreground/60 hover:text-destructive transition-colors"
+                                          onClick={() => updateWallColor(wall, currentRoom.room.wallColor)}
+                                          title="Reset to global"
+                                        >reset</button>
+                                      )}
+                                    </div>
+                                    <div className="grid grid-cols-4 gap-2">
+                                      {colorPresets.walls.map((preset) => (
+                                        <button
+                                          key={preset.name}
+                                          onClick={() => updateWallColor(wall, preset.color)}
+                                          disabled={currentDesign.isLocked}
+                                          className={`h-7 rounded border transition-all ${
+                                            effectiveColor === preset.color
+                                              ? 'border-accent ring-1 ring-accent'
+                                              : 'border-white/20 hover:border-white/40'
+                                          }`}
+                                          style={{ backgroundColor: preset.color }}
+                                          title={preset.name}
+                                        />
+                                      ))}
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <Input
+                                        type="color"
+                                        value={effectiveColor}
+                                        onChange={(e) => updateWallColor(wall, e.target.value)}
+                                        disabled={currentDesign.isLocked}
+                                        className="w-12 h-7 p-0.5"
+                                      />
+                                      <Input
+                                        type="text"
+                                        value={effectiveColor}
+                                        onChange={(e) => { if (/^#[0-9A-Fa-f]{6}$/.test(e.target.value)) updateWallColor(wall, e.target.value); }}
+                                        disabled={currentDesign.isLocked}
+                                        className="h-7 text-xs font-mono"
+                                      />
+                                      <div
+                                        className="w-7 h-7 rounded border border-white/20 flex-shrink-0"
+                                        style={{ backgroundColor: effectiveColor }}
+                                      />
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+
+                    <div className="space-y-3 pt-2">
+                      <Label className="text-xs text-muted-foreground">Floor Color</Label>
+                      <div className="grid grid-cols-4 gap-2">
+                        {colorPresets.floors.map((preset) => (
+                          <button
+                            key={preset.name}
+                            onClick={() => updateDesignRoom({ ...currentRoom.room, floorColor: preset.color })}
+                            disabled={currentDesign.isLocked}
+                            className={`h-8 rounded border transition-all ${currentRoom.room.floorColor === preset.color ? 'border-accent ring-1 ring-accent' : 'border-white/20 hover:border-white/40'}`}
+                            style={{ backgroundColor: preset.color }}
+                            title={preset.name}
+                          />
+                        ))}
+                      </div>
+                      <div className="flex gap-2">
+                        <Input type="color" value={currentRoom.room.floorColor} onChange={(e) => updateDesignRoom({ ...currentRoom.room, floorColor: e.target.value })} disabled={currentDesign.isLocked} className="w-12 h-8 p-1" />
+                        <Input type="text" value={currentRoom.room.floorColor} onChange={(e) => updateDesignRoom({ ...currentRoom.room, floorColor: e.target.value })} disabled={currentDesign.isLocked} className="h-8 text-xs font-mono" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator className="bg-white/10" />
+
+                  {/* Wall Features Section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-medium text-accent flex items-center gap-2">
+                        <Box className="w-4 h-4" /> Wall Features
+                      </h3>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => addWallFeature({ type: 'door', wall: 'front', position: 2, width: 0.9, height: 2.1, elevation: 0 })}
+                        disabled={currentDesign.isLocked}
+                        className="h-6 px-2 text-xs text-primary hover:text-primary-foreground hover:bg-primary"
+                      >
+                        <Plus className="w-3 h-3 mr-1" /> Add
+                      </Button>
+                    </div>
+
+                    {!currentRoom.room.features || currentRoom.room.features.length === 0 ? (
+                      <div className="text-xs text-muted-foreground text-center py-4 border border-dashed border-white/10 rounded-lg">
+                        No features added yet.
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {currentRoom.room.features.map(feature => {
+                          const maxPosition = feature.wall === 'front' || feature.wall === 'back' 
+                            ? currentRoom.room.width 
+                            : currentRoom.room.length;
+
+                          return (
+                            <div key={feature.id} className="bg-black/20 p-3 rounded-lg border border-white/5 space-y-3">
+                              <div className="flex items-center justify-between">
+                                <select 
+                                  value={feature.type}
+                                  onChange={(e) => updateWallFeature(feature.id, { type: e.target.value as WallFeature['type'] })}
+                                  disabled={currentDesign.isLocked}
+                                  className="bg-transparent text-sm text-foreground focus:outline-none"
+                                >
+                                  <option value="door" className="bg-gray-800">Door</option>
+                                  <option value="opening" className="bg-gray-800">Opening</option>
+                                  <option value="window" className="bg-gray-800">Window</option>
+                                </select>
+                                <Button
+                                  type="button"
+                                  size="icon"
+                                  variant="ghost"
+                                  onClick={() => removeWallFeature(feature.id)}
+                                  disabled={currentDesign.isLocked}
+                                  className="h-6 w-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </div>
+
+                              <div className="space-y-1">
+                                <Label className="text-xs text-muted-foreground">Wall</Label>
+                                <select 
+                                  value={feature.wall}
+                                  onChange={(e) => updateWallFeature(feature.id, { wall: e.target.value as WallFeature['wall'], position: 1 })}
+                                  disabled={currentDesign.isLocked}
+                                  className="w-full bg-black/40 border border-white/10 rounded p-1 text-xs text-foreground focus:outline-none"
+                                >
+                                  <option value="front" className="bg-gray-800">Front (Top)</option>
+                                  <option value="back" className="bg-gray-800">Back (Bottom)</option>
+                                  <option value="left" className="bg-gray-800">Left</option>
+                                  <option value="right" className="bg-gray-800">Right</option>
+                                </select>
+                              </div>
+
+                              <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                  <Label className="text-xs text-muted-foreground">Position</Label>
+                                  <span className="text-xs text-foreground font-mono">{feature.position.toFixed(1)}m</span>
+                                </div>
+                                <Slider
+                                  min={feature.width / 2}
+                                  max={maxPosition - (feature.width / 2)}
+                                  step={0.1}
+                                  value={[feature.position]}
+                                  onValueChange={(vals) => updateWallFeature(feature.id, { position: vals[0] })}
+                                  disabled={currentDesign.isLocked}
+                                  className="w-full"
+                                />
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                  <Label className="text-xs text-muted-foreground">Width</Label>
+                                  <span className="text-xs text-foreground font-mono">{feature.width.toFixed(1)}m</span>
+                                </div>
+                                <Slider
+                                  min={0.5}
+                                  max={3}
+                                  step={0.1}
+                                  value={[feature.width]}
+                                  onValueChange={(vals) => updateWallFeature(feature.id, { width: vals[0] })}
+                                  disabled={currentDesign.isLocked}
+                                  className="w-full"
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Toggle Button for Properties Panel */}
+          {!isPropertiesPanelOpen && (
+            <Button
+              variant="default"
+              size="icon"
+              onClick={() => setIsPropertiesPanelOpen(true)}
+              className="absolute right-4 top-4 z-10 rounded-full shadow-lg bg-card/80 backdrop-blur-md border border-white/20 text-foreground hover:bg-white/10"
+              title="Open Room Properties"
+            >
+              <Settings className="w-5 h-5" />
+            </Button>
           )}
+
         </motion.div>
       </div>
     </DndProvider>

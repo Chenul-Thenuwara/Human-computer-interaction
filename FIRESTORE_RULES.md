@@ -17,11 +17,58 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Allow anyone to read furniture data
+    match /furniture/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Allow users to read their own profile (for role checking)
+    // Allow admins to read all profiles
+    match /users/{userId} {
+      // Allow read to own profile or others (needed to list designers and view client names)
+      allow read: if request.auth != null;
+      
+      // Allow list (query) for authenticated users
+      allow list: if request.auth != null;
+
+      // Allow create own profile (triggered on signup / first login)
+      allow create: if request.auth != null && request.auth.uid == userId;
+
+      // Allow update own profile BUT not the role field (only Firebase Console / Admin SDK can change role)
+      allow update: if request.auth != null
+                    && request.auth.uid == userId
+                    && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']);
+      
+      // Allow admins to update any user (including role)
+      allow update: if isAdmin();
+      
+      // Allow admins to delete users
+      allow delete: if isAdmin();
+    }
+
     // Allow users to read and write their own designs
     match /designs/{designId} {
+      // Allow create if authenticated and userId matches
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      
+      // Allow update/delete if authenticated and userId matches existing doc
       allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      
+      // Allow read if authenticated and userId matches (designer), OR if the user owns the original request, OR is admin
+      allow read: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin() ||
+        (
+          'requestId' in resource.data && 
+          get(/databases/$(database)/documents/design_requests/$(resource.data.requestId)).data.userId == request.auth.uid
+        )
+      );
     }
 
     // Allow users to read and write their own todos
@@ -30,10 +77,38 @@ service cloud.firestore {
       allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
     }
+
+    // Allow users and assigned designers to access design requests
+    match /design_requests/{requestId} {
+      // Users can create their own request
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+
+      // Owners, assigned designers, or admins can read
+      allow read: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.designerId == request.auth.uid ||
+        isAdmin()
+      );
+
+      // Owners can update their own request fields they send; designers/admins can update too
+      allow update: if request.auth != null && (
+        (resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid) ||
+        resource.data.designerId == request.auth.uid ||
+        isAdmin()
+      );
+
+      // Owners or admins can delete
+      allow delete: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
+    }
   }
 }
 ```
 
 6.  Click **Publish**.
+
+Once published, refresh your app (`Ctrl+R` or `F5`) and try opening the Client Dashboard again. The designers will load successfully!
 
 Once published, wait a few seconds and try saving your design again. It should work!

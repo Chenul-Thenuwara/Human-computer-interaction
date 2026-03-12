@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import {
   ShieldCheck,
   LogOut,
-  Users,
+  User,
   Settings,
   Sofa,
   Home,
@@ -78,7 +78,7 @@ export default function FurniturePage() {
       {
         href: "/admin/users",
         label: "Users",
-        icon: Users,
+        icon: User,
         active: false,
       },
       {
@@ -418,12 +418,12 @@ export default function FurniturePage() {
             </motion.div>
 
             {successMessage && (
-              <motion.div variants={fadeUp} className="p-4 rounded-xl border border-primary/30 bg-primary/10 text-[#8ea37e]">
+              <motion.div variants={fadeUp} initial="hidden" animate="visible" className="p-4 rounded-xl border border-primary/30 bg-primary/10 text-[#8ea37e]">
                 {successMessage}
               </motion.div>
             )}
             {errorMessage && (
-              <motion.div variants={fadeUp} className="p-4 rounded-xl border border-red-500/20 bg-red-500/10 text-red-300">
+              <motion.div variants={fadeUp} initial="hidden" animate="visible" className="p-4 rounded-xl border border-red-500/20 bg-red-500/10 text-red-300">
                 {errorMessage}
               </motion.div>
             )}
@@ -431,6 +431,8 @@ export default function FurniturePage() {
             {showAddForm && (
               <motion.div
                 variants={fadeUp}
+                initial="hidden"
+                animate="visible"
                 className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 overflow-hidden p-8 shadow-2xl relative"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
@@ -635,7 +637,18 @@ export default function FurniturePage() {
                       <div className="relative h-40 bg-black/20">
                         {item.imageUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
+                          <img 
+                            src={item.imageUrl} 
+                            alt={item.name} 
+                            className="h-full w-full object-cover" 
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                              const fallback = document.createElement('div');
+                              fallback.className = 'absolute inset-0 flex items-center justify-center text-white/40 bg-black/20';
+                              fallback.innerText = 'Image not available';
+                              (e.target as HTMLImageElement).parentElement?.appendChild(fallback);
+                            }}
+                          />
                         ) : (
                           <div className="h-full w-full flex items-center justify-center text-white/40">No image</div>
                         )}

@@ -1,0 +1,20 @@
+.next/types/validator.ts(25,44): error TS2344: Type 'Route' does not satisfy the constraint '"/"'.
+  Type 'LayoutRoutes' is not assignable to type '"/"'.
+    Type '"/login"' is not assignable to type '"/"'.
+.next/types/validator.ts(25,75): error TS2344: Type 'Route' does not satisfy the constraint '"/"'.
+  Type 'LayoutRoutes' is not assignable to type '"/"'.
+    Type '"/login"' is not assignable to type '"/"'.
+.next/types/validator.ts(71,39): error TS2307: Cannot find module '../../src/app/admin/furniture/add/page.js' or its corresponding type declarations.
+.next/types/validator.ts(80,39): error TS2307: Cannot find module '../../src/app/admin/users/page.js' or its corresponding type declarations.
+.next/types/validator.ts(152,39): error TS2307: Cannot find module '../../src/app/api/delete-user/route.js' or its corresponding type declarations.
+.next/types/validator.ts(161,39): error TS2307: Cannot find module '../../src/app/api/list-users/route.js' or its corresponding type declarations.
+.next/types/validator.ts(179,39): error TS2307: Cannot find module '../../src/app/api/set-role/route.js' or its corresponding type declarations.
+.next/types/validator.ts(188,39): error TS2307: Cannot find module '../../src/app/api/update-user-status/route.js' or its corresponding type declarations.
+.next/types/validator.ts(201,39): error TS2307: Cannot find module '../../src/app/about/layout.js' or its corresponding type declarations.
+.next/types/validator.ts(210,39): error TS2307: Cannot find module '../../src/app/admin/dashboard/layout.js' or its corresponding type declarations.
+.next/types/validator.ts(219,39): error TS2307: Cannot find module '../../src/app/dashboard/layout.js' or its corresponding type declarations.
+.next/types/validator.ts(228,39): error TS2307: Cannot find module '../../src/app/design/new/layout.js' or its corresponding type declarations.
+.next/types/validator.ts(237,39): error TS2307: Cannot find module '../../src/app/forgot-password/layout.js' or its corresponding type declarations.
+.next/types/validator.ts(246,39): error TS2307: Cannot find module '../../src/app/gallery/layout.js' or its corresponding type declarations.
+.next/types/validator.ts(264,39): error TS2307: Cannot find module '../../src/app/login/layout.js' or its corresponding type declarations.
+.next/types/validator.ts(273,39): error TS2307: Cannot find module '../../src/app/signup/layout.js' or its corresponding type declarations.

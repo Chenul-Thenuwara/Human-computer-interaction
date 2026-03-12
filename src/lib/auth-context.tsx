@@ -9,6 +9,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   isAdmin: boolean;
+  isDesigner: boolean;
   logout: () => Promise<void>;
 }
 
@@ -16,6 +17,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   isAdmin: false,
+  isDesigner: false,
   logout: async () => { },
 });
 
@@ -23,6 +25,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isDesigner, setIsDesigner] = useState(false);
   const router = useRouter();
 
   const handleLogout = useCallback(async () => {
@@ -31,6 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem("loginTime");
       setUser(null);
       setIsAdmin(false);
+      setIsDesigner(false);
       router.push("/login");
     } catch (error) {
       console.error("Logout error:", error);
@@ -80,11 +84,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         setIsAdmin(role === "admin");
+        setIsDesigner(role === "designer");
         setUser(user);
       } else {
         // User is signed out
         setUser(null);
         setIsAdmin(false);
+        setIsDesigner(false);
         localStorage.removeItem("loginTime");
       }
       setLoading(false);
@@ -94,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [handleLogout]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAdmin, logout: handleLogout }}>
+    <AuthContext.Provider value={{ user, loading, isAdmin, isDesigner, logout: handleLogout }}>
       {children}
     </AuthContext.Provider>
   );

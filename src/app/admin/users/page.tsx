@@ -7,7 +7,7 @@ import { useAuth } from "@/lib/auth-context";
 import {
   ShieldCheck,
   LogOut,
-  Users,
+  User,
   Settings,
   Sofa,
   Home,
@@ -27,7 +27,7 @@ interface User {
   id: string;
   name: string;
   email: string;
-  role: "admin" | "user";
+  role: "admin" | "designer" | "user";
   joinedDate: string;
   status: "active" | "inactive";
 }
@@ -116,7 +116,7 @@ export default function AdminPage() {
     {
       href: "/admin/users",
       label: "Users",
-      icon: Users,
+      icon: User,
       active: true,
     },
     {
@@ -139,10 +139,8 @@ export default function AdminPage() {
     setShowRoleModal(true);
   };
 
-  const confirmRoleChange = async () => {
+  const confirmRoleChange = async (newRole: "admin" | "designer" | "user") => {
     if (!userToChangeRole) return;
-
-    const newRole = userToChangeRole.role === "admin" ? "user" : "admin";
 
     try {
       const userRef = doc(db, "users", userToChangeRole.id);
@@ -517,10 +515,12 @@ export default function AdminPage() {
                           className={`inline-flex px-3 py-1 rounded-full border text-xs font-medium ${
                             user.role === "admin"
                               ? "bg-white/10 text-[#f3b5a1] border-[#f3b5a1]/30"
+                              : user.role === "designer"
+                              ? "bg-[#8ea37e]/10 text-[#8ea37e] border-[#8ea37e]/30"
                               : "bg-white/5 text-white/70 border-white/10"
                           }`}
                         >
-                          {user.role === "admin" ? "⭐ Admin" : "User"}
+                          {user.role === "admin" ? "⭐ Admin" : user.role === "designer" ? "🎨 Designer" : "User"}
                         </span>
                       </td>
                       <td className="px-6 py-4">
@@ -542,15 +542,9 @@ export default function AdminPage() {
                           <button
                             onClick={() => handleRoleClick(user)}
                             className="px-3 py-2 text-xs font-medium text-white bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
-                            title={
-                              user.role === "admin"
-                                ? "Remove admin"
-                                : "Make admin"
-                            }
+                            title="Change Role"
                           >
-                            {user.role === "admin"
-                              ? "Remove Admin"
-                              : "Make Admin"}
+                            Change Role
                           </button>
                           <button
                             onClick={() => handleStatusClick(user)}
@@ -654,50 +648,41 @@ export default function AdminPage() {
           <div className="bg-[#10251f]/90 rounded-2xl p-8 border border-white/10 w-full max-w-md shadow-2xl">
             <div className="flex items-center justify-center mb-6">
               <div className="w-16 h-16 bg-white/5 border border-white/10 rounded-full flex items-center justify-center">
-                <svg
-                  className="w-8 h-8 text-[#f3b5a1]"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                  />
-                </svg>
+                <Settings className="w-8 h-8 text-[#f3b5a1]" />
               </div>
             </div>
 
             <h2 className="text-2xl font-bold text-white text-center mb-3 font-serif" style={{ fontFamily: "var(--font-italiana)" }}>
-              {userToChangeRole.role === "admin"
-                ? "Remove Admin"
-                : "Make Admin"}
+              Change User Role
             </h2>
             <p className="text-white/60 text-center mb-6">
-              Are you sure you want to{" "}
-              {userToChangeRole.role === "admin"
-                ? "remove admin privileges from"
-                : "make"}{" "}
+              Select a new role for{" "}
               <span className="font-semibold text-white">
                 {userToChangeRole.name}
               </span>
-              {userToChangeRole.role === "admin" ? "" : " an admin"}?
+              . Current role: <span className="capitalize">{userToChangeRole.role}</span>.
             </p>
 
-            <div className="flex gap-3">
+            <div className="flex flex-col gap-3">
+              {(["admin", "designer", "user"] as const).map((r) => (
+                <button
+                  key={r}
+                  disabled={userToChangeRole.role === r}
+                  onClick={() => confirmRoleChange(r)}
+                  className={`px-4 py-3 rounded-xl transition-all font-medium capitalize ${
+                    userToChangeRole.role === r 
+                      ? "bg-white/5 text-white/30 cursor-not-allowed" 
+                      : "bg-white/10 text-white border border-white/20 hover:bg-[#f3b5a1] hover:text-[#233529] hover:border-[#f3b5a1]"
+                  }`}
+                >
+                  Make {r}
+                </button>
+              ))}
               <button
                 onClick={cancelRoleChange}
-                className="flex-1 px-4 py-3 bg-transparent border border-white/20 text-white/70 rounded-xl hover:bg-white/5 hover:text-white transition-all font-medium"
+                className="mt-2 px-4 py-3 bg-transparent border border-white/20 text-white/70 rounded-xl hover:bg-white/5 hover:text-white transition-all font-medium"
               >
                 Cancel
-              </button>
-              <button
-                onClick={confirmRoleChange}
-                className="flex-1 px-4 py-3 bg-white/10 text-white border border-white/20 rounded-xl hover:bg-[#f3b5a1] hover:text-[#233529] hover:border-[#f3b5a1] transition-all font-medium"
-              >
-                Confirm
               </button>
             </div>
           </div>

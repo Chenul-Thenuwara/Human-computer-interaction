@@ -3,7 +3,7 @@
 import { motion, Variants, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { useAuth } from "@/lib/auth-context";
+import { SiteHeader } from "@/components/SiteHeader";
 import { useRouter } from "next/navigation";
 import { useRef } from "react";
 
@@ -47,7 +47,6 @@ const values = [
 
 export default function AboutPage() {
   const router = useRouter();
-  const { user } = useAuth();
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "25%"]);
@@ -55,44 +54,7 @@ export default function AboutPage() {
   return (
     <div className="relative min-h-screen overflow-hidden text-white">
       {/* ── Navigation ── */}
-      <motion.header
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1, delay: 0.2 }}
-        className="flex justify-between items-center px-8 md:px-12 py-6 max-w-[1400px] mx-auto w-full sticky top-0 z-50"
-      >
-        <div
-          className="text-3xl font-medium tracking-wide"
-          style={{ fontFamily: "var(--font-italiana)" }}
-        >
-          Prism
-        </div>
-
-        <nav className="hidden md:flex gap-10 text-[15px] font-light tracking-wide font-sans">
-          <Link href="/" className="hover:text-[#f3b5a1] transition-colors">Home</Link>
-          <Link href="/gallery" className="hover:text-[#f3b5a1] transition-colors">Gallery</Link>
-          <Link href="/about" className="text-[#f3b5a1] border-b border-[#f3b5a1]/60 pb-0.5">About</Link>
-          <Link href="#" className="hover:text-[#f3b5a1] transition-colors">Contact</Link>
-        </nav>
-
-        <div className="flex gap-6 items-center">
-          {user ? (
-            <button
-              onClick={() => router.push("/dashboard")}
-              className="px-6 py-2.5 rounded-full border border-white/30 hover:bg-white hover:text-[#233529] transition-all font-light tracking-wide text-sm"
-            >
-              Dashboard
-            </button>
-          ) : (
-            <button
-              onClick={() => router.push("/login")}
-              className="px-6 py-2.5 rounded-full bg-white text-[#233529] hover:bg-white/90 transition-all font-medium tracking-wide text-sm"
-            >
-              Login
-            </button>
-          )}
-        </div>
-      </motion.header>
+      <SiteHeader delay={0.2} className="sticky top-0 z-50" />
 
       {/* ── Hero Section ── */}
       <section ref={heroRef} className="relative h-[90vh] flex items-center justify-center overflow-hidden">
@@ -385,6 +347,7 @@ export default function AboutPage() {
           <Link href="/" className="hover:text-white transition-colors">Home</Link>
           <Link href="/gallery" className="hover:text-white transition-colors">Gallery</Link>
           <Link href="/about" className="hover:text-white transition-colors">About</Link>
+          <Link href="/contact" className="hover:text-white transition-colors">Contact</Link>
         </div>
       </footer>
     </div>

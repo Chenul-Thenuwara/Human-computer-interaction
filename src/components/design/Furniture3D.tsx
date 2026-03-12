@@ -7,8 +7,8 @@ import { FurnitureItem } from "@/lib/design-context";
 import { storage } from "@/lib/firebase";
 import { ref, getDownloadURL } from "firebase/storage";
 
-// Module-level cache: Firebase path -> resolved proxy URL (or null for errors)
-const urlCache = new Map<string, string | null>();
+// Module-level cache: Firebase path -> resolved URL (or Promise of it)
+const urlCache = new Map<string, string | null | Promise<string | null>>();
 
 interface Furniture3DProps {
   item: FurnitureItem;
@@ -17,58 +17,79 @@ interface Furniture3DProps {
 export function Furniture3D({ item }: Furniture3DProps) {
   const { type, width, depth, height, color, modelUrl, rotation = 0, elevation = 0, modelRotationOffset = [0, 0, 0] } = item;
 
-  // Determine initial state from cache so there's no flicker on re-renders
   const getInitial = () => {
     if (!modelUrl) return null;
     if ((modelUrl.startsWith('http') || modelUrl.startsWith('/')) && !modelUrl.includes('firebasestorage.googleapis.com')) return modelUrl;
-    return urlCache.has(modelUrl) ? urlCache.get(modelUrl)! : undefined; // undefined = still resolving
+
+    const cached = urlCache.get(modelUrl);
+    if (typeof cached === 'string' || cached === null) return cached;
+    return undefined; // undefined = still resolving or promise pending
   };
 
   // undefined = resolving, null = error/no modelUrl, string = resolved
   const [resolvedUrl, setResolvedUrl] = useState<string | null | undefined>(getInitial);
 
   useEffect(() => {
+    let isMounted = true;
+
     if (!modelUrl) {
-      setResolvedUrl(null);
-      return;
+      Promise.resolve().then(() => { if (isMounted) setResolvedUrl(null); });
+      return () => { isMounted = false; };
     }
 
     // Direct URLs that are NOT firebase storage — no async needed
     if ((modelUrl.startsWith('http') || modelUrl.startsWith('/')) && !modelUrl.includes('firebasestorage.googleapis.com')) {
-      setResolvedUrl(modelUrl);
-      return;
+      Promise.resolve().then(() => { if (isMounted) setResolvedUrl(modelUrl); });
+      return () => { isMounted = false; };
     }
 
-    // Already cached
-    if (urlCache.has(modelUrl)) {
-      setResolvedUrl(urlCache.get(modelUrl)!);
-      return;
+    // Already cached or pending
+    const cached = urlCache.get(modelUrl);
+
+    if (typeof cached === 'string' || cached === null) {
+      Promise.resolve().then(() => { if (isMounted) setResolvedUrl(cached); });
+      return () => { isMounted = false; };
     }
 
-    let isMounted = true;
+    if (cached instanceof Promise) {
+      THREE.DefaultLoadingManager.itemStart(modelUrl);
+      cached.then(url => {
+        if (isMounted) setResolvedUrl(url);
+      }).finally(() => {
+        THREE.DefaultLoadingManager.itemEnd(modelUrl);
+      });
+      return () => { isMounted = false; };
+    }
+
     THREE.DefaultLoadingManager.itemStart(modelUrl);
 
-    (async () => {
+    const resolveUrl = async (): Promise<string | null> => {
       try {
         let url = modelUrl;
-        
+
         // If it's a relative path, get the download URL from Firebase SDK
         if (!modelUrl.startsWith('http') && !modelUrl.startsWith('/')) {
-            const storageRef = ref(storage, modelUrl);
-            url = await getDownloadURL(storageRef);
+          const storageRef = ref(storage, modelUrl);
+          url = await getDownloadURL(storageRef);
         }
 
-        const proxyUrl = `/api/model-proxy?url=${encodeURIComponent(url)}`;
-        urlCache.set(modelUrl, proxyUrl);
-        if (isMounted) setResolvedUrl(proxyUrl);
+        // Bypass proxy - CORS should allow direct Firebase Storage loading
+        return url;
       } catch (err) {
         console.error(`Failed to resolve model URL: ${modelUrl}`, err);
-        urlCache.set(modelUrl, null);
-        if (isMounted) setResolvedUrl(null);
-      } finally {
-        THREE.DefaultLoadingManager.itemEnd(modelUrl);
+        return null;
       }
-    })();
+    };
+
+    const promise = resolveUrl();
+    urlCache.set(modelUrl, promise);
+
+    promise.then(url => {
+      urlCache.set(modelUrl, url);
+      if (isMounted) setResolvedUrl(url);
+    }).finally(() => {
+      THREE.DefaultLoadingManager.itemEnd(modelUrl);
+    });
 
     return () => { isMounted = false; };
   }, [modelUrl]);
@@ -92,12 +113,13 @@ export function Furniture3D({ item }: Furniture3DProps) {
     // URL resolved successfully — render the 3D model
     if (resolvedUrl) {
       return (
-        <ModelLoader 
-          url={resolvedUrl} 
-          width={width} 
-          height={height} 
+        <ModelLoader
+          url={resolvedUrl}
+          width={width}
+          height={height}
           depth={depth}
-          rotationOffset={modelRotationOffset} 
+          rotationOffset={modelRotationOffset}
+          color={color}
         />
       );
     }
@@ -131,8 +153,8 @@ export function Furniture3D({ item }: Furniture3DProps) {
   };
 
   return (
-    <group 
-      rotation={[0, -(rotation * Math.PI) / 180, 0]} 
+    <group
+      rotation={[0, -(rotation * Math.PI) / 180, 0]}
       position={[0, elevation, 0]}
     >
       {renderContent()}
@@ -140,19 +162,40 @@ export function Furniture3D({ item }: Furniture3DProps) {
   );
 }
 
-function ModelLoader({ url, width, height, depth, rotationOffset = [0, 0, 0] }: { url: string, width: number, height: number, depth: number, rotationOffset?: [number, number, number] }) {
+function ModelLoader({ url, width, height, depth, rotationOffset = [0, 0, 0], color }: { url: string, width: number, height: number, depth: number, rotationOffset?: [number, number, number], color?: string }) {
   const { scene } = useGLTF(url);
-  const clonedScene = useMemo(() => scene.clone(), [scene]);
+  const clonedScene = useMemo(() => scene.clone(true), [scene]);
+
+  // Apply the furniture color to all meshes in the loaded scene
+  useMemo(() => {
+    if (!color) return;
+    const threeColor = new THREE.Color(color);
+    clonedScene.traverse((obj: THREE.Object3D) => {
+      const mesh = obj as THREE.Mesh;
+      if (mesh.isMesh && mesh.material) {
+        // Clone the material so we don't mutate the cached GLTF asset
+        if (Array.isArray(mesh.material)) {
+          mesh.material = mesh.material.map(m => {
+            const cloned = m.clone();
+            (cloned as THREE.MeshStandardMaterial).color = threeColor;
+            cloned.needsUpdate = true;
+            return cloned;
+          });
+        } else {
+          mesh.material = mesh.material.clone();
+          (mesh.material as THREE.MeshStandardMaterial).color = threeColor;
+          mesh.material.needsUpdate = true;
+        }
+      }
+    });
+  }, [clonedScene, color]);
 
   // Auto-scaling logic
-  // We want the model to fit within the box defined by width, height, depth
-  // But usually we just want to match the largest dimension or plausible scale.
-  // Let's compute the bounding box of the model.
   const { scale, centerOffset } = useMemo(() => {
     const box = new THREE.Box3();
-    
+
     // Traverse and expand box only for meshes to avoid including lights/cameras
-    clonedScene.traverse((obj) => {
+    clonedScene.traverse((obj: THREE.Object3D) => {
       if ((obj as THREE.Mesh).isMesh) {
         box.expandByObject(obj);
       }
@@ -169,13 +212,8 @@ function ModelLoader({ url, width, height, depth, rotationOffset = [0, 0, 0] }: 
     box.getCenter(center);
 
     // If size is 0 (empty model), fallback
-    if (size.x === 0 || size.y === 0 || size.z === 0) return { scale: 1, centerOffset: [0,0,0] as [number,number,number] };
+    if (size.x === 0 || size.y === 0 || size.z === 0) return { scale: 1, centerOffset: [0, 0, 0] as [number, number, number] };
 
-    // Determine scale factor
-    // We want the model's dimensions to roughly match the target furniture dimensions.
-    // However, stretching it non-uniformly might look bad.
-    // Let's scale uniformly to fit the target bounding box as best as possible without exceeding it.
-    
     // Check if rotated 90 degrees around X-axis (approx)
     const isRotatedX = Math.abs(rotationOffset[0] - Math.PI / 2) < 0.1;
 
@@ -191,9 +229,9 @@ function ModelLoader({ url, width, height, depth, rotationOffset = [0, 0, 0] }: 
   }, [clonedScene, width, height, depth, rotationOffset]);
 
   return (
-    <primitive 
-      object={clonedScene} 
-      scale={[scale, scale, scale]} 
+    <primitive
+      object={clonedScene}
+      scale={[scale, scale, scale]}
       position={centerOffset}
       rotation={rotationOffset}
       castShadow
@@ -213,31 +251,31 @@ function ChairGeometry({ width, depth, height, material }: { width: number, dept
   return (
     <group position={[0, height / 2, 0]}>
       {/* Seat */}
-      <mesh position={[0, seatHeight - height/2, 0]} castShadow receiveShadow>
+      <mesh position={[0, seatHeight - height / 2, 0]} castShadow receiveShadow>
         <boxGeometry args={[width, legThickness, depth]} />
         <primitive object={material} attach="material" />
       </mesh>
 
       {/* Backrest */}
-      <mesh position={[0, (seatHeight + backHeight/2) - height/2, -depth/2 + backThickness/2]} castShadow receiveShadow>
+      <mesh position={[0, (seatHeight + backHeight / 2) - height / 2, -depth / 2 + backThickness / 2]} castShadow receiveShadow>
         <boxGeometry args={[width, backHeight, backThickness]} />
         <primitive object={material} attach="material" />
       </mesh>
 
       {/* Legs (4) */}
-      <mesh position={[-width/2 + legThickness/2, (seatHeight/2) - height/2, -depth/2 + legThickness/2]} castShadow receiveShadow>
+      <mesh position={[-width / 2 + legThickness / 2, (seatHeight / 2) - height / 2, -depth / 2 + legThickness / 2]} castShadow receiveShadow>
         <boxGeometry args={[legThickness, seatHeight, legThickness]} />
         <primitive object={material} attach="material" />
       </mesh>
-      <mesh position={[width/2 - legThickness/2, (seatHeight/2) - height/2, -depth/2 + legThickness/2]} castShadow receiveShadow>
+      <mesh position={[width / 2 - legThickness / 2, (seatHeight / 2) - height / 2, -depth / 2 + legThickness / 2]} castShadow receiveShadow>
         <boxGeometry args={[legThickness, seatHeight, legThickness]} />
         <primitive object={material} attach="material" />
       </mesh>
-      <mesh position={[-width/2 + legThickness/2, (seatHeight/2) - height/2, depth/2 - legThickness/2]} castShadow receiveShadow>
+      <mesh position={[-width / 2 + legThickness / 2, (seatHeight / 2) - height / 2, depth / 2 - legThickness / 2]} castShadow receiveShadow>
         <boxGeometry args={[legThickness, seatHeight, legThickness]} />
         <primitive object={material} attach="material" />
       </mesh>
-      <mesh position={[width/2 - legThickness/2, (seatHeight/2) - height/2, depth/2 - legThickness/2]} castShadow receiveShadow>
+      <mesh position={[width / 2 - legThickness / 2, (seatHeight / 2) - height / 2, depth / 2 - legThickness / 2]} castShadow receiveShadow>
         <boxGeometry args={[legThickness, seatHeight, legThickness]} />
         <primitive object={material} attach="material" />
       </mesh>
@@ -248,29 +286,29 @@ function ChairGeometry({ width, depth, height, material }: { width: number, dept
 function TableGeometry({ width, depth, height, material }: { width: number, depth: number, height: number, material: THREE.Material, type: string }) {
   const topThickness = height * 0.05;
   const legThickness = Math.min(width, depth) * 0.08;
-  
+
   return (
     <group position={[0, height / 2, 0]}>
       {/* Table Top */}
-      <mesh position={[0, height/2 - topThickness/2, 0]} castShadow receiveShadow>
+      <mesh position={[0, height / 2 - topThickness / 2, 0]} castShadow receiveShadow>
         <boxGeometry args={[width, topThickness, depth]} />
         <primitive object={material} attach="material" />
       </mesh>
 
       {/* Legs (4) */}
-      <mesh position={[-width/2 + legThickness, 0, -depth/2 + legThickness]} castShadow receiveShadow>
+      <mesh position={[-width / 2 + legThickness, 0, -depth / 2 + legThickness]} castShadow receiveShadow>
         <boxGeometry args={[legThickness, height, legThickness]} />
         <primitive object={material} attach="material" />
       </mesh>
-      <mesh position={[width/2 - legThickness, 0, -depth/2 + legThickness]} castShadow receiveShadow>
+      <mesh position={[width / 2 - legThickness, 0, -depth / 2 + legThickness]} castShadow receiveShadow>
         <boxGeometry args={[legThickness, height, legThickness]} />
         <primitive object={material} attach="material" />
       </mesh>
-      <mesh position={[-width/2 + legThickness, 0, depth/2 - legThickness]} castShadow receiveShadow>
+      <mesh position={[-width / 2 + legThickness, 0, depth / 2 - legThickness]} castShadow receiveShadow>
         <boxGeometry args={[legThickness, height, legThickness]} />
         <primitive object={material} attach="material" />
       </mesh>
-      <mesh position={[width/2 - legThickness, 0, depth/2 - legThickness]} castShadow receiveShadow>
+      <mesh position={[width / 2 - legThickness, 0, depth / 2 - legThickness]} castShadow receiveShadow>
         <boxGeometry args={[legThickness, height, legThickness]} />
         <primitive object={material} attach="material" />
       </mesh>
@@ -288,23 +326,23 @@ function SofaGeometry({ width, depth, height, material }: { width: number, depth
   return (
     <group position={[0, height / 2, 0]}>
       {/* Seat Base */}
-      <mesh position={[0, seatHeight/2 - height/2, 0]} castShadow receiveShadow>
+      <mesh position={[0, seatHeight / 2 - height / 2, 0]} castShadow receiveShadow>
         <boxGeometry args={[width, seatHeight, depth]} />
         <primitive object={material} attach="material" />
       </mesh>
 
       {/* Backrest */}
-      <mesh position={[0, backHeight/2 - height/2, -depth/2 + backThickness/2]} castShadow receiveShadow>
+      <mesh position={[0, backHeight / 2 - height / 2, -depth / 2 + backThickness / 2]} castShadow receiveShadow>
         <boxGeometry args={[width, backHeight, backThickness]} />
         <primitive object={material} attach="material" />
       </mesh>
 
       {/* Arms */}
-      <mesh position={[-width/2 + armWidth/2, armHeight/2 - height/2, 0]} castShadow receiveShadow>
+      <mesh position={[-width / 2 + armWidth / 2, armHeight / 2 - height / 2, 0]} castShadow receiveShadow>
         <boxGeometry args={[armWidth, armHeight, depth]} />
         <primitive object={material} attach="material" />
       </mesh>
-      <mesh position={[width/2 - armWidth/2, armHeight/2 - height/2, 0]} castShadow receiveShadow>
+      <mesh position={[width / 2 - armWidth / 2, armHeight / 2 - height / 2, 0]} castShadow receiveShadow>
         <boxGeometry args={[armWidth, armHeight, depth]} />
         <primitive object={material} attach="material" />
       </mesh>
@@ -351,7 +389,7 @@ function ClockGeometry({ radius, depth, material }: { radius: number, depth: num
 
 function PictureFrameGeometry({ width, height, depth, material }: { width: number, height: number, depth: number, material: THREE.Material }) {
   const frameThickness = Math.min(width, height) * 0.1;
-  
+
   return (
     <group>
       {/* Frame Background/Backing */}
@@ -359,7 +397,7 @@ function PictureFrameGeometry({ width, height, depth, material }: { width: numbe
         <boxGeometry args={[width, height, depth]} />
         <primitive object={material} attach="material" />
       </mesh>
-      
+
       {/* Picture Area (White Canvas) */}
       <mesh position={[0, 0, depth / 2 + 0.001]}>
         <planeGeometry args={[width - frameThickness * 2, height - frameThickness * 2]} />
