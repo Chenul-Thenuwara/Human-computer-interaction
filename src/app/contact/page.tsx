@@ -91,7 +91,7 @@ export default function ContactPage() {
                                 Let&apos;s create <br/><span className="text-[#f3b5a1] italic" style={{ fontFamily: "var(--font-italianno)", fontSize: "1.2em", lineHeight: "0.8" }}>together</span>
                             </motion.h1>
                             <motion.p variants={fadeUp} className="text-lg text-white/50 font-light max-w-md">
-                                Have questions or need assistance? Reach out to our team and we'll address your doubts and inquiries.
+                                Have questions or need assistance? Reach out to our team and we&apos;ll address your doubts and inquiries.
                             </motion.p>
                         </div>
 
