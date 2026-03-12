@@ -119,6 +119,7 @@ export function Furniture3D({ item }: Furniture3DProps) {
           height={height}
           depth={depth}
           rotationOffset={modelRotationOffset}
+          color={color}
         />
       );
     }
@@ -161,14 +162,35 @@ export function Furniture3D({ item }: Furniture3DProps) {
   );
 }
 
-function ModelLoader({ url, width, height, depth, rotationOffset = [0, 0, 0] }: { url: string, width: number, height: number, depth: number, rotationOffset?: [number, number, number] }) {
+function ModelLoader({ url, width, height, depth, rotationOffset = [0, 0, 0], color }: { url: string, width: number, height: number, depth: number, rotationOffset?: [number, number, number], color?: string }) {
   const { scene } = useGLTF(url);
-  const clonedScene = useMemo(() => scene.clone(), [scene]);
+  const clonedScene = useMemo(() => scene.clone(true), [scene]);
+
+  // Apply the furniture color to all meshes in the loaded scene
+  useMemo(() => {
+    if (!color) return;
+    const threeColor = new THREE.Color(color);
+    clonedScene.traverse((obj: THREE.Object3D) => {
+      const mesh = obj as THREE.Mesh;
+      if (mesh.isMesh && mesh.material) {
+        // Clone the material so we don't mutate the cached GLTF asset
+        if (Array.isArray(mesh.material)) {
+          mesh.material = mesh.material.map(m => {
+            const cloned = m.clone();
+            (cloned as THREE.MeshStandardMaterial).color = threeColor;
+            cloned.needsUpdate = true;
+            return cloned;
+          });
+        } else {
+          mesh.material = mesh.material.clone();
+          (mesh.material as THREE.MeshStandardMaterial).color = threeColor;
+          mesh.material.needsUpdate = true;
+        }
+      }
+    });
+  }, [clonedScene, color]);
 
   // Auto-scaling logic
-  // We want the model to fit within the box defined by width, height, depth
-  // But usually we just want to match the largest dimension or plausible scale.
-  // Let's compute the bounding box of the model.
   const { scale, centerOffset } = useMemo(() => {
     const box = new THREE.Box3();
 
@@ -191,11 +213,6 @@ function ModelLoader({ url, width, height, depth, rotationOffset = [0, 0, 0] }: 
 
     // If size is 0 (empty model), fallback
     if (size.x === 0 || size.y === 0 || size.z === 0) return { scale: 1, centerOffset: [0, 0, 0] as [number, number, number] };
-
-    // Determine scale factor
-    // We want the model's dimensions to roughly match the target furniture dimensions.
-    // However, stretching it non-uniformly might look bad.
-    // Let's scale uniformly to fit the target bounding box as best as possible without exceeding it.
 
     // Check if rotated 90 degrees around X-axis (approx)
     const isRotatedX = Math.abs(rotationOffset[0] - Math.PI / 2) < 0.1;

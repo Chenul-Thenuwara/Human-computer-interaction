@@ -82,6 +82,7 @@ interface DesignContextType {
   addWallFeature: (feature: Omit<WallFeature, 'id'>) => void;
   updateWallFeature: (id: string, featureData: Partial<WallFeature>) => void;
   removeWallFeature: (id: string) => void;
+  updateFurnitureColor: (id: string, color: string) => void;
 }
 
 const DesignContext = createContext<DesignContextType | undefined>(undefined);
@@ -275,6 +276,18 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
     });
   }, [setCurrentDesign]);
 
+  const updateFurnitureColor = useCallback((id: string, color: string) => {
+    setCurrentDesign(prev => {
+      if (!prev || !activeRoomId) return prev;
+      const updatedRooms = prev.rooms.map(r =>
+        r.id === activeRoomId
+          ? { ...r, furniture: r.furniture.map(f => f.id === id ? { ...f, color } : f) }
+          : r
+      );
+      return { ...prev, rooms: updatedRooms, updatedAt: new Date().toISOString() };
+    });
+  }, [activeRoomId, setCurrentDesign]);
+
   const addWallFeature = useCallback((featureData: Omit<WallFeature, 'id'>) => {
     if (!activeRoomId) return;
     const newFeature: WallFeature = { ...featureData, id: Date.now().toString() };
@@ -362,6 +375,7 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
     addWallFeature,
     updateWallFeature,
     removeWallFeature,
+    updateFurnitureColor,
   }), [
     designs,
     currentDesign,
@@ -377,7 +391,8 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
     updateRoomPosition,
     addWallFeature,
     updateWallFeature,
-    removeWallFeature
+    removeWallFeature,
+    updateFurnitureColor,
   ]);
 
   return (

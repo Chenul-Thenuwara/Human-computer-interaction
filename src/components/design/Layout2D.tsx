@@ -20,7 +20,7 @@ import { Slider } from '../ui/slider';
 import { Separator } from '../ui/separator';
 
 export function Layout2D({ mode = 'full' }: { mode?: 'full' | 'builder' }) {
-  const { currentDesign, activeRoomId, setActiveRoomId, updateDesignFurniture, updateRoomPosition, updateDesignRoom } = useDesign();
+  const { currentDesign, activeRoomId, setActiveRoomId, updateDesignFurniture, updateRoomPosition, updateDesignRoom, updateFurnitureColor } = useDesign();
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
   const [furnitureLibrary, setFurnitureLibrary] = useState<FurnitureItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -221,6 +221,7 @@ export function Layout2D({ mode = 'full' }: { mode?: 'full' | 'builder' }) {
               onDropItem={handleDropFurniture}
               onUpdateRoomPosition={updateRoomPosition}
               onRemoveItem={handleRemoveItem}
+              onUpdateItemColor={(id, color) => updateFurnitureColor(id, color)}
             />
           </div>
 

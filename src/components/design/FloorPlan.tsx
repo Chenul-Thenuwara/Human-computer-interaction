@@ -4,7 +4,7 @@ import { RoomData, FurnitureItem } from '../../lib/design-context';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { RotateCw, Trash2 } from 'lucide-react';
+import { RotateCw, Trash2, Palette } from 'lucide-react';
 
 interface FloorPlanProps {
   rooms: RoomData[];
@@ -17,11 +17,28 @@ interface FloorPlanProps {
   onDropItem?: (item: Omit<FurnitureItem, 'id' | 'position' | 'rotation'>, position: { x: number; y: number }) => void;
   onUpdateRoomPosition: (id: string, position: { x: number; z: number }) => void;
   onRemoveItem?: (id: string) => void;
+  onUpdateItemColor?: (id: string, color: string) => void;
 }
 
-export function FloorPlan({ rooms, activeRoomId, onSelectRoom, selectedItem, onSelectItem, onUpdateItemPosition, onUpdateItemRotation, onDropItem, onUpdateRoomPosition, onRemoveItem }: FloorPlanProps) {
+export function FloorPlan({ rooms, activeRoomId, onSelectRoom, selectedItem, onSelectItem, onUpdateItemPosition, onUpdateItemRotation, onDropItem, onUpdateRoomPosition, onRemoveItem, onUpdateItemColor }: FloorPlanProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const scale = 60; // pixels per meter
+
+  // Curated furniture color presets
+  const furnitureColorPresets = [
+    { name: 'Walnut', color: '#5C3D2E' },
+    { name: 'Oak', color: '#C8A876' },
+    { name: 'White', color: '#F5F5F5' },
+    { name: 'Charcoal', color: '#36454F' },
+    { name: 'Slate Blue', color: '#6A7FA8' },
+    { name: 'Sage', color: '#78937A' },
+    { name: 'Terracotta', color: '#C46B4A' },
+    { name: 'Blush', color: '#D4A5A5' },
+    { name: 'Navy', color: '#1B2A4A' },
+    { name: 'Cream', color: '#FFFDD0' },
+    { name: 'Ebony', color: '#1C1C1C' },
+    { name: 'Steel', color: '#8C9BAB' },
+  ];
 
   const [{ isOver }, drop] = useDrop(() => ({
     accept: 'furniture',
@@ -577,6 +594,69 @@ export function FloorPlan({ rooms, activeRoomId, onSelectRoom, selectedItem, onS
                 </Button>
                 <div className="ml-auto text-sm text-muted-foreground whitespace-nowrap">
                   Position: {selectedFurnitureObj.position?.x.toFixed(2)}m, {selectedFurnitureObj.position?.y.toFixed(2)}m
+                </div>
+              </div>
+
+              {/* Color Picker */}
+              <div className="pt-3 border-t border-white/10 space-y-3">
+                <div className="flex items-center gap-2 text-xs font-medium text-accent">
+                  <Palette className="w-3.5 h-3.5" />
+                  Furniture Color
+                </div>
+
+                {/* Preset Swatches */}
+                <div className="grid grid-cols-6 gap-1.5">
+                  {furnitureColorPresets.map((preset) => (
+                    <button
+                      key={preset.name}
+                      title={preset.name}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onUpdateItemColor) onUpdateItemColor(selectedFurnitureObj.id, preset.color);
+                      }}
+                      className={`w-8 h-8 rounded-full border-2 transition-all hover:scale-110 ${
+                        selectedFurnitureObj.color === preset.color
+                          ? 'border-accent ring-2 ring-accent ring-offset-1 ring-offset-card'
+                          : 'border-white/20 hover:border-white/50'
+                      }`}
+                      style={{ backgroundColor: preset.color }}
+                    />
+                  ))}
+                </div>
+
+                {/* Custom color */}
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={selectedFurnitureObj.color || '#808080'}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      if (onUpdateItemColor) onUpdateItemColor(selectedFurnitureObj.id, e.target.value);
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-9 h-9 rounded cursor-pointer border border-white/20 bg-transparent p-0.5"
+                    title="Custom color"
+                  />
+                  <input
+                    type="text"
+                    value={selectedFurnitureObj.color || '#808080'}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      if (/^#[0-9A-Fa-f]{0,6}$/.test(e.target.value)) {
+                        if (onUpdateItemColor && e.target.value.length === 7) {
+                          onUpdateItemColor(selectedFurnitureObj.id, e.target.value);
+                        }
+                      }
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    placeholder="#RRGGBB"
+                    className="flex-1 h-9 px-2 rounded text-xs font-mono bg-black/30 border border-white/20 text-foreground focus:outline-none focus:border-accent"
+                  />
+                  <div
+                    className="w-9 h-9 rounded border border-white/20 flex-shrink-0"
+                    style={{ backgroundColor: selectedFurnitureObj.color || '#808080' }}
+                    title="Current color"
+                  />
                 </div>
               </div>
             </CardContent>
