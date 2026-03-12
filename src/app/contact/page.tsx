@@ -91,7 +91,7 @@ export default function ContactPage() {
                                 Let&apos;s create <br/><span className="text-[#f3b5a1] italic" style={{ fontFamily: "var(--font-italianno)", fontSize: "1.2em", lineHeight: "0.8" }}>together</span>
                             </motion.h1>
                             <motion.p variants={fadeUp} className="text-lg text-white/50 font-light max-w-md">
-                                Have a vision in mind? Reach out to our design concierge team and let&apos;s craft your perfect space.
+                                Have questions or need assistance? Reach out to our team and we'll address your doubts and inquiries.
                             </motion.p>
                         </div>
 
@@ -152,7 +152,7 @@ export default function ContactPage() {
                                     required 
                                 />
                                 <label htmlFor="message" className="absolute left-0 top-4 text-white/40 text-sm transition-all peer-focus:-top-3 peer-focus:text-xs peer-focus:text-[#f3b5a1] peer-valid:-top-3 peer-valid:text-xs">
-                                    Tell us about your project
+                                    Tell us how we can help you
                                 </label>
                             </div>
 
@@ -163,7 +163,7 @@ export default function ContactPage() {
                                     disabled={status === "sending"}
                                 >
                                     <span className="font-medium tracking-wide relative z-10">
-                                        {status === "sending" ? "Sending..." : "Send Request"}
+                                        {status === "sending" ? "Sending..." : "Send Inquiry"}
                                     </span>
                                     <ArrowRight className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform" />
                                     {/* Hover effect background */}
