@@ -20,11 +20,12 @@ import { Slider } from '../ui/slider';
 import { Separator } from '../ui/separator';
 
 export function Layout2D({ mode = 'full' }: { mode?: 'full' | 'builder' }) {
-  const { currentDesign, activeRoomId, setActiveRoomId, updateDesignFurniture, updateRoomPosition, updateDesignRoom } = useDesign();
+  const { currentDesign, activeRoomId, setActiveRoomId, updateDesignFurniture, updateRoomPosition, updateDesignRoom, updateFurnitureColor, updateWallColor } = useDesign();
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
   const [furnitureLibrary, setFurnitureLibrary] = useState<FurnitureItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isPropertiesPanelOpen, setIsPropertiesPanelOpen] = useState(true);
+  const [isPerWallOpen, setIsPerWallOpen] = useState(false);
 
   // New state from context for Wall Features
   const { addWallFeature, updateWallFeature, removeWallFeature } = useDesign();
@@ -221,6 +222,7 @@ export function Layout2D({ mode = 'full' }: { mode?: 'full' | 'builder' }) {
               onDropItem={handleDropFurniture}
               onUpdateRoomPosition={updateRoomPosition}
               onRemoveItem={handleRemoveItem}
+              onUpdateItemColor={(id, color) => updateFurnitureColor(id, color)}
             />
           </div>
 
@@ -304,24 +306,130 @@ export function Layout2D({ mode = 'full' }: { mode?: 'full' | 'builder' }) {
                       <Palette className="w-4 h-4" /> Colors
                     </h3>
                     
+                    {/* === All Walls Quick-Set === */}
                     <div className="space-y-3">
-                      <Label className="text-xs text-muted-foreground">Wall Color</Label>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs text-muted-foreground">All Walls</Label>
+                        <span className="text-xs text-muted-foreground/60 italic">sets all 4 at once</span>
+                      </div>
                       <div className="grid grid-cols-4 gap-2">
                         {colorPresets.walls.map((preset) => (
                           <button
                             key={preset.name}
-                            onClick={() => updateDesignRoom({ ...currentRoom.room, wallColor: preset.color })}
+                            onClick={() => updateWallColor('all', preset.color)}
                             disabled={currentDesign.isLocked}
-                            className={`h-8 rounded border transition-all ${currentRoom.room.wallColor === preset.color ? 'border-accent ring-1 ring-accent' : 'border-white/20 hover:border-white/40'}`}
+                            className={`h-8 rounded border transition-all ${!currentRoom.room.wallColors && currentRoom.room.wallColor === preset.color ? 'border-accent ring-1 ring-accent' : 'border-white/20 hover:border-white/40'}`}
                             style={{ backgroundColor: preset.color }}
                             title={preset.name}
                           />
                         ))}
                       </div>
                       <div className="flex gap-2">
-                        <Input type="color" value={currentRoom.room.wallColor} onChange={(e) => updateDesignRoom({ ...currentRoom.room, wallColor: e.target.value })} disabled={currentDesign.isLocked} className="w-12 h-8 p-1" />
-                        <Input type="text" value={currentRoom.room.wallColor} onChange={(e) => updateDesignRoom({ ...currentRoom.room, wallColor: e.target.value })} disabled={currentDesign.isLocked} className="h-8 text-xs font-mono" />
+                        <Input type="color" value={currentRoom.room.wallColor} onChange={(e) => updateWallColor('all', e.target.value)} disabled={currentDesign.isLocked} className="w-12 h-8 p-1" />
+                        <Input type="text" value={currentRoom.room.wallColor} onChange={(e) => updateWallColor('all', e.target.value)} disabled={currentDesign.isLocked} className="h-8 text-xs font-mono" />
                       </div>
+                    </div>
+
+                    {/* === Per-wall pickers (collapsible) === */}
+                    <div className="border border-white/10 rounded-lg overflow-hidden">
+                      {/* Toggle header */}
+                      <button
+                        type="button"
+                        onClick={() => setIsPerWallOpen(o => !o)}
+                        className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors"
+                      >
+                        <span className="flex items-center gap-2">
+                          Individual Walls
+                          {/* Preview dots */}
+                          <span className="flex gap-1">
+                            {(['front', 'back', 'left', 'right'] as const).map(w => (
+                              <span
+                                key={w}
+                                className="w-3 h-3 rounded-full border border-white/20 inline-block"
+                                style={{ backgroundColor: currentRoom.room.wallColors?.[w] ?? currentRoom.room.wallColor }}
+                              />
+                            ))}
+                          </span>
+                        </span>
+                        <ChevronRight
+                          className={`w-3.5 h-3.5 transition-transform duration-200 ${isPerWallOpen ? 'rotate-90' : ''}`}
+                        />
+                      </button>
+
+                      {/* Collapsible content */}
+                      <AnimatePresence initial={false}>
+                        {isPerWallOpen && (
+                          <motion.div
+                            key="per-wall"
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.22, ease: 'easeInOut' }}
+                            style={{ overflow: 'hidden' }}
+                          >
+                            <div className="px-3 pb-3 space-y-2">
+                              {(['front', 'back', 'left', 'right'] as const).map((wall) => {
+                                const wallLabels = { front: 'Front Wall', back: 'Back Wall', left: 'Left Wall', right: 'Right Wall' };
+                                const wallIcons  = { front: '▲', back: '▼', left: '◀', right: '▶' };
+                                const effectiveColor = currentRoom.room.wallColors?.[wall] ?? currentRoom.room.wallColor;
+                                const hasOverride = !!currentRoom.room.wallColors?.[wall];
+                                return (
+                                  <div key={wall} className="space-y-2 pt-2 border-t border-white/5 first:border-0 first:pt-0">
+                                    <div className="flex items-center justify-between">
+                                      <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                                        <span>{wallIcons[wall]}</span> {wallLabels[wall]}
+                                      </Label>
+                                      {hasOverride && (
+                                        <button
+                                          className="text-xs text-muted-foreground/60 hover:text-destructive transition-colors"
+                                          onClick={() => updateWallColor(wall, currentRoom.room.wallColor)}
+                                          title="Reset to global"
+                                        >reset</button>
+                                      )}
+                                    </div>
+                                    <div className="grid grid-cols-4 gap-2">
+                                      {colorPresets.walls.map((preset) => (
+                                        <button
+                                          key={preset.name}
+                                          onClick={() => updateWallColor(wall, preset.color)}
+                                          disabled={currentDesign.isLocked}
+                                          className={`h-7 rounded border transition-all ${
+                                            effectiveColor === preset.color
+                                              ? 'border-accent ring-1 ring-accent'
+                                              : 'border-white/20 hover:border-white/40'
+                                          }`}
+                                          style={{ backgroundColor: preset.color }}
+                                          title={preset.name}
+                                        />
+                                      ))}
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <Input
+                                        type="color"
+                                        value={effectiveColor}
+                                        onChange={(e) => updateWallColor(wall, e.target.value)}
+                                        disabled={currentDesign.isLocked}
+                                        className="w-12 h-7 p-0.5"
+                                      />
+                                      <Input
+                                        type="text"
+                                        value={effectiveColor}
+                                        onChange={(e) => { if (/^#[0-9A-Fa-f]{6}$/.test(e.target.value)) updateWallColor(wall, e.target.value); }}
+                                        disabled={currentDesign.isLocked}
+                                        className="h-7 text-xs font-mono"
+                                      />
+                                      <div
+                                        className="w-7 h-7 rounded border border-white/20 flex-shrink-0"
+                                        style={{ backgroundColor: effectiveColor }}
+                                      />
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
 
                     <div className="space-y-3 pt-2">

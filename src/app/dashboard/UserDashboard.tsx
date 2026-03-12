@@ -34,8 +34,6 @@ export default function UserDashboard() {
 
   // New Request Form State
   const [showNewRequest, setShowNewRequest] = useState(false);
-  const [customerName, setCustomerName] = useState("");
-  const [specialNotes, setSpecialNotes] = useState("");
 
 
 
