@@ -59,13 +59,14 @@ function House() {
           roughness: 0.8,
           metalness: 0.1
         });
-        
-        const wallMaterial = new THREE.MeshStandardMaterial({ 
-          color: wallColor,
-          roughness: 0.9,
-          metalness: 0.05,
-          side: THREE.DoubleSide
-        });
+
+        const makeWallMat = (side: 'front' | 'back' | 'left' | 'right') =>
+          new THREE.MeshStandardMaterial({
+            color: roomData.room.wallColors?.[side] ?? wallColor,
+            roughness: 0.9,
+            metalness: 0.05,
+            side: THREE.DoubleSide,
+          });
 
         return (
           <group key={roomData.id} position={[roomX, 0, roomZ]}>
@@ -100,7 +101,7 @@ function House() {
               castShadow
             >
               <shapeGeometry args={[buildWallShape(width, height, roomData.room.features || [], 'front', false)]} />
-              <primitive object={wallMaterial} attach="material" />
+              <primitive object={makeWallMat('front')} attach="material" />
             </mesh>
 
             {/* Back Wall (Bottom in 2D, mapped to +Z) */}
@@ -111,7 +112,7 @@ function House() {
               castShadow
             >
               <shapeGeometry args={[buildWallShape(width, height, roomData.room.features || [], 'back', true)]} />
-              <primitive object={wallMaterial} attach="material" />
+              <primitive object={makeWallMat('back')} attach="material" />
             </mesh>
 
             {/* Left Wall */}
@@ -122,7 +123,7 @@ function House() {
               castShadow
             >
               <shapeGeometry args={[buildWallShape(length, height, roomData.room.features || [], 'left', true)]} />
-              <primitive object={wallMaterial} attach="material" />
+              <primitive object={makeWallMat('left')} attach="material" />
             </mesh>
 
             {/* Right Wall */}
@@ -133,7 +134,7 @@ function House() {
               castShadow
             >
               <shapeGeometry args={[buildWallShape(length, height, roomData.room.features || [], 'right', false)]} />
-              <primitive object={wallMaterial} attach="material" />
+              <primitive object={makeWallMat('right')} attach="material" />
             </mesh>
           </group>
         );

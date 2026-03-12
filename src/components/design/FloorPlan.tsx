@@ -128,15 +128,42 @@ export function FloorPlan({ rooms, activeRoomId, onSelectRoom, selectedItem, onS
       ctx.fillStyle = r.room.floorColor;
       ctx.fillRect(roomX, roomY, roomWidth, roomHeight);
 
-      // Room border (Highlight active room)
-      if (r.id === activeRoomId) {
-        ctx.strokeStyle = '#3b82f6';
-        ctx.lineWidth = 4;
-      } else {
-        ctx.strokeStyle = '#1e293b';
-        ctx.lineWidth = 3;
-      }
-      ctx.strokeRect(roomX, roomY, roomWidth, roomHeight);
+      // Room border — each wall drawn individually with its own color
+      const isActive = r.id === activeRoomId;
+      const lw = isActive ? 4 : 3;
+      ctx.lineWidth = lw;
+
+      // Helper: resolve per-wall color (active room gets blue highlight override)
+      const wc = (side: 'front' | 'back' | 'left' | 'right') =>
+        isActive ? '#3b82f6' : (r.room.wallColors?.[side] ?? r.room.wallColor);
+
+      // Front wall — top edge
+      ctx.beginPath();
+      ctx.strokeStyle = wc('front');
+      ctx.moveTo(roomX, roomY);
+      ctx.lineTo(roomX + roomWidth, roomY);
+      ctx.stroke();
+
+      // Back wall — bottom edge
+      ctx.beginPath();
+      ctx.strokeStyle = wc('back');
+      ctx.moveTo(roomX, roomY + roomHeight);
+      ctx.lineTo(roomX + roomWidth, roomY + roomHeight);
+      ctx.stroke();
+
+      // Left wall — left edge
+      ctx.beginPath();
+      ctx.strokeStyle = wc('left');
+      ctx.moveTo(roomX, roomY);
+      ctx.lineTo(roomX, roomY + roomHeight);
+      ctx.stroke();
+
+      // Right wall — right edge
+      ctx.beginPath();
+      ctx.strokeStyle = wc('right');
+      ctx.moveTo(roomX + roomWidth, roomY);
+      ctx.lineTo(roomX + roomWidth, roomY + roomHeight);
+      ctx.stroke();
 
       // Draw Wall Features (Doors / Openings / Windows)
       if (r.room.features) {

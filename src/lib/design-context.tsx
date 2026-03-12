@@ -31,11 +31,14 @@ export interface FurnitureItem {
   modelRotationOffset?: [number, number, number];
 }
 
+export type WallSide = 'front' | 'back' | 'left' | 'right';
+
 export interface Room {
   width: number;
   length: number;
   height: number;
   wallColor: string;
+  wallColors?: { front?: string; back?: string; left?: string; right?: string };
   floorColor: string;
   position?: { x: number; z: number };
   features?: WallFeature[];
@@ -83,6 +86,7 @@ interface DesignContextType {
   updateWallFeature: (id: string, featureData: Partial<WallFeature>) => void;
   removeWallFeature: (id: string) => void;
   updateFurnitureColor: (id: string, color: string) => void;
+  updateWallColor: (wall: WallSide | 'all', color: string) => void;
 }
 
 const DesignContext = createContext<DesignContextType | undefined>(undefined);
@@ -288,6 +292,27 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
     });
   }, [activeRoomId, setCurrentDesign]);
 
+  const updateWallColor = useCallback((wall: WallSide | 'all', color: string) => {
+    setCurrentDesign(prev => {
+      if (!prev || !activeRoomId) return prev;
+      const updatedRooms = prev.rooms.map(r => {
+        if (r.id !== activeRoomId) return r;
+        if (wall === 'all') {
+          // Reset per-wall overrides and set global
+          return { ...r, room: { ...r.room, wallColor: color, wallColors: undefined } };
+        }
+        return {
+          ...r,
+          room: {
+            ...r.room,
+            wallColors: { ...r.room.wallColors, [wall]: color },
+          },
+        };
+      });
+      return { ...prev, rooms: updatedRooms, updatedAt: new Date().toISOString() };
+    });
+  }, [activeRoomId, setCurrentDesign]);
+
   const addWallFeature = useCallback((featureData: Omit<WallFeature, 'id'>) => {
     if (!activeRoomId) return;
     const newFeature: WallFeature = { ...featureData, id: Date.now().toString() };
@@ -376,6 +401,7 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
     updateWallFeature,
     removeWallFeature,
     updateFurnitureColor,
+    updateWallColor,
   }), [
     designs,
     currentDesign,
@@ -393,6 +419,7 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
     updateWallFeature,
     removeWallFeature,
     updateFurnitureColor,
+    updateWallColor,
   ]);
 
   return (
