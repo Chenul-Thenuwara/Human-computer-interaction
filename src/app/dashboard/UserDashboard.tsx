@@ -5,12 +5,12 @@ import { useAuth } from "@/lib/auth-context";
 import { User } from "firebase/auth";
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, addDoc, onSnapshot } from "firebase/firestore";
-import { useDesign, DesignProvider, RoomData } from "@/lib/design-context";
+import { useDesign, DesignProvider, RoomData, Design } from "@/lib/design-context";
 import { Layout2D } from "@/components/design/Layout2D";
 import { motion, Variants } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { LogOut, Plus, CheckCircle, ChevronRight, ChevronLeft, Armchair, Clock } from "lucide-react";
+import { LogOut, Plus, CheckCircle, ChevronRight, ChevronLeft, Armchair, Clock, Calendar } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { DesignRequest } from "@/types/design";
@@ -34,6 +34,11 @@ export default function UserDashboard() {
 
   // New Request Form State
   const [showNewRequest, setShowNewRequest] = useState(false);
+
+  // Personal Designs State
+  const [designs, setDesigns] = useState<Design[]>([]);
+  const [loadingDesigns, setLoadingDesigns] = useState(true);
+  const { setCurrentDesign } = useDesign();
 
 
 
@@ -62,6 +67,39 @@ export default function UserDashboard() {
 
     fetchDesigners();
   }, []);
+
+  // Fetch Personal Designs
+  useEffect(() => {
+    async function fetchDesigns() {
+      if (!user) {
+        setLoadingDesigns(false);
+        return;
+      }
+
+      try {
+        const q = query(
+          collection(db, "designs"),
+          where("userId", "==", user.uid)
+        );
+        const querySnapshot = await getDocs(q);
+        const fetchedDesigns: Design[] = [];
+        querySnapshot.forEach((doc) => {
+          fetchedDesigns.push({ id: doc.id, ...doc.data() } as Design);
+        });
+
+        // Sort manually by updatedAt descending
+        fetchedDesigns.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+
+        setDesigns(fetchedDesigns);
+      } catch (error) {
+        console.error("Error fetching designs:", error);
+      } finally {
+        setLoadingDesigns(false);
+      }
+    }
+
+    fetchDesigns();
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
@@ -190,11 +228,22 @@ export default function UserDashboard() {
             <p className="text-4xl font-light text-blue-400" style={{ fontFamily: "var(--font-italiana)" }}>{inProgressCount}</p>
           </motion.div>
 
-          <motion.div variants={fadeUp} className="backdrop-blur-xl bg-white/5 border border-white/10 shadow-xl rounded-2xl p-6 relative overflow-hidden flex flex-col justify-center items-center group cursor-pointer hover:bg-white/10 transition-all border-dashed"
-            onClick={() => setShowNewRequest(true)}
-          >
-            <Plus className="w-8 h-8 text-[#f3b5a1] mb-2 group-hover:scale-110 transition-transform" />
-            <span className="text-sm font-medium text-[#f3b5a1]">New Request</span>
+          <motion.div variants={fadeUp} className="backdrop-blur-xl bg-white/5 border border-white/10 shadow-xl rounded-2xl p-6 relative overflow-hidden flex flex-col justify-center gap-4 group hover:bg-white/10 transition-all">
+            <Button
+              onClick={() => setShowNewRequest(true)}
+              className="w-full bg-white/10 text-white hover:bg-white/20 justify-start"
+            >
+              <Plus className="w-4 h-4 mr-2" /> Request a Design
+            </Button>
+            <Button
+              onClick={() => {
+                setCurrentDesign(null);
+                router.push("/design/new");
+              }}
+              className="w-full bg-[#f3b5a1] text-[#233529] hover:bg-[#f3b5a1]/90 justify-start font-medium"
+            >
+              <Armchair className="w-4 h-4 mr-2" /> Create New Design
+            </Button>
           </motion.div>
         </motion.div>
 
@@ -294,6 +343,105 @@ export default function UserDashboard() {
                   </div>
                ))}
              </div>
+          )}
+        </motion.div>
+
+        {/* Portfolio Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="w-full flex flex-col gap-6"
+        >
+          <div className="flex justify-between items-end border-b border-white/10 pb-4">
+            <h2 className="text-3xl font-medium tracking-wide text-white" style={{ fontFamily: "var(--font-italiana)" }}>My Design Portfolio</h2>
+            <Button
+              onClick={() => {
+                setCurrentDesign(null);
+                router.push("/design/new");
+              }}
+              className="bg-white/10 text-white hover:bg-white/20 transition-all rounded-xl border border-white/10"
+            >
+              <Plus className="w-4 h-4 mr-2" /> New Personal Design
+            </Button>
+          </div>
+
+          {loadingDesigns ? (
+            <div className="w-full min-h-[300px] flex items-center justify-center backdrop-blur-md bg-white/[0.02] border border-white/10 rounded-2xl">
+              <div className="w-8 h-8 border-2 border-[#f3b5a1]/50 border-t-[#f3b5a1] rounded-full animate-spin"></div>
+            </div>
+          ) : designs.length === 0 ? (
+            <div className="w-full min-h-[300px] flex flex-col items-center justify-center backdrop-blur-md bg-white/[0.02] border border-white/10 border-dashed p-12 rounded-2xl">
+              <span className="text-4xl filter grayscale opacity-50 mb-4">🛋️</span>
+              <p className="text-white/50 mb-6 text-center max-w-sm">You haven&apos;t created any personal designs yet.</p>
+              <Button
+                onClick={() => {
+                  setCurrentDesign(null);
+                  router.push("/design/new");
+                }}
+                className="bg-white text-black hover:bg-white/90 rounded-xl"
+              >
+                Start Designing
+              </Button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4 w-full">
+              {designs.map((design, index) => (
+                <motion.div
+                  key={design.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  whileHover={{ x: 5, backgroundColor: "rgba(255,255,255,0.08)" }}
+                  className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between group transition-colors"
+                >
+                  <div className="flex items-center gap-6">
+                    <div
+                      className={`w-16 h-16 rounded-xl flex items-center justify-center shrink-0 shadow-lg ${[
+                        "bg-gradient-to-br from-[#f3b5a1] to-rose-400",
+                        "bg-gradient-to-br from-purple-400 to-indigo-500",
+                        "bg-gradient-to-br from-[#8ea37e] to-emerald-600",
+                        "bg-gradient-to-br from-amber-400 to-orange-500",
+                        "bg-gradient-to-br from-cyan-400 to-blue-500"
+                      ][index % 5]} transition-transform group-hover:scale-105 group-hover:rotate-3`}
+                    >
+                      <Armchair className="w-7 h-7 text-white opacity-90" />
+                    </div>
+
+                    <div className="flex flex-col">
+                      <h3 className="text-xl font-medium text-white mb-1 tracking-wide" style={{ fontFamily: "var(--font-italiana)" }}>
+                        {design.name || "Untitled Design"}
+                      </h3>
+                      <p className="text-sm text-white/50 font-light flex items-center gap-4">
+                        <span>Personal Project</span>
+                        <span className="w-1 h-1 rounded-full bg-white/20"></span>
+                        <span>{design.furniture?.length || 0} items</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-8">
+                    <div className="hidden md:flex flex-col items-end">
+                      <span className="text-xs text-white/40 uppercase tracking-wider font-medium mb-1">Last Updated</span>
+                      <div className="flex items-center text-sm text-white/70 font-light">
+                        <Calendar className="w-3.5 h-3.5 mr-2 opacity-50" />
+                        {new Date(design.updatedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        setCurrentDesign(design);
+                        router.push("/design/new");
+                      }}
+                      className="text-[#f3b5a1] hover:text-white hover:bg-[#f3b5a1]/20 px-6 h-10 rounded-xl"
+                    >
+                      Open
+                    </Button>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           )}
         </motion.div>
       </main>
