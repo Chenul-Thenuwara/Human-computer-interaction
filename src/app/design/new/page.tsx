@@ -20,7 +20,7 @@ export default function DesignStudioPage() {
   const router = useRouter();
   // Always work with 'new' for now, or existing context
   const { currentDesign, activeRoomId, setActiveRoomId, addRoom, deleteRoom, setCurrentDesign, saveDesign } = useDesign();
-  const { user, logout } = useAuth();
+  const { user, logout, isDesigner } = useAuth();
   const [activeTab, setActiveTab] = useState("2d");
   const [isNewRoomDialogOpen, setIsNewRoomDialogOpen] = useState(false);
   const [newRoomName, setNewRoomName] = useState("New Room");
@@ -130,7 +130,7 @@ export default function DesignStudioPage() {
       return;
     }
 
-    if (!tempCustomerName.trim()) {
+    if (isDesigner && !tempCustomerName.trim()) {
       toast.error("Please enter a customer name");
       return;
     }
@@ -138,7 +138,7 @@ export default function DesignStudioPage() {
     const updatedDesign = {
       ...currentDesign,
       name: tempDesignName.trim(),
-      customerName: tempCustomerName.trim()
+      customerName: isDesigner ? tempCustomerName.trim() : (user?.displayName || user?.email?.split('@')[0] || ""),
     };
     
     // Update local context first
@@ -443,23 +443,25 @@ export default function DesignStudioPage() {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <label htmlFor="customer-name" className="text-sm font-medium text-foreground">
-                      Customer Name
-                    </label>
-                    <input
-                      id="customer-name"
-                      type="text"
-                      value={tempCustomerName}
-                      onChange={(e) => setTempCustomerName(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') confirmSave();
-                      }}
-                      placeholder="e.g. John Doe"
-                      disabled={currentDesign.isLocked}
-                      className="flex h-10 w-full rounded-md border border-white/20 bg-background/50 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-foreground"
-                    />
-                  </div>
+                  {isDesigner && (
+                    <div className="space-y-2">
+                      <label htmlFor="customer-name" className="text-sm font-medium text-foreground">
+                        Customer Name
+                      </label>
+                      <input
+                        id="customer-name"
+                        type="text"
+                        value={tempCustomerName}
+                        onChange={(e) => setTempCustomerName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') confirmSave();
+                        }}
+                        placeholder="e.g. John Doe"
+                        disabled={currentDesign.isLocked}
+                        className="flex h-10 w-full rounded-md border border-white/20 bg-background/50 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-foreground"
+                      />
+                    </div>
+                  )}
                   
                   <div className="flex justify-end gap-3 pt-2">
                     <Button
