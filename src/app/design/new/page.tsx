@@ -20,11 +20,15 @@ export default function DesignStudioPage() {
   const router = useRouter();
   // Always work with 'new' for now, or existing context
   const { currentDesign, activeRoomId, setActiveRoomId, addRoom, deleteRoom, setCurrentDesign, saveDesign } = useDesign();
-  const { user, logout } = useAuth();
+  const { user, logout, isDesigner } = useAuth();
   const [activeTab, setActiveTab] = useState("2d");
   const [isNewRoomDialogOpen, setIsNewRoomDialogOpen] = useState(false);
   const [newRoomName, setNewRoomName] = useState("New Room");
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  
+  const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+  const [tempDesignName, setTempDesignName] = useState("");
+  const [tempCustomerName, setTempCustomerName] = useState("");
 
   useEffect(() => {
     const initializeDesign = async () => {
@@ -111,40 +115,61 @@ export default function DesignStudioPage() {
     initializeDesign();
   }, [currentDesign, setCurrentDesign]);
 
-  const handleSave = async () => {
+  const handleSave = () => {
+    if (!currentDesign) return;
+    setTempDesignName(currentDesign.name === "Untitled Design" ? "" : currentDesign.name);
+    setTempCustomerName(currentDesign.customerName || "");
+    setIsSaveDialogOpen(true);
+  };
+
+  const confirmSave = async () => {
     if (!currentDesign) return;
 
-    if (!currentDesign.name || currentDesign.name === "Untitled Design") {
+    if (!tempDesignName.trim()) {
       toast.error("Please enter a design name");
-      setActiveTab("2d");
       return;
     }
 
-    if (!currentDesign.customerName) {
+    if (isDesigner && !tempCustomerName.trim()) {
       toast.error("Please enter a customer name");
-      setActiveTab("2d");
       return;
     }
 
-    // Save the design using context
-    saveDesign(currentDesign);
+    const updatedDesign = {
+      ...currentDesign,
+      name: tempDesignName.trim(),
+      customerName: isDesigner ? tempCustomerName.trim() : (user?.displayName || user?.email?.split('@')[0] || ""),
+    };
+    
+    // Update local context first
+    setCurrentDesign(updatedDesign);
 
-    // Link back to request if we have one
-    const reqId = currentDesign.requestId;
-    if (reqId) {
-       try {
-         await updateDoc(doc(db, "design_requests", reqId), {
-            status: "completed",
-            designId: currentDesign.id,
-            updatedAt: new Date().toISOString()
-         });
-         toast.success("Design saved and request marked as completed!");
-       } catch (error) {
-         console.error("Error updating request:", error);
-         toast.error("Design saved, but failed to link request.");
-       }
-    } else {
-       toast.success("Design saved successfully!");
+    try {
+      // Save the design using context
+      await saveDesign(updatedDesign);
+
+      // Link back to request if we have one
+      const reqId = updatedDesign.requestId;
+      if (reqId) {
+         try {
+           await updateDoc(doc(db, "design_requests", reqId), {
+              status: "completed",
+              designId: updatedDesign.id,
+              updatedAt: new Date().toISOString()
+           });
+           toast.success("Design saved and request marked as completed!");
+         } catch (error) {
+           console.error("Error updating request:", error);
+           toast.error("Design saved, but failed to link request.");
+         }
+      } else {
+         toast.success("Design saved successfully!");
+      }
+      
+      setIsSaveDialogOpen(false);
+    } catch (error) {
+      console.error("Error saving design:", error);
+      toast.error("Failed to save design");
     }
   };
 
@@ -371,6 +396,85 @@ export default function DesignStudioPage() {
                       }}
                     >
                       Add Room
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          )}
+
+          {/* Save Design Dialog */}
+          {isSaveDialogOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                className="bg-card w-full max-w-sm rounded-xl border border-white/20 shadow-2xl p-6"
+              >
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                    <Save className="w-5 h-5" />
+                    Save Design
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Enter details for this design before saving.
+                  </p>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label htmlFor="design-name" className="text-sm font-medium text-foreground">
+                      Design Name
+                    </label>
+                    <input
+                      id="design-name"
+                      type="text"
+                      autoFocus
+                      value={tempDesignName}
+                      onChange={(e) => setTempDesignName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          document.getElementById('customer-name')?.focus();
+                        }
+                      }}
+                      placeholder="e.g. Modern Living Room"
+                      className="flex h-10 w-full rounded-md border border-white/20 bg-background/50 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-foreground"
+                    />
+                  </div>
+
+                  {isDesigner && (
+                    <div className="space-y-2">
+                      <label htmlFor="customer-name" className="text-sm font-medium text-foreground">
+                        Customer Name
+                      </label>
+                      <input
+                        id="customer-name"
+                        type="text"
+                        value={tempCustomerName}
+                        onChange={(e) => setTempCustomerName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') confirmSave();
+                        }}
+                        placeholder="e.g. John Doe"
+                        disabled={currentDesign.isLocked}
+                        className="flex h-10 w-full rounded-md border border-white/20 bg-background/50 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-foreground"
+                      />
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-end gap-3 pt-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsSaveDialogOpen(false)}
+                      className="border-white/20 hover:bg-white/10 text-foreground"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={confirmSave}
+                    >
+                      Save Design
                     </Button>
                   </div>
                 </div>
